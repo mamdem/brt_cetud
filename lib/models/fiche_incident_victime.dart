@@ -14,9 +14,9 @@ class FicheIncidentVictime {
   int? userSaisie;
   int? userUpdate;
   int? userDelete;
-  String? createdAt;
-  String? updatedAt;
-  String? deletedAt;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  DateTime? deletedAt;
 
   FicheIncidentVictime({
     this.idIncidentVictime,
@@ -56,9 +56,9 @@ class FicheIncidentVictime {
       'user_saisie': userSaisie,
       'user_update': userUpdate,
       'user_delete': userDelete,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-      'deleted_at': deletedAt,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'deleted_at': deletedAt?.toIso8601String(),
     };
   }
 
@@ -79,9 +79,15 @@ class FicheIncidentVictime {
       userSaisie: map['user_saisie'],
       userUpdate: map['user_update'],
       userDelete: map['user_delete'],
-      createdAt: map['created_at'],
-      updatedAt: map['updated_at'],
-      deletedAt: map['deleted_at'],
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'])
+          : null,
+      deletedAt: map['deleted_at'] != null
+          ? DateTime.parse(map['deleted_at'])
+          : null,
     );
   }
 }

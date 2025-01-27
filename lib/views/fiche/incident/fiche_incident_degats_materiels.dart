@@ -4,12 +4,13 @@ import 'dart:io';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../collect/accident/collect_accident_degats_materiels_screen.dart';
+import '../../collect/incident/collect_incident_degats_materiels_screen.dart';
 
-class DetailsFicheDegatsMateriels extends StatelessWidget {
+class DetailsFicheIncidentDegatsMateriels extends StatelessWidget {
   final List<Map<String, dynamic>> degatDetails;
   final int accidentID;
 
-  DetailsFicheDegatsMateriels({super.key, required this.degatDetails, required this.accidentID});
+  DetailsFicheIncidentDegatsMateriels({super.key, required this.degatDetails, required this.accidentID});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -176,7 +177,7 @@ class DetailsFicheDegatsMateriels extends StatelessWidget {
         onPressed: () {
           if(accidentID!=-1){
             Get.to(
-              CollectAccidentDegatMaterielsScreen(accidentId: accidentID),
+              CollectIncidentDegatMaterielsScreen(incidentId: accidentID),
               transition: Transition.rightToLeft,
             );
           }else{

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:brt_mobile/core/utils/app_colors.dart';
+import 'package:brt_mobile/error/sync_log_page.dart';
 import 'package:brt_mobile/services/accident_incident_service.dart';
 import 'package:brt_mobile/services/auth_service.dart';
 import 'package:brt_mobile/views/auth/login_screen.dart';
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
 
   String nomComplet="loading...";
+  String imagePath="";
 
   int _totalAlerts = 0;
 
@@ -85,9 +87,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Future.delayed(const Duration(seconds: 3), () async {
       await fetchUser();
+      await AuthService.fetchAndSaveData().then((value){
+        _fetchFirstIncidents();
+        _fetchTotalAlerts();
+      });
+      _isLoading=false;
     });
 
-    Timer.periodic(const Duration(seconds: 12225), (timer) async {
+    Timer.periodic(const Duration(seconds: 11115), (timer) async {
       print("Recupération données...");
       //await fetchUser();
       await AuthService.fetchAndSaveData().then((value){
@@ -119,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         global.user = user;
         nomComplet = "${user['prenom']} ${user['nom']}";
+        imagePath = user['photo'];
       });
     } else {
       print('Aucun utilisateur trouvé avec cet email.');
@@ -134,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchTotalAlerts();
   }
 
+
   Future<void> _fetchTotalAlerts() async {
     final db = DatabaseHelper();
     final total = await db.getTotalAlertsCount();
@@ -148,7 +157,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _firstIncidents=[];
       _firstIncidents = incidents;
-      _isLoading = false;
     });
   }
 
@@ -316,8 +324,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(width: 1, color: AppColors.textField),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/police_logo.png'),
+                        image: DecorationImage(
+                          image: FileImage(File(imagePath)),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -429,13 +437,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   AppButton(
                                     onPressed: () async{
+                                      Navigator.pop(context);
                                       EasyLoading.instance.backgroundColor = Colors.black;
                                       EasyLoading.show(status: 'Requête en cours...');
-                                      await AccIncService.syncAllData();
+                                      await AccIncService.syncAllAlert();
                                       await AccIncService.syncAllFicheAccidents();
+                                      await AccIncService.syncAllFicheIncidents();
                                       EasyLoading.dismiss();
-                                      Get.back();
                                       Get.snackbar("Reussi", "Synchronisation effectuée  avec succés");
+                                      Navigator.pop(context);
                                     },
                                     backgroundColor: AppColors.appColor,
                                     foregroundColor: AppColors.white,
@@ -449,6 +459,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         );
+                      }
+                      else if(index == 4){
+                        Get.to(SyncLogPage(), transition: Transition.rightToLeft);
+                        //Navigator.pop(context);
                       }
                     },
                     child: Padding(
@@ -843,7 +857,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Text(
                           'Incidents/Accidents Récents',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -859,13 +873,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ):const Text(""),
                     _isLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Padding(padding: EdgeInsets.symmetric(vertical: 50), child: Center(child: CircularProgressIndicator()),)
                         : _firstIncidents.isEmpty
                         ? const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 40),
                           child: Text(
-                            "Aucun incident signalé",
+                            "Aucun signalement !",
                             style: TextStyle(fontSize: 20, color: Colors.grey),
                           ),
                         )
@@ -881,9 +895,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               return IncidentCard(
                                 idficheAlert: incident['idfiche_alert'],
                                 title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 43  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
+                                location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
                                 time: formatDate(incident['date_alert']),
-                                isAffected: incident['user_update'] != null,
+                                userAffected: incident['prenom_nom'],
                                 isIncident: !(incident['type_alert'] == 41),
                                 isSynced: incident['id_user']!=null,
                               );
@@ -891,9 +905,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               return IncidentCard(
                                 idficheAlert: incident['idfiche_alert'],
                                 title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 43 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
+                                location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
                                 time: formatDate(incident['date_alert']),
-                                isAffected: incident['user_update'] != null,
+                                userAffected: incident['prenom_nom'],
                                 isIncident: !(incident['type_alert'] == 41),
                                 isSynced: incident['id_user']!=null,
                               );
@@ -901,11 +915,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               return IncidentCard(
                                 idficheAlert: incident['idfiche_alert'],
                                 title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 43
+                                location: incident['voie'] == 1
                                     ? "Corridor: : ${snapshot.data!}"
                                     : "Hors Corridor: ${snapshot.data!}",
                                 time: formatDate(incident['date_alert']),
-                                isAffected: incident['user_update'] != null,
+                                userAffected: incident['prenom_nom'],
                                 isIncident: !(incident['type_alert'] == 41),
                                 isSynced: incident['id_server']!=null,
                               );

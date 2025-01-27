@@ -44,7 +44,7 @@ class ResponsableSaisi {
     return ResponsableSaisi(
       id: map['id'],
       codeAlert: map['code_alert'],
-      responsableSaisi: map['responsable_saisi'],
+      responsableSaisi: map['responsable_saisie'],
       prenomNom: map['prenom_nom'],
       userSaisie: map['user_saisie'],
       userUpdate: map['user_update'],

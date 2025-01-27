@@ -1,3 +1,4 @@
+import 'package:brt_mobile/core/dialog/incident/incident_victime_details_dialog.dart';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import 'package:brt_mobile/views/collect/accident/collect_accident_victime.dart';
 import 'package:flutter/material.dart';
@@ -6,12 +7,13 @@ import 'package:get/get.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 import '../../../core/dialog/accident/victime_details_dialog.dart';
 import '../../../sqflite/database_helper.dart';
+import '../../collect/incident/collect_incident_victime.dart';
 
-class DetailsFicheAccidentVictime extends StatelessWidget {
+class DetailsFicheIncidentVictime extends StatelessWidget {
   final List<Map<String, dynamic>> victimeDetails;
   final int accidentID;
 
-  DetailsFicheAccidentVictime({super.key, required this.victimeDetails, required this.accidentID});
+  DetailsFicheIncidentVictime({super.key, required this.victimeDetails, required this.accidentID});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -31,6 +33,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
     return data?['libelle'] ?? 'Non défini';
   }
 
+
   void showVictimDetails(BuildContext context, Map<String, dynamic> victimInfo) {
     showDialog(
       context: context,
@@ -40,6 +43,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _buildInfoTile({
     required IconData icon,
@@ -75,7 +79,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => VictimDetailsDialog(
+                builder: (context) => IncidentVictimeDetailsDialog(
                   victimInfo: victim,
                   getLibelleFromDb: getLibelleFromDb,
                 ),
@@ -134,8 +138,8 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
         onPressed: () {
           if(accidentID!=-1){
             Get.off(
-              CollectAccidentVictimeScreen(
-                accidentId: accidentID,
+              CollectIncidentVictimeScreen(
+                incidentId: accidentID,
               ),
               transition: Transition.rightToLeft,
             );

@@ -78,9 +78,9 @@ class _AllIncidentState extends State<AllIncident> {
                   return IncidentCard(
                     idficheAlert: incident['idfiche_alert'],
                     title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                    location: incident['voie'] == 43  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
+                    location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
                     time: formatDate(incident['date_alert']),
-                    isAffected: incident['user_update'] != null,
+                    userAffected: incident['prenom_nom'],
                     isIncident: !(incident['type_alert'] == 41),
                     isSynced: incident['id_server']!=null,
                   );
@@ -88,9 +88,9 @@ class _AllIncidentState extends State<AllIncident> {
                   return IncidentCard(
                     idficheAlert: incident['idfiche_alert'],
                     title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                    location: incident['voie'] == 43 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
+                    location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
                     time: formatDate(incident['date_alert']),
-                    isAffected: incident['user_update'] != null,
+                    userAffected: incident['prenom_nom'],
                     isIncident: !(incident['type_alert'] == 41),
                     isSynced: incident['id_server']!=null,
                   );
@@ -98,11 +98,11 @@ class _AllIncidentState extends State<AllIncident> {
                   return IncidentCard(
                     idficheAlert: incident['idfiche_alert'],
                     title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                    location: incident['voie'] == 43
+                    location: incident['voie'] == 1
                         ? "Corridor: : ${snapshot.data!}"
                         : "Hors Corridor: ${snapshot.data!}",
                     time: formatDate(incident['date_alert']),
-                    isAffected: incident['user_update'] != null,
+                    userAffected: incident['prenom_nom'],
                     isIncident: !(incident['type_alert'] == 41),
                     isSynced: incident['id_server']!=null,
                   );

@@ -29,10 +29,11 @@ class _DetailsAccidentState extends State<DetailsAccident> {
 
   Map<String, dynamic>? _alertDetails;
   Map<String, dynamic>? _ficheAccidentDetails;
-  Map<String, dynamic>? _ficheRespSaisi;
   List<Map<String, dynamic>> _ficheVehiculeDetails=[];
   List<Map<String, dynamic>> _ficheVictimeDetails=[];
   List<Map<String, dynamic>> _ficheDegatsDetails=[];
+
+  late Future<void> _fetchFuture;
 
   DatabaseHelper db = DatabaseHelper();
   bool _isLoading1 = true;
@@ -44,17 +45,27 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     setState(() {
       currentStepAcc = prefs.getInt('currentStep${widget.alertId}') ?? 1;
     });
-    await _fetchAlertDetails();
-    await _fetchFicheAccidentDetails();
-    await _fetchFicheVehiculeDetails();
-    await fetchVictimes();
-    await fetchDegatDetails();
-    //await _fetchRespSaisiDetails();
+    //await _fetchAllRespSaisiDetails();
+    try{
+      await _fetchAlertDetails();
+    }catch(e){}
+
+    try{
+      await _fetchFicheVehiculeDetails();
+    }catch(e){}
+    try{
+      await fetchVictimes();
+    }catch(e){}try{
+      await fetchDegatDetails();
+    }catch(e){}
   }
 
   @override
   void initState() {
     super.initState();
+    try{
+      _fetchFuture = _fetchFicheAccidentDetails();
+    }catch(e){}
     initialize();
   }
 
@@ -89,43 +100,25 @@ class _DetailsAccidentState extends State<DetailsAccident> {
   }
 
   Future<void> _fetchFicheAccidentDetails() async {
-    _fetch();
-    final db = DatabaseHelper();
-    final ficheAccident = await db.getFicheAccidentByIdAlert(widget.alertId);
+      final db = DatabaseHelper();
+      final ficheAccident = await db.getFicheAccidentByIdAlert(widget.alertId);
 
-    setState(() {
-      _ficheAccidentDetails = ficheAccident;
-      _isLoading2 = false;
-    });
-  }
-
-  Future<void> _fetch() async {
-    final db = DatabaseHelper();
-    final ficheAccident = await db.getAllFicheAccidents();
-    setState(() {
-      for(FicheAccident f in ficheAccident){
-        print(f.toMap());
-        print("\n\n-----------------------");
-      }
-      _isLoading2 = false;
-    });
+      setState(() {
+        _ficheAccidentDetails = ficheAccident;
+        _isLoading2 = false;
+      });
   }
 
   Future<void> _fetchFicheVehiculeDetails() async {
-    final db = DatabaseHelper();
-    final ficheAccident = await db.getFicheVehiculeByAccidentId(_ficheAccidentDetails!["idfiche_accident"]);
-    setState(() {
-      _ficheVehiculeDetails = ficheAccident;
-      _isLoading3 = false;
-    });
-  }
-
-  Future<void> _fetchRespSaisiDetails() async {
-    final db = DatabaseHelper();
-    final resp = await db.getRespSaisiByCodeAlert(_alertDetails!['code_alert']);
-    setState(() {
-      _ficheRespSaisi = resp;
-    });
+    try{
+      final ficheAccidentVehicule = await db.getFicheVehiculeByAccidentId(_ficheAccidentDetails!["idfiche_accident"]);
+      print("VOILAAAAAAAAAAAAAAAAAAAAAAAa LES VEHICULE");
+      print(ficheAccidentVehicule);
+      setState(() {
+        _ficheVehiculeDetails = ficheAccidentVehicule;
+        _isLoading3 = false;
+      });
+    }catch(e){}
   }
 
   String formatDate(String? isoDate) {
@@ -200,154 +193,142 @@ class _DetailsAccidentState extends State<DetailsAccident> {
         ),
         backgroundColor: AppColors.appColor,
       ),
-      body: _isLoading1 || _isLoading2
-          ? const Center(child: CircularProgressIndicator())
-          : false
-          ? const Center(
-        child: Text(
-          "Aucune donnée disponible pour cet incident.",
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      )
-          : DefaultTabController(
+      body:  DefaultTabController(
         length: 4,
         initialIndex: initialTabIndex,
         child: Column(
-            children: [
-              Padding(padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Accident",
-                      style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _alertDetails!=null && _alertDetails!['blesse_oui_non'] == 1
-                            ? Colors.redAccent.withOpacity(0.2)
-                            : Colors.greenAccent.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _ficheAccidentDetails!=null && _ficheAccidentDetails!['user_update']!=null ? 'Affecté' : 'Non affecté',
-                        style: TextStyle(
-                          color: _ficheAccidentDetails!=null && _ficheAccidentDetails!['user_update']!=null ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                child: TabBar(
-                  physics: const BouncingScrollPhysics(),
-                  isScrollable: true,
-                  unselectedLabelColor: AppColors.appColor,
-                  labelColor: AppColors.white,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: AppColors.appColor.withOpacity(0.8),
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Accident",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                   ),
-
-                  tabs: [
-                   Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 0.0), // Ajoute une marge horizontale
-                      child: const Tab(
-                        icon: Icon(Icons.warning_amber),
-                        text: "Accident",
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _alertDetails != null &&
+                          _alertDetails!['blesse_oui_non'] == 1
+                          ? Colors.redAccent.withOpacity(0.2)
+                          : Colors.greenAccent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                          ? 'Responsable: ${_alertDetails!["prenom_nom"]}'
+                          : 'Non affecté',
+                      style: TextStyle(
+                        color: _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                            ? Colors.green
+                            : Colors.red,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: const Tab(
-                        icon: Icon(Icons.directions_car),
-                        text: "Véhicule",
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: const Tab(
-                        icon: Icon(Icons.people),
-                        text: "Victime",
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: const Tab(
-                        icon: Icon(Icons.dangerous),
-                        text: "Dégats",
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+              child: TabBar(
+                physics: const BouncingScrollPhysics(),
+                isScrollable: true,
+                unselectedLabelColor: AppColors.appColor,
+                labelColor: AppColors.white,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.appColor.withOpacity(0.8),
                 ),
+                tabs: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: const Tab(
+                      icon: Icon(Icons.warning_amber),
+                      text: "Accident",
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: const Tab(
+                      icon: Icon(Icons.directions_car),
+                      text: "Véhicule",
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: const Tab(
+                      icon: Icon(Icons.people),
+                      text: "Victime",
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: const Tab(
+                      icon: Icon(Icons.dangerous),
+                      text: "Dégats",
+                    ),
+                  ),
+                ],
               ),
-              const Padding(
-                padding: EdgeInsets.all(10.0),
-                child: Divider(thickness: 1),
-              ),
-              SizedBox(
-                height: screenHeight-screenHeight/2.7,
-                child: TabBarView(
-                  children: [
-                    if(_ficheAccidentDetails!=null)...[
-                      _ficheRespSaisi!=null ? DetailsFicheAccident(alertDetails: _alertDetails!, ficheAccidentDetails: _ficheAccidentDetails!, ficheResponsableSaisi: _ficheRespSaisi, haveDraft: currentStepAcc!=1,)
-                      :DetailsFicheAccident(alertDetails: _alertDetails!, ficheAccidentDetails: _ficheAccidentDetails!, haveDraft: currentStepAcc!=1)
-                    ]else...[
-                      _ficheRespSaisi!=null ? DetailsFicheAccident(alertDetails: _alertDetails!, ficheResponsableSaisi: _ficheRespSaisi,haveDraft: currentStepAcc!=1)
-                      :DetailsFicheAccident(alertDetails: _alertDetails!, haveDraft: currentStepAcc!=1)
+            ),
+            const Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Divider(thickness: 1),
+            ),
+            Expanded(
+              child: FutureBuilder<void>(
+                future: _fetchFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Erreur: ${snapshot.error}"));
+                  }
+
+                  return TabBarView(
+                    children: [
+                      (_alertDetails != null && _ficheAccidentDetails != null)
+                          ? DetailsFicheAccident(
+                        alertDetails: _alertDetails!,
+                        ficheAccidentDetails: _ficheAccidentDetails!,
+                        haveDraft: currentStepAcc != 1,
+                      )
+                          : (_alertDetails != null && _ficheAccidentDetails == null)
+                          ? DetailsFicheAccident(
+                        alertDetails: _alertDetails!,
+                        haveDraft: currentStepAcc != 1,
+                      )
+                          : const Center(
+                        child: CircularProgressIndicator(),
+                      ),DetailsFicheVehicule(
+                        vehiculeDetails: _ficheVehiculeDetails,
+                        accidentID: _ficheAccidentDetails != null
+                            ? _ficheAccidentDetails!["idfiche_accident"]
+                            : -1,
+                      ),DetailsFicheAccidentVictime(
+                        victimeDetails: _ficheVictimeDetails,
+                        accidentID: _ficheAccidentDetails != null
+                            ? _ficheAccidentDetails!["idfiche_accident"]
+                            : -1,
+                      ), DetailsFicheDegatsMateriels(
+                        degatDetails: _ficheDegatsDetails,
+                        accidentID: _ficheAccidentDetails != null
+                            ? _ficheAccidentDetails!["idfiche_accident"]
+                            : -1,
+                      )
                     ],
-                    DetailsFicheVehicule(vehiculeDetails: _ficheVehiculeDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                    DetailsFicheAccidentVictime(victimeDetails: _ficheVictimeDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                    DetailsFicheDegatsMateriels(degatDetails: _ficheDegatsDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                  ]
-                ),
-              )
-            ],
-          ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0.0),
-        child: MaterialButton(
-          onPressed: onTap,
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-
-          //color: Colors.white,
-          elevation: 0,
-          hoverElevation: 2,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.appColor, size: 24),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.appColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+
     );
   }
-
-
 }

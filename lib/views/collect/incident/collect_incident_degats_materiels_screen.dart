@@ -10,16 +10,16 @@ import '../../home/home.dart';
 import '../../../widgets/success_alert.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 
-class CollectAccidentDegatMaterielsScreen extends StatefulWidget {
-  final int accidentId;
-  const CollectAccidentDegatMaterielsScreen({Key? key, required this.accidentId}) : super(key: key);
+class CollectIncidentDegatMaterielsScreen extends StatefulWidget {
+  final int incidentId;
+  const CollectIncidentDegatMaterielsScreen({Key? key, required this.incidentId}) : super(key: key);
 
   @override
-  _CollectAccidentDegatMaterielsScreenState createState() =>
-      _CollectAccidentDegatMaterielsScreenState();
+  _CollectIncidentDegatMaterielsScreenState createState() =>
+      _CollectIncidentDegatMaterielsScreenState();
 }
 
-class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDegatMaterielsScreen> {
+class _CollectIncidentDegatMaterielsScreenState extends State<CollectIncidentDegatMaterielsScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _libelleController = TextEditingController();
   File? _selectedImage;
@@ -53,7 +53,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
 
     // Création de l'objet pour les dégâts matériels
     final degatsMateriels = {
-      "accident_id": widget.accidentId,
+      "incident_id": widget.incidentId,
       "libelle_materiels": _libelleController.text,
       "photos": _selectedImage!.path,
       "user_saisie": global.user['idusers'],
@@ -61,7 +61,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
     };
 
     final db = DatabaseHelper();
-    await db.insertAccidentDegatsMateriels(degatsMateriels);
+    await db.insertIncidentDegatsMateriels(degatsMateriels);
 
     openDialogSuccess();
   }
@@ -200,7 +200,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dégâts Matériels"),
+        title: const Text("Incident Dégâts Matériels"),
         centerTitle: true,
         backgroundColor: AppColors.appColor,
       ),

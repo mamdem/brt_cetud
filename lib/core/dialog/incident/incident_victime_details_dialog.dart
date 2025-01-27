@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class IncidentVictimeDetailsDialog extends StatelessWidget {
   final Map<String, dynamic> victimInfo;
+  final Future<String> Function(String tableName, int id) getLibelleFromDb;
 
   IncidentVictimeDetailsDialog({
     Key? key,
     required this.victimInfo,
+    required this.getLibelleFromDb,
   }) : super(key: key);
 
   Widget _buildSectionTitle(String title) {
@@ -107,22 +109,13 @@ class IncidentVictimeDetailsDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildSectionTitle("Informations Générales"),
-                      _buildInfoRow("Prénom", victimInfo['prenom']),
-                      _buildInfoRow("Nom", victimInfo['nom']),
+                      _buildInfoRow("Nom", "${victimInfo['prenom'] ?? ''} ${victimInfo['nom'] ?? ''}".trim()),
                       _buildInfoRow("Âge", "${victimInfo['age']} ans"),
-                      _buildInfoRow("Sexe", victimInfo['sexe'] == 'M' ? "Masculin" : "Féminin"),
                       _buildInfoRow("Téléphone", victimInfo['tel']),
 
                       const SizedBox(height: 16),
-                      _buildSectionTitle("État de la Victime"),
-                      _buildInfoRow("État", victimInfo['etat_victime'] == 'b' ? "Blessé" : "Mort"),
-                      _buildInfoRow("Structure Évacuation", victimInfo['structure_sanitaire_evac']),
                       _buildInfoRow("Traumatisme", victimInfo['traumatisme']),
-
-                      const SizedBox(height: 16),
-                      _buildSectionTitle("Guérison"),
-                      _buildInfoRow("Date de Guérison", victimInfo['date_guerison']),
-                      _buildInfoRow("Créé le", victimInfo['created_at']),
+                      _buildInfoRow("Structure sanitaire", victimInfo['structure_evacuation']),
                     ],
                   ),
                 ),

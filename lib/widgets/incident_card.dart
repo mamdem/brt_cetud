@@ -9,7 +9,7 @@ class IncidentCard extends StatelessWidget {
   final String title;
   final String location;
   final String time;
-  final bool isAffected;
+  final String? userAffected;
   final bool isIncident;
   final bool isSynced;
 
@@ -18,7 +18,7 @@ class IncidentCard extends StatelessWidget {
     required this.title,
     required this.location,
     required this.time,
-    required this.isAffected,
+    required this.userAffected,
     required this.isIncident,
     this.isSynced = false,
   });
@@ -147,13 +147,12 @@ class IncidentCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    isAffected
-                        ? const Text(
-                      'Affecté',
-                      style: TextStyle(
-                        color: Colors.green,
-                      ),
-                    )
+                        (userAffected != null) ? Text(
+                          'Resp: $userAffected',
+                            style: TextStyle(
+                              color: Colors.green,
+                            ),
+                          )
                         : const Text(
                       'Non affecté',
                       style: TextStyle(

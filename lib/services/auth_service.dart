@@ -35,6 +35,7 @@ class AuthService {
   static Future<void> saveData(Map<String, dynamic> jsonData) async {
     final dbase = await DatabaseHelper().database;
     final alerts = jsonData['data']['ACCIDENT'] ?? [];
+    final responsableSaisis = jsonData['data']['responsable_saisi'];
 
     for (var alert in alerts) {
       final idFicheAlert = alert['idfiche_alert'];
@@ -231,9 +232,31 @@ class AuthService {
           }
         }
       }
+
+
+    }
+    for(var resp in responsableSaisis){
+      final respSaisiId = resp['id'];
+      final existingRespSaisi = await dbase.query(
+        'responsable_saisi',
+        where: 'id = ?',
+        whereArgs: [respSaisiId],
+      );
+
+      if(existingRespSaisi.isEmpty){
+        await dbase.insert('responsable_saisi', {
+          'id': resp['id'],
+          'id_server': resp['id'],
+          'code_alert': resp['code_alert'],
+          'responsable_saisie': resp['responsable_saisie'],
+          'prenom_nom': '${resp["prenom_user"]} ${resp["nom_user"]}',
+          'created_at': resp['created_at']
+        });
+      }
+
+      print("######## ENREGISTREMENTS RESP SAISIS OKKKKKKK");
     }
   }
-
 
   static Future<bool> getFirstConnexion({
     required String numTel,
@@ -303,8 +326,8 @@ class AuthService {
     }
   }
 
-
-  static Future<void> saveResponsable({
+  static Future<bool> saveResponsable({
+    int? id,
     required String codeAlert,
     required int responsableSaisie,
     required String prenomNom,
@@ -318,10 +341,11 @@ class AuthService {
     final Map<String, dynamic> params = {
       'code': 'responsable_saisi',
       'code_alert': codeAlert,
-      'responsable_saisie': global.user["id_users"],
-      'user_id': responsableSaisie.toString(),
+      'responsable_saisie': global.user["idusers"],
       'prenom_nom': prenomNom,
       'created_at': createdAt,
+      'user_id': global.user["idusers"],
+      'user_saisie':  global.user["idusers"],
       'mp': mp,
       'device_info': deviceInfo
     };
@@ -339,20 +363,52 @@ class AuthService {
         print(response.body);
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if(jsonResponse["succes"]==true){
-          EasyLoading.dismiss();
-          Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+          if(id!=null){ //Si l'alerte est dejà en local, on update id_server
+            await DatabaseHelper().updateResponsableSaisiIdServerById(id, jsonResponse['id']);
+            EasyLoading.dismiss();
+            Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+            print('responsable saisi enregistré en local');
+            return true;
+          }
+          else{
+            final Map<String, dynamic> data = {
+              'id_server': jsonResponse["data"]["id"],
+              'code_alert': codeAlert,
+              'responsable_saisie': (global.user["idusers"]),
+              'prenom_nom': "${global.user['prenom']} ${global.user["nom"]}",
+              'created_at': DateTime.now().toIso8601String(),
+            };
+
+            try {
+              final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
+              print("Insertion réussie, ID inséré : $insertedId");
+              EasyLoading.dismiss();
+              Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+              return true;
+            } catch (e) {
+              print("Erreur lors de l'insertion : $e");
+              EasyLoading.dismiss();
+              Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+              return false;
+            }
+          }
+
+
         }else{
           EasyLoading.dismiss();
           Get.snackbar("Erreur", "Erreur de traitement", colorText: Colors.red);
+          return false;
         }
       } else {
         EasyLoading.instance.backgroundColor = Colors.red;
         EasyLoading.showError("Erreur de traitement");
+        return false;
       }
     } catch (e) {
       print("Erreur de save responsable:$e");
       EasyLoading.instance.backgroundColor = Colors.red;
       EasyLoading.showError("Erreur de traitement");
+      return false;
     }
   }
 

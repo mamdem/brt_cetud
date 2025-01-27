@@ -3,14 +3,19 @@ import 'package:brt_mobile/models/fiche_accident.dart';
 import 'package:brt_mobile/models/fiche_accident_vehicule.dart';
 import 'package:brt_mobile/views/fiche/accident/details_fiche_accident.dart';
 import 'package:brt_mobile/views/fiche/accident/fiche_accident_vehicule.dart';
+import 'package:brt_mobile/views/fiche/incident/fiche_incident_degats_materiels.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../sqflite/database_helper.dart';
 import 'package:get/get.dart';
-import '../accident/fiche_accident_degats_materiels.dart';
-import '../accident/fiche_accident_victime.dart';
+
+import '../../../models/fiche_incident.dart';
+import 'details_fiche_incident.dart';
+import 'fiche_incident_victime.dart';
+
+
 
 class DetailsIncident extends StatefulWidget {
   final int alertId;
@@ -23,15 +28,15 @@ class DetailsIncident extends StatefulWidget {
 
 class _DetailsIncidentState extends State<DetailsIncident> {
   int _selectedIndex = 0;
-  int currentStepAcc=1;
-  final int initialTabIndex=0;
+  int currentStepAcc = 1;
+  final int initialTabIndex=0; // Index de l'onglet initial
 
   Map<String, dynamic>? _alertDetails;
-  Map<String, dynamic>? _ficheAccidentDetails;
-  Map<String, dynamic>? _ficheRespSaisi;
-  List<Map<String, dynamic>> _ficheVehiculeDetails=[];
+  Map<String, dynamic>? _ficheIncidentDetails;
   List<Map<String, dynamic>> _ficheVictimeDetails=[];
   List<Map<String, dynamic>> _ficheDegatsDetails=[];
+
+  late Future<void> _fetchFuture;
 
   DatabaseHelper db = DatabaseHelper();
   bool _isLoading1 = true;
@@ -43,17 +48,23 @@ class _DetailsIncidentState extends State<DetailsIncident> {
     setState(() {
       currentStepAcc = prefs.getInt('currentStep${widget.alertId}') ?? 1;
     });
-    await _fetchAlertDetails();
-    await _fetchFicheAccidentDetails();
-    await _fetchFicheVehiculeDetails();
-    await fetchVictimes();
-    await fetchDegatDetails();
-    //await _fetchRespSaisiDetails();
+    //await _fetchAllRespSaisiDetails();
+    try{
+      await _fetchAlertDetails();
+    }catch(e){}
+    try{
+      await fetchVictimes();
+    }catch(e){}try{
+      await fetchDegatDetails();
+    }catch(e){}
   }
 
   @override
   void initState() {
     super.initState();
+    try{
+      _fetchFuture = _fetchFicheIncidentDetails();
+    }catch(e){}
     initialize();
   }
 
@@ -73,7 +84,7 @@ class _DetailsIncidentState extends State<DetailsIncident> {
 
   Future<void> fetchVictimes() async {
     final db = await DatabaseHelper();
-    final victimesData = await db.getVictimesByAccidentId(_ficheAccidentDetails!['idfiche_accident']);
+    final victimesData = await db.getVictimesByIncidentId(_ficheIncidentDetails!['idfiche_incident']);
     setState(() {
       _ficheVictimeDetails = victimesData;
     });
@@ -81,49 +92,29 @@ class _DetailsIncidentState extends State<DetailsIncident> {
 
   Future<void> fetchDegatDetails() async {
     final db = await DatabaseHelper();
-    final degatsData = await db.getAccidentDegatsMaterielsById(_ficheAccidentDetails!['idfiche_accident']);
+    final degatsData = await db.getIncidentDegatsMaterielsById(_ficheIncidentDetails!['idfiche_incident']);
     setState(() {
       _ficheDegatsDetails = degatsData;
     });
   }
 
-  Future<void> _fetchFicheAccidentDetails() async {
-    _fetch();
-    final db = DatabaseHelper();
-    final ficheAccident = await db.getFicheAccidentByIdAlert(widget.alertId);
+  Future<void> _fetchFicheIncidentDetails() async {
+      final db = DatabaseHelper();
+      final ficheIncident = await db.getFicheIncidentByIdAlert(widget.alertId);
 
-    setState(() {
-      _ficheAccidentDetails = ficheAccident;
-      _isLoading2 = false;
-    });
+      setState(() {
+        _ficheIncidentDetails = ficheIncident;
+        _isLoading2 = false;
+      });
+
+      print(ficheIncident);
   }
 
   Future<void> _fetch() async {
     final db = DatabaseHelper();
-    final ficheAccident = await db.getAllFicheAccidents();
+    final ficheIncident = await db.getAllFicheIncidents();
     setState(() {
-      for(FicheAccident f in ficheAccident){
-        print(f.toMap());
-        print("\n\n-----------------------");
-      }
       _isLoading2 = false;
-    });
-  }
-
-  Future<void> _fetchFicheVehiculeDetails() async {
-    final db = DatabaseHelper();
-    final ficheAccident = await db.getFicheVehiculeByAccidentId(_ficheAccidentDetails!["idfiche_accident"]);
-    setState(() {
-      _ficheVehiculeDetails = ficheAccident;
-      _isLoading3 = false;
-    });
-  }
-
-  Future<void> _fetchRespSaisiDetails() async {
-    final db = DatabaseHelper();
-    final resp = await db.getRespSaisiByCodeAlert(_alertDetails!['code_alert']);
-    setState(() {
-      _ficheRespSaisi = resp;
     });
   }
 
@@ -189,6 +180,7 @@ class _DetailsIncidentState extends State<DetailsIncident> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -199,40 +191,37 @@ class _DetailsIncidentState extends State<DetailsIncident> {
         ),
         backgroundColor: AppColors.appColor,
       ),
-      body: _isLoading1 || _isLoading2
-          ? const Center(child: CircularProgressIndicator())
-          : false
-          ? const Center(
-        child: Text(
-          "Aucune donnée disponible pour cet incident.",
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      )
-          : DefaultTabController(
-        length: 4,
+      body: DefaultTabController(
+        length: 3,
         initialIndex: initialTabIndex,
         child: Column(
           children: [
-            Padding(padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    "Accident",
+                    "Incident",
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _alertDetails!=null && _alertDetails!['blesse_oui_non'] == 1
+                      color: _alertDetails != null &&
+                          _alertDetails!['blesse_oui_non'] == 1
                           ? Colors.redAccent.withOpacity(0.2)
                           : Colors.greenAccent.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      _ficheAccidentDetails!=null && _ficheAccidentDetails!['user_update']!=null ? 'Affecté' : 'Non affecté',
+                      _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                          ? 'Responsable: ${_alertDetails!["prenom_nom"]}'
+                          : 'Non affecté',
                       style: TextStyle(
-                        color: _ficheAccidentDetails!=null && _ficheAccidentDetails!['user_update']!=null ? Colors.green : Colors.red,
+                        color: _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                            ? Colors.green
+                            : Colors.red,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -241,8 +230,7 @@ class _DetailsIncidentState extends State<DetailsIncident> {
               ),
             ),
             Padding(
-              padding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
               child: TabBar(
                 physics: const BouncingScrollPhysics(),
                 isScrollable: true,
@@ -252,31 +240,23 @@ class _DetailsIncidentState extends State<DetailsIncident> {
                   borderRadius: BorderRadius.circular(8),
                   color: AppColors.appColor.withOpacity(0.8),
                 ),
-
                 tabs: [
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 0.0), // Ajoute une marge horizontale
+                    margin: const EdgeInsets.symmetric(horizontal: 7.0),
                     child: const Tab(
                       icon: Icon(Icons.warning_amber),
-                      text: "Accident",
+                      text: "Incident",
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                    child: const Tab(
-                      icon: Icon(Icons.directions_car),
-                      text: "Véhicule",
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    margin: const EdgeInsets.symmetric(horizontal: 7.0),
                     child: const Tab(
                       icon: Icon(Icons.people),
                       text: "Victime",
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                    margin: const EdgeInsets.symmetric(horizontal: 7.0),
                     child: const Tab(
                       icon: Icon(Icons.dangerous),
                       text: "Dégats",
@@ -289,64 +269,50 @@ class _DetailsIncidentState extends State<DetailsIncident> {
               padding: EdgeInsets.all(10.0),
               child: Divider(thickness: 1),
             ),
-            SizedBox(
-              height: screenHeight-screenHeight/2.7,
-              child: TabBarView(
-                  children: [
-                    if(_ficheAccidentDetails!=null)...[
-                      _ficheRespSaisi!=null ? DetailsFicheAccident(alertDetails: _alertDetails!, ficheAccidentDetails: _ficheAccidentDetails!, ficheResponsableSaisi: _ficheRespSaisi, haveDraft: currentStepAcc!=1,)
-                          :DetailsFicheAccident(alertDetails: _alertDetails!, ficheAccidentDetails: _ficheAccidentDetails!, haveDraft: currentStepAcc!=1)
-                    ]else...[
-                      _ficheRespSaisi!=null ? DetailsFicheAccident(alertDetails: _alertDetails!, ficheResponsableSaisi: _ficheRespSaisi,haveDraft: currentStepAcc!=1)
-                          :DetailsFicheAccident(alertDetails: _alertDetails!, haveDraft: currentStepAcc!=1)
+            Expanded(
+              child: FutureBuilder<void>(
+                future: _fetchFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                        child: Text("Erreur: ${snapshot.error}"));
+                  }
+
+                  // Une fois les données chargées
+                  return TabBarView(
+                    children: [
+                      (_alertDetails != null && _ficheIncidentDetails != null)
+                          ? DetailsFicheIncident(
+                        alertDetails: _alertDetails!,
+                        ficheIncidentDetails: _ficheIncidentDetails!,
+                        haveDraft: currentStepAcc != 1,
+                      ): DetailsFicheIncident(
+                        alertDetails: _alertDetails!,
+                        haveDraft: currentStepAcc != 1,
+                      ),
+                      DetailsFicheIncidentVictime(
+                        victimeDetails: _ficheVictimeDetails,
+                        accidentID: _ficheIncidentDetails != null
+                            ? _ficheIncidentDetails!["idfiche_incident"]
+                            : -1,
+                      ),
+                      DetailsFicheIncidentDegatsMateriels(
+                        degatDetails: _ficheDegatsDetails,
+                        accidentID: _ficheIncidentDetails != null
+                            ? _ficheIncidentDetails!["idfiche_incident"]
+                            : -1,
+                      ),
                     ],
-                    DetailsFicheVehicule(vehiculeDetails: _ficheVehiculeDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                    DetailsFicheAccidentVictime(victimeDetails: _ficheVictimeDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                    DetailsFicheDegatsMateriels(degatDetails: _ficheDegatsDetails, accidentID:_ficheAccidentDetails!=null? _ficheAccidentDetails!["idfiche_accident"]:-1,),
-                  ]
+                  );
+                },
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0.0),
-        child: MaterialButton(
-          onPressed: onTap,
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-
-          //color: Colors.white,
-          elevation: 0,
-          hoverElevation: 2,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.appColor, size: 24),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.appColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
 }

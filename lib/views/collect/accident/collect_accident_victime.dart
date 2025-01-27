@@ -17,18 +17,20 @@ import '../../../widgets/app_button.dart';
 import '../../../widgets/damage_item.dart';
 import '../../../widgets/success_alert.dart';
 
-class FicheAccidentVictimeScreen extends StatefulWidget {
+class CollectAccidentVictimeScreen extends StatefulWidget {
   final int accidentId;
-  const FicheAccidentVictimeScreen({Key? key, required this.accidentId}) : super(key: key);
+  const CollectAccidentVictimeScreen({Key? key, required this.accidentId}) : super(key: key);
 
   @override
-  _FicheAccidentVictimeScreenState createState() => _FicheAccidentVictimeScreenState();
+  _CollectAccidentVictimeScreenState createState() => _CollectAccidentVictimeScreenState();
 }
 
-class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen> {
+class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScreen> {
   int currentStep = 1;
   final int nbStep = 4;
   int? _conscient;
+
+  String? _selectedSexe;
 
   String? _ageErrorText;
   bool isValidNumber=false;
@@ -69,9 +71,9 @@ class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen>
     Get.snackbar(
       "Validation",
       message,
-      backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.TOP,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
 
@@ -86,6 +88,10 @@ class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen>
           showError("Veuillez entrer le nom de la victime.");
           return false;
         }
+        if(_selectedSexe==null){
+          showError("Veuillez selectionner le sexe.");
+          return false;
+        }
         if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
@@ -94,6 +100,10 @@ class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen>
         }
         if (_telController.text.isEmpty || !isValidNumber) {
           showError("Veuillez entrer un numéro de téléphone.");
+          return false;
+        }
+        if(_selectedPosVictime == null){
+          showError("Veuillez entrer la position du victime.");
           return false;
         }
         break;
@@ -412,61 +422,6 @@ class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen>
     );
   }
 
-  Widget _buildBlessuresStep() {
-    return Column(
-      children: [
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.healing, color: Colors.deepOrange, size: 24),
-                    SizedBox(width: 8),
-                    Text('Blessures et état de guérison',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Nature des blessures', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _natureBlessureController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: 'Décrivez les blessures',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildAccompagnantStep() {
     return Column(
       children: [
@@ -634,7 +589,27 @@ class _FicheAccidentVictimeScreenState extends State<FicheAccidentVictimeScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-
+                    const SizedBox(height: 8,),
+                    DropdownButtonFormField<String>(
+                      value: _selectedSexe,
+                      decoration: InputDecoration(
+                        labelText: "Sexe",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      hint: const Text("Sélectionnez un sexe"),
+                      items: const [
+                        DropdownMenuItem(value: "M", child: Text("Masculin")),
+                        DropdownMenuItem(value: "F", child: Text("Féminin")),
+                      ],
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedSexe = newValue!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12,),
                     const Text('Âge', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     TextField(

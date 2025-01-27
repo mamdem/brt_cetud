@@ -12,15 +12,15 @@ import '../../../models/fiche_accident_vehicule.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../../widgets/success_alert.dart';
 
-class FicheAccidentVehiculeScreen extends StatefulWidget {
+class CollectAccidentVehiculeScreen extends StatefulWidget {
   final int accidentId;
-  const FicheAccidentVehiculeScreen({Key? key, required this.accidentId}) : super(key: key);
+  const CollectAccidentVehiculeScreen({Key? key, required this.accidentId}) : super(key: key);
 
   @override
-  _FicheAccidentVehiculeScreenState createState() => _FicheAccidentVehiculeScreenState();
+  _CollectAccidentVehiculeScreenState createState() => _CollectAccidentVehiculeScreenState();
 }
 
-class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScreen> {
+class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeScreen> {
   int currentStep = 1;
   final int nbStep = 10;
 
@@ -57,7 +57,7 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
   final _largeurController = TextEditingController();
   final _longueurController = TextEditingController();
   final _hauteurController = TextEditingController();
-  String _selectedSexe="M" ;
+  String ? _selectedSexe;
 
 
   final TextEditingController _numeroPermisController = TextEditingController();
@@ -220,8 +220,28 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
                         });
                       },
                     ),
-
-              ),
+                    ),
+                    const SizedBox(height: 8,),
+                    DropdownButtonFormField<String>(
+                      value: _selectedSexe,
+                      decoration: InputDecoration(
+                        labelText: "Sexe",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      hint: const Text("Sélectionnez un sexe"),
+                      items: const [
+                        DropdownMenuItem(value: "M", child: Text("Masculin")),
+                        DropdownMenuItem(value: "F", child: Text("Féminin")),
+                      ],
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedSexe = newValue!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12,),
                     IntlPhoneField(
                       controller: _telController,
                       style: safeGoogleFont(
@@ -351,8 +371,35 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildTextField(title: 'Numéro du permis', controller: _numeroPermisController),
+                    const Text(
+                      "Date délivrance permis:",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildDatePickerField(controller: _dateDelivrancePermisController),
+                    const SizedBox(height: 16),
+                    const Text('date dernière visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    _buildDatePickerField(
+                      controller: _dateDerniereVisiteController,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Date mise circulation', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    _buildDatePickerField(
+                      controller: _dateMiseCirculationController,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Date d\'expiration visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    _buildDatePickerField(
+                      controller: _dateExpirationVisiteController,
+                    ),
+                    const SizedBox(height: 16),
+
                     SizedBox(height: 10,),
+                    const Text(
+                      "Catégorie permis:",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     DropdownButtonFormField<String>(
                       value: _selectedCategorie,
                       decoration: InputDecoration(
@@ -696,6 +743,7 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
                     _buildTextField(title: 'État des pneus avant', controller: _etatPneueAvantController),
                     _buildTextField(title: 'État des pneus arrière', controller: _etatPneueArriereController),
                     _buildTextField(title: 'État du pare-brise', controller: _etatParebriseController),
+                    _buildTextField(title: 'État général', controller: _etatGeneraleController),
                     _buildNumberField(title: 'Position levier de vitesse', controller: _positionLevierVitessController),
                     SizedBox(height: 8,),
                     const Text('Présence Poste Radio',
@@ -1138,9 +1186,9 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
     Get.snackbar(
       "Validation",
       message,
-      backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.TOP,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
 
@@ -1153,6 +1201,10 @@ class _FicheAccidentVehiculeScreenState extends State<FicheAccidentVehiculeScree
         }
         if (_nomController.text.isEmpty) {
           showError("Veuillez entrer le nom du conducteur.");
+          return false;
+        }
+        if(_selectedSexe==null){
+          showError("Veuillez selectionner le sexe.");
           return false;
         }
         if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {

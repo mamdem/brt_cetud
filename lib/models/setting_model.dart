@@ -16,5 +16,9 @@ List<Map<String, dynamic>> settingList = [
   {
     "settingImage": Icons.privacy_tip,
     "settingTitle": "Politique",
-  }
+  },
+  {
+    "settingImage": Icons.logo_dev,
+    "settingTitle": "Fichier Log",
+  },
 ];

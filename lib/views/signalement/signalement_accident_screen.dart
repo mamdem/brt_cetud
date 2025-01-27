@@ -67,9 +67,9 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
     Get.snackbar(
       "Validation",
       message,
-      backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.TOP,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
 

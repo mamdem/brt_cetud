@@ -253,7 +253,7 @@ class DetailsFicheVehicule extends StatelessWidget {
         onPressed: () {
           if(accidentID!=-1){
             Get.off(
-              FicheAccidentVehiculeScreen(
+              CollectAccidentVehiculeScreen(
                 accidentId: accidentID,
               ),
               transition: Transition.rightToLeft,

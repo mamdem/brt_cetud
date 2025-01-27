@@ -31,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController loginController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
+  TextEditingController prenomController = TextEditingController();
+  TextEditingController nomController = TextEditingController();
 
 
   @override
@@ -58,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 80.0),
+              padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -115,6 +117,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         phoneNumber=phone.number;
                         isValidNumber = phone.isValidNumber();
                       },
+                    ),
+                    const SizedBox(height: 8,),
+                    TextField(
+                      controller: prenomController,
+                      decoration: InputDecoration(
+                        hintText: "Prénom...",
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 13,),
+                    TextField(
+                      controller: nomController,
+                      decoration: InputDecoration(
+                        hintText: "Nom...",
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 40.0),
                   ],
@@ -256,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 if(loginController.text.isNotEmpty && passwordController.text.isNotEmpty){
                                   EasyLoading.instance.backgroundColor = Colors.black;
                                   EasyLoading.show(status: 'Requête en cours...');
-                                  bool result = await AuthService.getFirstConnexion(numTel: phoneNumber, prenom: "Aly", nom: "Seck", deviceInfo: global.phoneIdentifier);
+                                  bool result = await AuthService.getFirstConnexion(numTel: phoneNumber, prenom: prenomController.text, nom: nomController.text, deviceInfo: global.phoneIdentifier);
                                   EasyLoading.dismiss();
                                   print(phoneNumber);
                                   if(result){

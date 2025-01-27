@@ -1,4 +1,5 @@
 import 'package:brt_mobile/models/fiche_accident.dart';
+import 'package:brt_mobile/models/fiche_incident.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,15 +41,11 @@ class DatabaseHelper {
     await db.execute('''
         CREATE TABLE responsable_saisi (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_server INTEGER,
           code_alert TEXT NOT NULL,
-          responsable_saisi INTEGER NOT NULL,
+          responsable_saisie INTEGER NOT NULL,
           prenom_nom TEXT NOT NULL,
-          user_saisie INTEGER NOT NULL,
-          user_update INTEGER DEFAULT NULL,
-          user_delete INTEGER DEFAULT NULL,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-          updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-          deleted_at TEXT
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       ''');
 
@@ -123,11 +120,12 @@ CREATE TABLE fiche_accident (
 )
 ''');
 
-    // Table fiche incident
+    //Table fiche incident
     await db.execute('''
     CREATE TABLE fiche_incident (
       idfiche_incident INTEGER PRIMARY KEY,
       id_server INTEGER,
+      signalement_id_server INTEGER, 
       libelle TEXT,
       type_incident_id INTEGER,
       user_id INTEGER,
@@ -157,7 +155,7 @@ CREATE TABLE fiche_accident (
     );
   ''');
 
-    // Fiche accident vehicule
+    //Fiche accident vehicule
     await db.execute('''
       CREATE TABLE fiche_accident_vehicule (
         idfiche_accident_vehicule INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -312,6 +310,7 @@ CREATE TABLE fiche_accident (
     await db.execute('''
   CREATE TABLE incident_degats_materiels (
     idincident_degats_materiels INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_server INTEGER,
     libelle_materiels TEXT NOT NULL,
     photos TEXT,
     incident_id INTEGER NOT NULL,
@@ -323,6 +322,26 @@ CREATE TABLE fiche_accident (
     deleted_at TEXT
   )
 ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getResponsablesNonSync() async {
+    final db = await database;
+    return await db.query(
+      'responsable_saisi',
+      where: 'id_server IS NULL',
+    );
+  }
+
+  Future<int> updateResponsableSaisiIdServerById(int id, int idServer) async {
+    final db = await database;
+    return await db.update(
+      'responsable_saisi',
+      {
+        'id_server': idServer,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<Map<String, dynamic>?> getUserStructure() async {
@@ -373,13 +392,23 @@ CREATE TABLE fiche_accident (
     );
   }
 
+  Future<List<Map<String, dynamic>>> getIncidentDegatsMaterielsByIncidentId(int incidentId) async {
+    final db = await database;
+    return await db.query(
+      'incident_degats_materiels',
+      where: 'incident_id = ?',
+      whereArgs: [incidentId],
+    );
+  }
+
   Future<void> clearTables() async {
     final db = await database;
     await db.delete('fiche_accident_victime');
-    /*await db.delete('fiche_accident_vehicule');
+    await db.delete('fiche_accident_vehicule');
     await db.delete('fiche_accident');
     await db.delete('fiche_incident');
-    await db.delete('alerte');*/
+    await db.delete('alerte');
+    await db.delete('responsable_saisi');
   }
 
   Future<int> updateAccidentDegatsMateriels(int id, Map<String, dynamic> data) async {
@@ -416,14 +445,13 @@ CREATE TABLE fiche_accident (
     return await db.query('incident_degats_materiels');
   }
 
-  Future<Map<String, dynamic>?> getIncidentDegatsMaterielsById(int id) async {
+  Future<List<Map<String, dynamic>>> getIncidentDegatsMaterielsById(int incidentId) async {
     final db = await database;
-    final results = await db.query(
+    return await db.query(
       'incident_degats_materiels',
-      where: 'idincident_degats_materiels = ?',
-      whereArgs: [id],
+      where: 'incident_id = ?',
+      whereArgs: [incidentId],
     );
-    return results.isNotEmpty ? results.first : null;
   }
 
   Future<int> updateIncidentDegatsMateriels(int id, Map<String, dynamic> data) async {
@@ -490,6 +518,16 @@ CREATE TABLE fiche_accident (
     );
   }
 
+  static Future<List<Map<String, dynamic>>> getVictimeByIncidentId(int incidentId) async {
+    final db = await DatabaseHelper().database;
+
+    return await db.query(
+      'fiche_incident_victime',
+      where: 'incident_id = ?',
+      whereArgs: [incidentId],
+    );
+  }
+
   Future<Map<String, dynamic>?> getVehiculeByIdLocal(int idLocal) async {
     final db = await database;
     final results = await db.rawQuery('''
@@ -513,6 +551,16 @@ CREATE TABLE fiche_accident (
     );
   }
 
+  static Future<List<Map<String, dynamic>>> getDegatsMaterielsByIncidentId(int incidentId) async {
+    final db = await DatabaseHelper().database;
+
+    return await db.query(
+      'incident_degats_materiels',
+      where: 'incident_id = ?',
+      whereArgs: [incidentId],
+    );
+  }
+
   Future<int> updateVehiculeIdServer({
     required int idFicheAccidentVehicule,
     required int idServer,
@@ -530,13 +578,14 @@ CREATE TABLE fiche_accident (
   }
 
   Future<int> updateSignalementIdServer({
+    required String tablename,
     required int signalementID,
     required int signalementIdServer,
   }) async {
     final db = await DatabaseHelper().database;
 
     int result = await db.update(
-      'fiche_accident',
+      tablename,
       {'signalement_id_server': signalementIdServer},
       where: 'signalement_id = ?',
       whereArgs: [signalementID],
@@ -544,6 +593,8 @@ CREATE TABLE fiche_accident (
 
     return result;
   }
+
+
 
   Future<int> updateFicheAccidentIdServer({
     required int idFicheAccident,
@@ -556,6 +607,22 @@ CREATE TABLE fiche_accident (
       {'id_server': idServer},
       where: 'idfiche_accident = ?',
       whereArgs: [idFicheAccident],
+    );
+
+    return result;
+  }
+
+  Future<int> updateFicheIncidentIdServer({
+    required int idFicheIncident,
+    required int idServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      'fiche_incident',
+      {'id_server': idServer},
+      where: 'idfiche_incident = ?',
+      whereArgs: [idFicheIncident],
     );
 
     return result;
@@ -634,6 +701,12 @@ CREATE TABLE fiche_accident (
     return List.generate(maps.length, (i) => FicheAccident.fromMap(maps[i]));
   }
 
+  Future<List<FicheIncident>> getAllFicheIncidents() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('fiche_accident');
+    return List.generate(maps.length, (i) => FicheIncident.fromMap(maps[i]));
+  }
+
   Future<List<FicheAccident>> getAllFicheAccidentsNonSync() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -669,104 +742,101 @@ CREATE TABLE fiche_accident (
   Future<void> saveJsonData(Map<String, dynamic> jsonData) async {
     final db = await database;
 
-      Map<String, dynamic> user = jsonData['data']['user'];
-      final String photoUrl = 'https://cetud.saytu.pro/storage/${user['photo']}';
-      String? localPhotoPath = await _downloadAndSaveImage(photoUrl, user['photo']);
-      if (localPhotoPath != null) {
-        user['photo'] = localPhotoPath;
-      }
-      await db.execute('''
-      CREATE TABLE IF NOT EXISTS user (
-        id INTEGER PRIMARY KEY,
-        num_tel TEXT,
-        prenom TEXT,
-        nom TEXT,
-        device_info TEXT,
-        created_at TEXT,
-        updated_at TEXT,
-        generate_code TEXT,
-        idusers INTEGER,
-        prenom_user TEXT,
-        nom_user TEXT,
-        email TEXT,
-        tel TEXT,
-        mp TEXT,
-        photo TEXT,
-        adresse TEXT,
-        groupe_id INTEGER,
-        date_saisie TEXT,
-        date_update TEXT,
-        structure_id INTEGER,
-        remember_token TEXT,
-        user_saisie TEXT,
-        user_update TEXT,
-        user_delete TEXT,
-        deleted_at TEXT,
-        idgroupe_user INTEGER,
-        nom_group TEXT,
-        link_panel TEXT,
-        description TEXT
-      )
-    ''');
+    // Vérifiez que les données "user" existent dans le JSON
+    if (!jsonData.containsKey('data') || !jsonData['data'].containsKey('user')) {
+      throw Exception("Les données JSON ne contiennent pas de clé 'user'.");
+    }
 
-      await db.insert('user', user, conflictAlgorithm: ConflictAlgorithm.replace);
+    // Récupérez l'objet "user" du JSON
+    Map<String, dynamic> user = jsonData['data']['user'];
 
+    // Téléchargez et sauvegardez l'image de l'utilisateur localement
+    final String photoUrl = 'https://cetud.saytu.pro/storage/${user['photo']}';
+    String? localPhotoPath = await _downloadAndSaveImage(photoUrl, user['prenom'] + ".png");
+    if (localPhotoPath != null) {
+      user['photo'] = localPhotoPath;
+    }
+
+    // Création dynamique de la table "user"
+    final userTableColumns = user.keys.map((key) {
+      return "$key ${_getSQLiteType(user[key])}";
+    }).join(',');
+
+    await db.execute('''
+    CREATE TABLE IF NOT EXISTS user (
+      $userTableColumns
+    )
+  ''');
+
+    // Insérez les données dans la table "user"
+    await db.insert('user', user, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // Gestion de la table "structure"
+    if (jsonData['data'].containsKey('structure')) {
       List<dynamic> structures = jsonData['data']['structure'];
-      await db.execute('''
-      CREATE TABLE IF NOT EXISTS structure (
-        id INTEGER PRIMARY KEY,
-        nom_structure TEXT,
-        logo TEXT,
-        sigle TEXT,
-        description TEXT,
-        user_saisie TEXT,
-        user_update TEXT,
-        user_delete TEXT,
-        created_at TEXT,
-        deleted_at TEXT,
-        updated_at TEXT
-      )
-      ''');
-      for (var structure in structures) {
-        final String imageUrl = 'https://cetud.saytu.pro/storage/${structure['logo']}';
-        String? localImagePath = await _downloadAndSaveImage(imageUrl, structure['nom_structure']+".png");
-        await db.insert('structure', {
-          'id': structure['idstructures'],
-          'nom_structure': structure['nom_structure'],
-          'logo': localImagePath,
-          'sigle': structure['sigle'],
-          'description': structure['description'],
-          'created_at': structure['created_at'],
-          'updated_at': structure['updated_at'],
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
-      }
 
-      // 3. Création dynamique des tables à partir de `table_config`
-      Map<String, dynamic> tableConfig = jsonData['data']['table_config'];
-      for (var tableName in tableConfig.keys) {
-        String tableNameLower = tableName.toLowerCase();
-        List<dynamic> rows = tableConfig[tableName];
+      // Création dynamique de la table "structure"
+      if (structures.isNotEmpty) {
+        final structureTableColumns = structures.first.keys.map((key) {
+          return "$key ${_getSQLiteType(structures.first[key])}";
+        }).join(',');
 
-        // Créer une table si elle n'existe pas
         await db.execute('''
-        CREATE TABLE IF NOT EXISTS $tableNameLower (
-          id INTEGER PRIMARY KEY,
-          libelle TEXT
+        CREATE TABLE IF NOT EXISTS structure (
+          $structureTableColumns
         )
       ''');
 
-        // Insérer les données dans la table
-        for (var row in rows) {
-          await db.insert(tableNameLower, {
-            'id': row['id'],
-            'libelle': row['libelle'],
-          }, conflictAlgorithm: ConflictAlgorithm.replace);
+        // Insértion des données dans la table "structure"
+        for (var structure in structures) {
+          final String imageUrl = 'https://cetud.saytu.pro/storage/${structure['logo']}';
+          String? localImagePath = await _downloadAndSaveImage(imageUrl, structure['nom_structure'] + ".png");
+          if (localImagePath != null) {
+            structure['logo'] = localImagePath;
+          }
+          await db.insert('structure', structure, conflictAlgorithm: ConflictAlgorithm.replace);
         }
-
-        print("Les données sont enregistrées avec succés !");
       }
+    }
 
+    // Gestion des autres tables dynamiques à partir de "table_config"
+    if (jsonData['data'].containsKey('table_config')) {
+      Map<String, dynamic> tableConfig = jsonData['data']['table_config'];
+      for (var tableName in tableConfig.keys) {
+        String tableNameLower = tableName.toLowerCase();
+        if(tableName != 'responsable_saisi'){ //On ne gère pas la table responsable_saisi ici
+          List<dynamic> rows = tableConfig[tableName];
+          if (rows.isNotEmpty) {
+            // Création de la table
+            final configTableColumns = rows.first.keys.map((key) {
+              return "$key ${_getSQLiteType(rows.first[key])}";
+            }).join(',');
+
+            await db.execute('''
+          CREATE TABLE IF NOT EXISTS $tableNameLower (
+            $configTableColumns
+          )
+        ''');
+
+            // Insérez les données dans la table dynamique
+            for (var row in rows) {
+              await db.insert(tableNameLower, row, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      }
+    }
   }
+
+// Fonction pour détecter le type SQLite en fonction de la valeur
+  String _getSQLiteType(dynamic value) {
+    if (value is int) return "INTEGER";
+    if (value is double) return "REAL";
+    if (value is String) return "TEXT";
+    if (value == null) return "TEXT"; // Par défaut si la valeur est nulle
+    throw Exception("Type non supporté: ${value.runtimeType}");
+  }
+
 
   Future<Map<String, dynamic>?> getUser() async {
     final db = await database;
@@ -815,6 +885,21 @@ CREATE TABLE fiche_accident (
     }
   }
 
+  Future<List<Map<String, dynamic>>> getVictimesByIncidentId(int incidentId) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> result = await db.query(
+        'fiche_incident_victime',
+        where: 'incident_id = ?',
+        whereArgs: [incidentId],
+      );
+      return result;
+    } catch (e) {
+      print('Erreur lors de la récupération des victimes : $e');
+      return [];
+    }
+  }
+
   Future<int> insertAlert(Map<String, dynamic> alert) async {
     final db = await database;
     return await db.insert('alerte', alert);
@@ -849,9 +934,19 @@ CREATE TABLE fiche_accident (
     return await db.insert('fiche_accident', accident);
   }
 
+  Future<int> insertIncident(Map<String, dynamic> accident) async {
+    final db = await database;
+    return await db.insert('fiche_incident', accident);
+  }
+
   Future<List<Map<String, dynamic>>> fetchAllAccidents() async {
     final db = await database;
     return await db.query('fiche_accident');
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAllRespSaisis() async {
+    final db = await database;
+    return await db.query('responsable_saisi');
   }
 
   Future<List<Map<String, dynamic>>> fetchTableDatas(String tablename) async {
@@ -878,13 +973,6 @@ CREATE TABLE fiche_accident (
     );
   }
 
-  Future<void> insertFicheIncident(Database db, Map<String, dynamic> ficheIncident) async {
-    await db.insert(
-      'fiche_incident',
-      ficheIncident,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
 
   Future<List<Map<String, dynamic>>> getFicheIncidents(Database db) async {
     return await db.query('fiche_incident');
@@ -1006,6 +1094,8 @@ CREATE TABLE fiche_accident (
     return await db.insert('fiche_accident_victime', victime.toMap());
   }
 
+
+
   Future<List<FicheAccidentVictime>> getAllFicheAccidentVictimes() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('fiche_accident_victime');
@@ -1051,12 +1141,12 @@ CREATE TABLE fiche_accident (
   Future<List<Map<String, dynamic>>> getAlertsWithFiches() async {
     final db = await database;
     return await db.rawQuery('''
-    SELECT 
-      a.*
-    FROM 
-      alerte a 
-    order by a.date_alert desc
-  
+      SELECT 
+        distinct a.*, r.prenom_nom
+      FROM 
+        alerte a left join responsable_saisi r 
+      on a.code_alert = r.code_alert
+      order by a.date_alert desc
     ''');
   }
 
@@ -1064,8 +1154,9 @@ CREATE TABLE fiche_accident (
     final db = await database;
     final results = await db.rawQuery('''
       SELECT 
-        al.*
-      FROM alerte al where al.idfiche_alert = ?
+        al.*, r.responsable_saisie, r.prenom_nom
+      FROM alerte al left join responsable_saisi r
+      on al.code_alert = r.code_alert where al.idfiche_alert = ?
       ''', [alertId]
     );
 
@@ -1076,9 +1167,9 @@ CREATE TABLE fiche_accident (
     final db = await database;
     return await db.rawQuery('''
     SELECT 
-      distinct a.*
+      distinct a.*, r.prenom_nom
     FROM 
-      alerte a
+      alerte a left join responsable_saisi r on a.code_alert = r.code_alert
     order by a.date_alert desc limit 2
     ''');
   }
@@ -1096,8 +1187,20 @@ CREATE TABLE fiche_accident (
     return results.isNotEmpty ? results.first : null;
   }
 
+  Future<Map<String, dynamic>?>  getFicheIncidentByIdAlert(int signalementID) async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT 
+      *      
+    FROM 
+      fiche_incident
+    where signalement_id=? or signalement_id_server=? limit 1
+    ''', [signalementID, signalementID]);
 
-  Future<Map<String, dynamic>?>  getRespSaisiByCodeAlert(int codeAlert) async {
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  Future<Map<String, dynamic>?>  getRespSaisiByCodeAlert(String codeAlert) async {
     final db = await database;
     final results = await db.rawQuery('''
     SELECT 
