@@ -315,6 +315,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 print(result);
                                 if(result!=null){
                                   Get.offAll(const HomeScreen(), transition: Transition.rightToLeft);
+                                }else{
+                                  EasyLoading.instance.backgroundColor = Colors.red;
+                                  EasyLoading.showError("Connexion impossible, vérifiez vos infos de connexion");
                                 }
                               }
                             },

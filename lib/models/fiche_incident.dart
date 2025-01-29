@@ -1,4 +1,7 @@
-  class FicheIncident {
+import 'package:intl/intl.dart';
+
+
+class FicheIncident {
     int? idficheIncident;
     int? idServer;
     String? libelle;
@@ -93,6 +96,39 @@
     }
 
     factory FicheIncident.fromMap(Map<String, dynamic> map) {
+      return FicheIncident(
+        idficheIncident: map['idfiche_incident'],
+        idServer: map['id_server'],
+        libelle: map['libelle'],
+        typeIncidentId: map['type_incident_id'],
+        userId: map['user_id'],
+        signalementId: map['signalement_id'],
+        positionLat: map['position_lat'],
+        positionLong: map['position_long'],
+        voieCorridorOuiNon: map['voie_corridor_oui_non'],
+        lieuCorridor: map['lieu_corridor'],
+        sectionId: map['section_id'],
+        dateHeure: map['date_heure'] != null ? DateFormat('dd/MM/yyyy HH:mm').parse(map['date_heure']) : null,
+        interruptionService: map['interruption_service'],
+        dateReprise: map['date_reprise'] != null ? DateFormat('dd/MM/yyyy').parse(map['date_reprise']) : null,
+        busOperateurImplique: map['bus_operateur_implique'],
+        matriculeBus: map['matricule_bus'],
+        autresVehiculeOuiNon: map['autres_vehicule_oui_non'],
+        mortel: map['mortel'],
+        nbMort: map['nb_mort'],
+        blesse: map['blesse'],
+        nbBlesse: map['nb_blesse'],
+        typeJour: map['type_jour'],
+        userSaisie: map['user_saisie'],
+        userUpdate: map['user_update'],
+        userDelete: map['user_delete'],
+        createdAt: map['created_at'] != null ? DateTime.parse(map['created_at']) : null,
+        updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
+        deletedAt: map['deleted_at'] != null ? DateTime.parse(map['deleted_at']) : null,
+      );
+    }
+
+    factory FicheIncident.fromMapSansDateConvert(Map<String, dynamic> map) {
       return FicheIncident(
         idficheIncident: map['idfiche_incident'],
         idServer: map['id_server'],

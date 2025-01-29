@@ -125,11 +125,12 @@ CREATE TABLE fiche_accident (
     CREATE TABLE fiche_incident (
       idfiche_incident INTEGER PRIMARY KEY,
       id_server INTEGER,
-      signalement_id_server INTEGER, 
+      c INTEGER, 
       libelle TEXT,
       type_incident_id INTEGER,
       user_id INTEGER,
       signalement_id INTEGER,
+      signalement_id_server INTEGER,
       position_lat DOUBLE,
       position_long DOUBLE,
       voie_corridor_oui_non TINYINT,
@@ -324,12 +325,36 @@ CREATE TABLE fiche_accident (
 ''');
   }
 
+  Future<void> deleteTableWithServerId(tablename) async {
+    final db = await database;
+    try {
+      await db.delete(
+        tablename,
+        where: 'id_server IS NOT NULL',
+      );
+    } catch (e) {
+      print("Erreur lors de la suppression de $tablename : $e");
+    }
+  }
+
+
   Future<List<Map<String, dynamic>>> getResponsablesNonSync() async {
     final db = await database;
     return await db.query(
       'responsable_saisi',
       where: 'id_server IS NULL',
     );
+  }
+
+  Future<void> deleteAllTableSynced() async {
+    await deleteTableWithServerId("accident_degats_materiels");
+    await deleteTableWithServerId("incident_degats_materiels");
+    await deleteTableWithServerId("fiche_accident_victime");
+    await deleteTableWithServerId("fiche_incident_victime");
+    await deleteTableWithServerId("fiche_accident_vehicule");
+    await deleteTableWithServerId("fiche_accident");
+    await deleteTableWithServerId("fiche_incident");
+    await deleteTableWithServerId("alerte");
   }
 
   Future<int> updateResponsableSaisiIdServerById(int id, int idServer) async {
@@ -703,7 +728,7 @@ CREATE TABLE fiche_accident (
 
   Future<List<FicheIncident>> getAllFicheIncidents() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('fiche_accident');
+    final List<Map<String, dynamic>> maps = await db.query('fiche_incident');
     return List.generate(maps.length, (i) => FicheIncident.fromMap(maps[i]));
   }
 

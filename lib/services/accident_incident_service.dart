@@ -104,9 +104,12 @@ class AccIncService {
   }
 
   static Future<void> syncAllAlert() async {
+    print("################\n"
+        "Début de la synchronisation des alertes.");
     SyncLogger.addLog("################\n"
         "Début de la synchronisation des alertes.", status: "info");
 
+    try{
       final alertes = await DatabaseHelper().getAllAlertesNonSync();
 
       if (alertes.isEmpty) {
@@ -120,10 +123,17 @@ class AccIncService {
       }
 
       print("Enregistrement des ${alertes.length} alertes terminé.");
+    }catch(e){
+      print("################\n"
+          "Erreur de la synchronisation des alertes.");
+      SyncLogger.addLog("################\n"
+          "Erreur de la synchronisation des alertes $e", status: "warning");
+    }
 
   }
 
   static Future<void> saveFicheIncident(FicheIncident ficheIncident) async {
+    print(ficheIncident.toMap());
     SyncLogger.addLog(
       "Début de la synchronisation de l'incident ID: ${ficheIncident.idficheIncident}.",
       status: "info",
@@ -149,7 +159,7 @@ class AccIncService {
           'date_reprise': ficheIncident.dateReprise?.toIso8601String(),
           'bus_operateur_implique': ficheIncident.busOperateurImplique,
           'matricule_bus': ficheIncident.matriculeBus,
-          'autres_vehicule_oui_non': ficheIncident.autresVehiculeOuiNon,
+          'autres_vehicule_oui_non': 0,
           'mortel': ficheIncident.mortel,
           'nb_mort': ficheIncident.nbMort,
           'blesse': ficheIncident.blesse,
@@ -163,20 +173,15 @@ class AccIncService {
           'deleted_at': ficheIncident.deletedAt?.toIso8601String(),
         };
 
-        var request = http.MultipartRequest('POST', Uri.parse("${global.baseUrl}/saveDataIncident"));
+        final Uri uri = Uri.parse("${global.baseUrl}/saveDataAccident").replace(
+          queryParameters: params.map((key, value) => MapEntry(key, value?.toString())),
+        );
 
-        params.forEach((key, value) {
-          if (value != null) {
-            request.fields[key] = value.toString();
-          }
-        });
+        final response = await http.post(uri);
 
-        // Envoi de la requête
-        var response = await request.send();
 
         if (response.statusCode == 200) {
-          final responseBody = await response.stream.bytesToString();
-          final Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
+          final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
 
           if (jsonResponse['succes'] == true) {
             SyncLogger.addLog(
@@ -214,9 +219,10 @@ class AccIncService {
           }
         } else {
           SyncLogger.addLog(
-            "Erreur HTTP pour l'incident ID: ${ficheIncident.idficheIncident} - Code: ${response.statusCode}, Réponse: ${await response.stream.bytesToString()}.",
+            "Erreur HTTP pour l'incident ID: ${ficheIncident.idficheIncident} - Code: ${response.statusCode}}.",
             status: "error",
           );
+          print("Erreur HTTP pour l'incident ID: ${ficheIncident.idficheIncident} - Code: ${response.statusCode}");
         }
       } else {
         SyncLogger.addLog(
@@ -370,31 +376,33 @@ class AccIncService {
   }
 
   static Future<void> syncAllFicheAccidents() async {
-    print("Enregistrement des Accident -------------------------------------------\n\n");
+    print("Enregistrement des Accidents & Incidents -------------------------------------------\n\n");
     final fichesAccident = await DatabaseHelper().getAllFicheAccidents();
-    if (fichesAccident.isEmpty) {
-      Get.snackbar("Impossible", "Aucun accident à synchroniser");
-      return;
-    }
-
-    for (FicheAccident fiche in fichesAccident) {
-      await saveFicheAccident(fiche);
-    }
-    print("Enregistrement des Accident OKKKKKK -------------------------------------------\n\n");
-  }
-
-  static Future<void> syncAllFicheIncidents() async {
-    print("Enregistrement des Incident -------------------------------------------\n\n");
     final fichesIncident = await DatabaseHelper().getAllFicheIncidents();
-    if (fichesIncident.isEmpty) {
+    if (fichesAccident.isEmpty && fichesIncident.isEmpty) {
+      Get.snackbar("Impossible", "Aucun accident et incident à synchroniser");
+      return;
+    }else if(fichesAccident.isEmpty){
+      Get.snackbar("Impossible", "Aucun accident à synchroniser");
+      for (FicheIncident fiche in fichesIncident) {
+        await saveFicheIncident(fiche);
+      }
+      return;
+    }else if(fichesIncident.isEmpty){
       Get.snackbar("Impossible", "Aucun incident à synchroniser");
+      for (FicheAccident fiche in fichesAccident) {
+        await saveFicheAccident(fiche);
+      }
       return;
     }
-
     for (FicheIncident fiche in fichesIncident) {
       await saveFicheIncident(fiche);
     }
-    print("Enregistrement des Accident OKKKKKK -------------------------------------------\n\n");
+    for (FicheAccident fiche in fichesAccident) {
+      await saveFicheAccident(fiche);
+    }
+
+    print("Enregistrement des Accident & Incident OKKKKKK -------------------------------------------\n\n");
   }
 
   static Future<void> saveFicheAccidentVehicules(int accidentId, int accidentIdServer) async {

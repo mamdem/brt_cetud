@@ -9,6 +9,7 @@ import 'package:brt_mobile/views/auth/startup_screen.dart';
 import 'package:brt_mobile/views/fiche/all_incident.dart';
 import 'package:brt_mobile/views/signalement/signalement_accident_screen.dart';
 import 'package:brt_mobile/views/signalement/signalement_incident_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -35,8 +36,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _firstIncidents = [];
-  Map<String, dynamic>? _alertDetails;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+  late ConnectivityResult _connectionStatus;
+  final Connectivity _connectivity = Connectivity();
+  late Stream<ConnectivityResult> _connectivityStream;
 
   bool _isLoading = true;
 
@@ -44,14 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String imagePath="";
 
   int _totalAlerts = 0;
-
-  Future<void> _fetchAlertDetails(int id) async {
-    final db = DatabaseHelper();
-    final alert = await db.getAlertById(id);
-    setState(() {
-      _alertDetails = alert;
-    });
-  }
 
   Future<String> getDeviceModel() async {
     final deviceInfo = DeviceInfoPlugin();
@@ -94,15 +89,16 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoading=false;
     });
 
-    Timer.periodic(const Duration(seconds: 11115), (timer) async {
-      print("Recupération données...");
-      //await fetchUser();
-      await AuthService.fetchAndSaveData().then((value){
-        _fetchFirstIncidents();
-        _fetchTotalAlerts();
-      });
+    Timer.periodic(const Duration(seconds: 20), (timer) async {
+      if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
+        print("Recupération données...");
+        //await fetchUser();
+        await AuthService.fetchAndSaveData().then((value){
+          _fetchFirstIncidents();
+          _fetchTotalAlerts();
+        });
+      }
     });
-
   }
 
   Future<Map<String, dynamic>> _fetchStructureData() async {
@@ -140,8 +136,25 @@ class _HomeScreenState extends State<HomeScreen> {
     //DatabaseHelper().clearTables();
     _fetchFirstIncidents();
     _fetchTotalAlerts();
+
+    _connectionStatus = ConnectivityResult.none;
+    _connectivityStream = _connectivity.onConnectivityChanged;
+
+    _initConnectivity();
   }
 
+  Future<void> _initConnectivity() async {
+    ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } catch (e) {
+      print("Erreur lors de la vérification de la connectivité : $e");
+      result = ConnectivityResult.none;
+    }
+    setState(() {
+      _connectionStatus = result;
+    });
+  }
 
   Future<void> _fetchTotalAlerts() async {
     final db = DatabaseHelper();
@@ -290,18 +303,31 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoading = true;
     });
-    try {
-      await fetchUser();
-      await AuthService.fetchAndSaveData().then((value){
-        _fetchFirstIncidents();
-        _fetchTotalAlerts();
-      });
-    } catch (e) {
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
+      try {
+        await fetchUser();
+        await AuthService.fetchAndSaveData().then((value){
+          _fetchFirstIncidents();
+          _fetchTotalAlerts();
+        });
+      } catch (e) {
+      }
+    }else{
+      showInfo("Impossible de rafraîchir en mode hors ligne");
     }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void showInfo(String message) {
+    Get.snackbar(
+      "Hors ligne",
+      message,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.black,
+      snackPosition: SnackPosition.TOP,
+    );
   }
 
   @override
@@ -442,7 +468,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       EasyLoading.show(status: 'Requête en cours...');
                                       await AccIncService.syncAllAlert();
                                       await AccIncService.syncAllFicheAccidents();
-                                      await AccIncService.syncAllFicheIncidents();
                                       EasyLoading.dismiss();
                                       Get.snackbar("Reussi", "Synchronisation effectuée  avec succés");
                                       Navigator.pop(context);
@@ -621,319 +646,339 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body:RefreshIndicator(
-          key: _refreshIndicatorKey,
-          onRefresh: _handleRefresh,
-          child:  Column(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.appColor,
-                      Color(0xFF6495ED),
-                    ],
+      body:StreamBuilder<ConnectivityResult>(
+        stream: _connectivityStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.active && snapshot.hasData) {
+            _connectionStatus = snapshot.data!;
+          }
+          return RefreshIndicator(
+            key: _refreshIndicatorKey,
+            onRefresh: _handleRefresh,
+            child:  Column(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.appColor,
+                        Color(0xFF6495ED),
+                      ],
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Builder(
-                      builder: (context) {
-                        return Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.menu,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () {
-                                    Scaffold.of(context).openDrawer();
-                                  },
-                                ),
-                                const Text(
-                                  "Système d'Alerte BRT",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Container(
-                                  width: 35,
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_outline,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            // Conteneur de signalement
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Builder(
+                        builder: (context) {
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.menu,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      Scaffold.of(context).openDrawer();
+                                    },
+                                  ),
+                                  const Text(
+                                    "Système d'Alerte BRT",
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                   Container(
-                                    padding: const EdgeInsets.all(8),
+                                    width: 35,
+                                    height: 35,
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(50),
                                     ),
                                     child: const Icon(
-                                      Icons.warning_outlined,
+                                      Icons.person_outline,
                                       color: Colors.white,
                                       size: 20,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Système de Signalement',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Rapportez tout incident en un clic',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.8),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
 
-              // Contenu principal
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    ElevatedButton(
-                      onPressed: showReportTypeDialog,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.notifications_active),
-                          SizedBox(width: 8),
-                          Text(
-                            'FAIRE UN SIGNALEMENT',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 130, // Fixe la hauteur pour éviter les conflits
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
+                              const SizedBox(height: 16),
+                              // Conteneur de signalement
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
                                   children: [
-                                    const Icon(Icons.warning_amber, color: Colors.blue, size: 32),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      'Incidents Actifs',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                      child: const Icon(
+                                        Icons.warning_outlined,
+                                        color: Colors.white,
+                                        size: 20,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "$_totalAlerts",
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue[700],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Système de Signalement',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Rapportez tout incident en un clic',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(0.8),
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                    ),
+                                    (_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile)?
+                                    const Icon(
+                                      Icons.cloud_queue_rounded,
+                                      color: Colors.green,
+                                      size: 24,
+                                    ):const Icon(
+                                      Icons.cloud_off,
+                                      color: Colors.orange,
+                                      size: 24,
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Contenu principal
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      ElevatedButton(
+                        onPressed: showReportTypeDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: FutureBuilder<Map<String, dynamic>>(
-                                  future: _fetchStructureData(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const Center(child: CircularProgressIndicator());
-                                    } else if (snapshot.hasError) {
-                                      return const Center(child: Text('Erreur de chargement'));
-                                    } else if (!snapshot.hasData || snapshot.data == null) {
-                                      return const Center(child: Text('Aucune structure disponible'));
-                                    }
-
-                                    // Données récupérées
-                                    final structureData = snapshot.data!;
-                                    final String structureName = structureData['nom_structure'] ?? 'Nom inconnu';
-                                    final String? logoPath = structureData['logo'];
-
-                                    return Column(
-                                      mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
-                                      children: [
-                                        if (logoPath != null && File(logoPath).existsSync())
-                                          Image.file(
-                                            File(logoPath),
-                                            //width: 64,
-                                            //height: 64,
-                                            fit: BoxFit.cover,
-                                          )
-                                        else
-                                          const Icon(Icons.image_not_supported, color: Colors.grey, size: 64),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          structureName,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.notifications_active),
+                            SizedBox(width: 8),
+                            Text(
+                              'FAIRE UN SIGNALEMENT',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 130, // Fixe la hauteur pour éviter les conflits
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
+                                    children: [
+                                      const Icon(Icons.warning_amber, color: Colors.blue, size: 32),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Incidents Actifs',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                      ],
-                                    );
-                                  },
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "$_totalAlerts",
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: FutureBuilder<Map<String, dynamic>>(
+                                    future: _fetchStructureData(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Center(child: CircularProgressIndicator());
+                                      } else if (snapshot.hasError) {
+                                        return const Center(child: Text('Erreur de chargement'));
+                                      } else if (!snapshot.hasData || snapshot.data == null) {
+                                        return const Center(child: Text('Aucune structure disponible'));
+                                      }
+                                      // Données récupérées
+                                      final structureData = snapshot.data!;
+                                      final String structureName = structureData['nom_structure'] ?? 'Nom inconnu';
+                                      final String? logoPath = structureData['logo'];
+
+                                      return Column(
+                                        mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
+                                        children: [
+                                          if (logoPath != null && File(logoPath).existsSync())
+                                            Image.file(
+                                              File(logoPath),
+                                              //width: 64,
+                                              //height: 64,
+                                              fit: BoxFit.cover,
+                                            )
+                                          else
+                                            const Icon(Icons.image_not_supported, color: Colors.grey, size: 64),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            structureName,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Affichage des deux premières alertes
+                      _firstIncidents.isNotEmpty ?Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Incidents/Accidents Récents',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Get.to(const AllIncident(), transition: Transition.rightToLeft);
+                            },
+                            child: const Text(
+                              'Voir Plus >',
+                              style: TextStyle(color: AppColors.appColor),
+                            ),
                           ),
                         ],
+                      ):const Text(""),
+                      _isLoading
+                          ? const Padding(padding: EdgeInsets.symmetric(vertical: 50), child: Center(child: CircularProgressIndicator()),)
+                          : _firstIncidents.isEmpty
+                          ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Text(
+                              "Aucun signalement !",
+                              style: TextStyle(fontSize: 20, color: Colors.grey),
+                            ),
+                          )
+                      )
+                          : Column(
+                        children: _firstIncidents.map((incident) {
+                          return FutureBuilder<String>(
+                            future: (incident['position_lat'] != null && incident['position_long'] != null)
+                                ? global.getAddressFromLatLong(incident['position_lat'], incident['position_long'], 2)
+                                : Future.value("Coordonnées indisponibles"),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return IncidentCard(
+                                  idficheAlert: incident['idfiche_alert'],
+                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                  location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
+                                  time: formatDate(incident['date_alert']),
+                                  userAffected: incident['prenom_nom'],
+                                  isIncident: !(incident['type_alert'] == 41),
+                                  isSynced: incident['id_user']!=null,
+                                );
+                              } else if (snapshot.hasError) {
+                                return IncidentCard(
+                                  idficheAlert: incident['idfiche_alert'],
+                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                  location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
+                                  time: formatDate(incident['date_alert']),
+                                  userAffected: incident['prenom_nom'],
+                                  isIncident: !(incident['type_alert'] == 41),
+                                  isSynced: incident['id_user']!=null,
+                                );
+                              } else {
+                                return IncidentCard(
+                                  idficheAlert: incident['idfiche_alert'],
+                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                  location: incident['voie'] == 1
+                                      ? "Corridor: : ${snapshot.data!}"
+                                      : "Hors Corridor: ${snapshot.data!}",
+                                  time: formatDate(incident['date_alert']),
+                                  userAffected: incident['prenom_nom'],
+                                  isIncident: !(incident['type_alert'] == 41),
+                                  isSynced: incident['id_server']!=null,
+                                );
+                              }
+                            },
+                          );
+                        }).toList(),
                       ),
-                    ),
-
-                    // Affichage des deux premières alertes ou message vide
-                    _firstIncidents.isNotEmpty ?Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Incidents/Accidents Récents',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Get.to(const AllIncident(), transition: Transition.rightToLeft);
-                          },
-                          child: const Text(
-                            'Voir Plus >',
-                            style: TextStyle(color: AppColors.appColor),
-                          ),
-                        ),
-                      ],
-                    ):const Text(""),
-                    _isLoading
-                        ? const Padding(padding: EdgeInsets.symmetric(vertical: 50), child: Center(child: CircularProgressIndicator()),)
-                        : _firstIncidents.isEmpty
-                        ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Text(
-                            "Aucun signalement !",
-                            style: TextStyle(fontSize: 20, color: Colors.grey),
-                          ),
-                        )
-                    )
-                        : Column(
-                      children: _firstIncidents.map((incident) {
-                        return FutureBuilder<String>(
-                          future: (incident['position_lat'] != null && incident['position_long'] != null)
-                              ? global.getAddressFromLatLong(incident['position_lat'], incident['position_long'], 2)
-                              : Future.value("Coordonnées indisponibles"),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return IncidentCard(
-                                idficheAlert: incident['idfiche_alert'],
-                                title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
-                                time: formatDate(incident['date_alert']),
-                                userAffected: incident['prenom_nom'],
-                                isIncident: !(incident['type_alert'] == 41),
-                                isSynced: incident['id_user']!=null,
-                              );
-                            } else if (snapshot.hasError) {
-                              return IncidentCard(
-                                idficheAlert: incident['idfiche_alert'],
-                                title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
-                                time: formatDate(incident['date_alert']),
-                                userAffected: incident['prenom_nom'],
-                                isIncident: !(incident['type_alert'] == 41),
-                                isSynced: incident['id_user']!=null,
-                              );
-                            } else {
-                              return IncidentCard(
-                                idficheAlert: incident['idfiche_alert'],
-                                title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                location: incident['voie'] == 1
-                                    ? "Corridor: : ${snapshot.data!}"
-                                    : "Hors Corridor: ${snapshot.data!}",
-                                time: formatDate(incident['date_alert']),
-                                userAffected: incident['prenom_nom'],
-                                isIncident: !(incident['type_alert'] == 41),
-                                isSynced: incident['id_server']!=null,
-                              );
-                            }
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-      ),
+              ],
+            ),
+          );
+        },
+      )
     );
   }
 }

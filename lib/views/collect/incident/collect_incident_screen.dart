@@ -288,8 +288,49 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
   }
 
   bool validateCurrentStep() {
-    return true;
+    switch (currentStep) {
+      case 1: // Validation de l'étape _buildInfosIncident
+        if (_selectedTypeIncident == null) {
+          showError("Veuillez sélectionner un type d'incident.");
+          return false;
+        }
+        if (libelleIncident.text.isEmpty) {
+          showError("Le libellé de l'incident est obligatoire.");
+          return false;
+        }
+        if (dateIncidentController.text.isEmpty) {
+          showError("La date et l'heure de l'incident sont obligatoires.");
+          return false;
+        }
+        return true;
+
+      case 2: // Validation de l'étape _buildCondition
+        if (_selectedSection == null) {
+          showError("Veuillez sélectionner une section.");
+          return false;
+        }
+        if (_selectedTypeJour == null) {
+          showError("Veuillez sélectionner un type de jour.");
+          return false;
+        }
+        return true;
+
+      case 3: // Validation de l'étape _buildDetailsCritique
+        if (blesseSelection && (nombreBlesse.text.isEmpty || int.tryParse(nombreBlesse.text) == null)) {
+          showError("Veuillez renseigner un nombre valide de victimes.");
+          return false;
+        }
+        if (interruptionService && dateRepriseController.text.isEmpty) {
+          showError("Veuillez sélectionner une date de reprise si le service est interrompu.");
+          return false;
+        }
+        return true;
+
+      default:
+        return true;
+    }
   }
+
 
   void showError(String message) {
     Get.snackbar(
@@ -947,6 +988,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
     if (!validateCurrentStep()) return;
     int result = await DatabaseHelper().insertIncident({
       "signalement_id": widget.alertId,
+      "type_incident_id": _selectedTypeIncident,
       "libelle": libelleIncident.text,
       "date_heure": dateIncidentController.text.isEmpty
           ? null
@@ -961,6 +1003,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       "date_reprise": dateRepriseController.text.isEmpty
           ? null
           : dateFormat.format(dateFormat.parse(dateRepriseController.text)),
+      "user_id": global.user['idusers'],
       "user_saisie": global.user['idusers'],
       "user_update": null,
       "user_delete": null,

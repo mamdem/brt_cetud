@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:brt_mobile/core/constants/global.dart' as global;
+import 'package:brt_mobile/models/fiche_incident.dart';
+import 'package:brt_mobile/models/fiche_incident_victime.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
@@ -34,7 +36,9 @@ class AuthService {
 
   static Future<void> saveData(Map<String, dynamic> jsonData) async {
     final dbase = await DatabaseHelper().database;
+    await DatabaseHelper().deleteAllTableSynced();
     final alerts = jsonData['data']['ACCIDENT'] ?? [];
+    final alertsIncident = jsonData['data']['INCIDENT'];
     final responsableSaisis = jsonData['data']['responsable_saisi'];
 
     for (var alert in alerts) {
@@ -233,8 +237,95 @@ class AuthService {
         }
       }
 
-
     }
+
+    for (var alert in alertsIncident) {
+      final idFicheAlert = alert['idfiche_alert'];
+
+      // Gérer les données d'accident
+      if (alert['incident'] != null) {
+        final incident = alert['incident'];
+        final idFicheIncident = incident['idfiche_incident'];
+
+        final existingIncident = await dbase.query(
+          'fiche_incident',
+          where: 'idfiche_incident = ?',
+          whereArgs: [idFicheIncident],
+        );
+
+        if (existingIncident.isEmpty) {
+          FicheIncident ficheIncident = FicheIncident.fromMapSansDateConvert(incident);
+          await dbase.insert('fiche_incident',{
+            "idfiche_incident": ficheIncident.idficheIncident,
+            "id_server": ficheIncident.idficheIncident,
+            "libelle": ficheIncident.libelle,
+            "type_incident_id": ficheIncident.typeIncidentId,
+            "user_id": ficheIncident.userId,
+            "signalement_id": idFicheAlert,
+            "position_lat": ficheIncident.positionLat,
+            "position_long": ficheIncident.positionLong,
+            "voie_corridor_oui_non": ficheIncident.voieCorridorOuiNon,
+            "lieu_corridor": ficheIncident.lieuCorridor,
+            "section_id": ficheIncident.sectionId,
+            "date_heure": incident['date_heure'],
+            "interruption_service": ficheIncident.interruptionService,
+            "date_reprise": incident['date_reprise'],
+            "bus_operateur_implique": ficheIncident.busOperateurImplique,
+            "matricule_bus": ficheIncident.matriculeBus,
+            "autres_vehicule_oui_non": ficheIncident.autresVehiculeOuiNon,
+            "mortel": ficheIncident.mortel,
+            "nb_mort": ficheIncident.nbMort,
+            "blesse": ficheIncident.blesse,
+            "nb_blesse": ficheIncident.nbBlesse,
+            "type_jour": ficheIncident.typeJour,
+            "user_saisie": ficheIncident.userSaisie,
+            "user_update": ficheIncident.userUpdate,
+            "user_delete": ficheIncident.userDelete,
+            "created_at": incident['created_at'],
+            "updated_at": incident['updated_at'],
+            "deleted_at": incident['deleted_at']
+
+          });
+        }
+
+        // Gérer les victimes associées
+        final victimes = alert['incident_victime'] ?? [];
+        for (var victime in victimes) {
+          final idVictime = victime['idincident_victime'];
+
+          final existingVictime = await dbase.query(
+            'fiche_incident_victime',
+            where: 'id_server = ?',
+            whereArgs: [idVictime],
+          );
+
+          if (existingVictime.isEmpty) {
+            FicheIncidentVictime ficheVictime = FicheIncidentVictime.fromMap(victime);
+            await dbase.insert('fiche_incident_victime',{
+              "idincident_victime": ficheVictime.idIncidentVictime,
+              "id_server": ficheVictime.idIncidentVictime,
+              "age": ficheVictime.age,
+              "sexe": ficheVictime.sexe,
+              "tel": ficheVictime.tel,
+              "prenom": ficheVictime.prenom,
+              "nom": ficheVictime.nom,
+              "etat_victime": ficheVictime.etatVictime,
+              "incident_id": ficheVictime.incidentId,
+              "structure_evacuation": ficheVictime.structureEvacuation,
+              "traumatisme": ficheVictime.traumatisme,
+              "user_saisie": ficheVictime.userSaisie,
+              "user_update": ficheVictime.userUpdate,
+              "user_delete": ficheVictime.userDelete,
+              "created_at": victime['created_at'],
+              "updated_at": victime['updated_at'],
+              "deleted_at": victime['deleted_at']
+            });
+          }
+        }
+
+      }
+    }
+
     for(var resp in responsableSaisis){
       final respSaisiId = resp['id'];
       final existingRespSaisi = await dbase.query(
@@ -254,7 +345,6 @@ class AuthService {
         });
       }
 
-      print("######## ENREGISTREMENTS RESP SAISIS OKKKKKKK");
     }
   }
 
@@ -350,13 +440,10 @@ class AuthService {
       'device_info': deviceInfo
     };
 
-    //print(params);
-
     final Uri uri = Uri.parse("${global.baseUrl}/saveDataAccident").replace(
       queryParameters: params.map((key, value) => MapEntry(key, value.toString())),
     );
 
-    try {
       final response = await http.post(uri);
 
       if (response.statusCode == 200) {
@@ -364,7 +451,7 @@ class AuthService {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if(jsonResponse["succes"]==true){
           if(id!=null){ //Si l'alerte est dejà en local, on update id_server
-            await DatabaseHelper().updateResponsableSaisiIdServerById(id, jsonResponse['id']);
+            await DatabaseHelper().updateResponsableSaisiIdServerById(id, jsonResponse['data']['id']);
             EasyLoading.dismiss();
             Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
             print('responsable saisi enregistré en local');
@@ -379,18 +466,12 @@ class AuthService {
               'created_at': DateTime.now().toIso8601String(),
             };
 
-            try {
               final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
               print("Insertion réussie, ID inséré : $insertedId");
               EasyLoading.dismiss();
               Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
               return true;
-            } catch (e) {
-              print("Erreur lors de l'insertion : $e");
-              EasyLoading.dismiss();
-              Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-              return false;
-            }
+
           }
 
 
@@ -404,12 +485,6 @@ class AuthService {
         EasyLoading.showError("Erreur de traitement");
         return false;
       }
-    } catch (e) {
-      print("Erreur de save responsable:$e");
-      EasyLoading.instance.backgroundColor = Colors.red;
-      EasyLoading.showError("Erreur de traitement");
-      return false;
-    }
   }
 
 }

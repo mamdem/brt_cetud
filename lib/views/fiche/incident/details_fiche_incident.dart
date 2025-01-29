@@ -279,7 +279,7 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                   icon: Icons.date_range,
                   title: "Date reprise service",
                   content: Text(
-                    formatDate(widget.ficheIncidentDetails!['date_reprise']),
+                    formatDate(widget.ficheIncidentDetails!['date_reprise']).substring(0, 13),
                     style: const TextStyle(fontSize: 18),
                   ),
                 ),
