@@ -95,8 +95,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
         if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
-        }else if(int.parse(_ageController.text) < 10 || int.parse(_ageController.text) > 120){
-          showError("L'âge doit être entre 10 et 120");
+        }else if(int.parse(_ageController.text) < 1 || int.parse(_ageController.text) > 120){
+          showError("L'âge doit être entre 1 et 120");
         }
         if (_telController.text.isEmpty || !isValidNumber) {
           showError("Veuillez entrer un numéro de téléphone.");
@@ -203,7 +203,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
       nom: _nomController.text,
       age: int.tryParse(_ageController.text),
       tel: _telController.text,
-      etatVictime: _etatVictime, // 'b' ou 'm'
+      etatVictime: _etatVictime,
+      sexe: _selectedSexe,
       structureSanitaireEvac: _structureSanitaireController.text,
       statutGuerison: statutGuerison, // 'e', 'g' ou autre
       dateGuerison: _dateGuerisonController.text.isNotEmpty
@@ -627,7 +628,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         setState(() {
                           if (value.isNotEmpty) {
                             final width = double.tryParse(value);
-                            if (width == null || width < 10 || width > 120) {
+                            if (width == null || width < 1 || width > 120) {
                               _ageErrorText = "L'âge doit être entre 1 et 120";
                             } else {
                               _ageErrorText = null;

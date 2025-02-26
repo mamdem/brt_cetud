@@ -6,6 +6,7 @@ class FicheAccidentVictime {
   String? prenom;
   String? nom;
   int? age;
+  String? sexe;
   String? tel;
   String? etatVictime; // 'b' ou 'm'
   String? structureSanitaireEvac;
@@ -33,6 +34,7 @@ class FicheAccidentVictime {
     required this.accidentId,
     this.vehicleId,
     this.prenom,
+    this.sexe,
     this.nom,
     this.age,
     this.tel,
@@ -66,6 +68,7 @@ class FicheAccidentVictime {
       vehicleId: map['vehicle_id'],
       prenom: map['prenom'],
       nom: map['nom'],
+      sexe: map['sexe'],
       age: map['age'],
       tel: map['tel'],
       etatVictime: map['etat_victime'],
@@ -109,6 +112,7 @@ class FicheAccidentVictime {
       'nom': nom,
       'age': age,
       'tel': tel,
+      'sexe': sexe,
       'etat_victime': etatVictime,
       'structure_sanitaire_evac': structureSanitaireEvac,
       'statut_guerison': statutGuerison,

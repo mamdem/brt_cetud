@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import 'package:brt_mobile/views/auth/login_screen.dart';
-
+import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 import '../../res/constant/app_assets.dart';
 
 class StartupScreen extends StatefulWidget {
@@ -19,7 +22,12 @@ class _StartupScreenState extends State<StartupScreen> {
   @override
   void initState() {
     super.initState();
+    //_uninstallLocalData();
     _startImageCarousel();
+  }
+
+  Future<void> _uninstallLocalData() async {
+    await handleAppReinstallation();
   }
 
   void _startImageCarousel() {
@@ -42,6 +50,37 @@ class _StartupScreenState extends State<StartupScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// Supprime les données locales si l'application a été réinstallée
+  Future<void> handleAppReinstallation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Vérifie si l'application a déjà été installée
+    bool? isFirstInstall = prefs.getBool('is_first_install');
+
+    if (isFirstInstall == null || isFirstInstall == false) {
+      print("🔴 Nouvelle installation détectée ! Suppression des données locales...");
+      await clearLocalData(); // Supprime les données
+      await prefs.setBool('is_first_install', true); // Marque l'installation
+    } else {
+      print("🟢 Application déjà installée, aucune suppression nécessaire.");
+    }
+  }
+
+  /// Supprime toutes les données locales (SharedPreferences + SQLite)
+  Future<void> clearLocalData() async {
+    // Supprime les préférences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    print("✅ SharedPreferences supprimés.");
+
+    // Supprime la base de données SQLite
+    String dbPath = join(await getDatabasesPath(), 'my_database.db');
+    if (await File(dbPath).exists()) {
+      await File(dbPath).delete();
+      print("✅ Base de données SQLite supprimée.");
+    }
   }
 
   @override

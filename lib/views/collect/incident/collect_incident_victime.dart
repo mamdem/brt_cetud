@@ -72,8 +72,8 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
         if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
-        }else if(int.parse(_ageController.text) < 10 || int.parse(_ageController.text) > 120){
-          showError("L'âge doit être entre 10 et 120");
+        }else if(int.parse(_ageController.text) < 1 || int.parse(_ageController.text) > 120){
+          showError("L'âge doit être entre 1 et 120");
         }
         if (_telController.text.isEmpty || !isValidNumber) {
           showError("Veuillez entrer un numéro de téléphone.");
@@ -131,6 +131,7 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
     final fiche = FicheIncidentVictime(
         incidentId: widget.incidentId,
         prenom: _prenomController.text,
+        sexe: _selectedSexe,
         nom: _nomController.text,
         age: int.tryParse(_ageController.text),
         tel: _telController.text,
@@ -346,7 +347,7 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
                         setState(() {
                           if (value.isNotEmpty) {
                             final width = double.tryParse(value);
-                            if (width == null || width < 10 || width > 120) {
+                            if (width == null || width < 1 || width > 120) {
                               _ageErrorText = "L'âge doit être entre 1 et 120";
                             } else {
                               _ageErrorText = null;
@@ -358,7 +359,6 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
                       },
                     ),
                     const SizedBox(height: 16),
-
                     const Text('Téléphone', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     IntlPhoneField(

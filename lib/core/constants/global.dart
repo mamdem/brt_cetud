@@ -17,22 +17,39 @@ Future<void> saveIsConnected(bool value) async {
   await prefs.setBool("isConnected", value);
 }
 
+Future<void> savePassword(String pwd) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString("pwd", pwd);
+}
+
+Future<void> saveIsFirstConnection(bool value) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setBool("isFirstConnection", value);
+}
+
 Future<bool?> isConnected() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getBool("isConnected")??false;
 }
 
+
+Future<String?> getPassword() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString("pwd")??null;
+}
+
+Future<bool?> isFirstConnection() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getBool("isFirstConnection")??false;
+}
+
 String generateAlertCode() {
-  // Récupération de la date et de l'heure actuelles
   DateTime now = DateTime.now();
 
-  // Formatage de la date en "yyyyMMdd"
   String formattedDate = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
 
-  // Formatage de l'heure en "HHmmss"
   String formattedTime = "${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}";
 
-  // Construction du code
   String code = "ALR${formattedDate}T${formattedTime}U${global.user['idusers']}";
 
   return code;

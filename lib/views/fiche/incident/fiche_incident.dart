@@ -289,10 +289,10 @@ class _DetailsIncidentState extends State<DetailsIncident> {
                         alertDetails: _alertDetails!,
                         ficheIncidentDetails: _ficheIncidentDetails!,
                         haveDraft: currentStepAcc != 1,
-                      ): DetailsFicheIncident(
+                      ): _alertDetails!=null ? DetailsFicheIncident(
                         alertDetails: _alertDetails!,
                         haveDraft: currentStepAcc != 1,
-                      ),
+                      ):Text(""),
                       DetailsFicheIncidentVictime(
                         victimeDetails: _ficheVictimeDetails,
                         accidentID: _ficheIncidentDetails != null

@@ -1,3 +1,5 @@
+import 'package:brt_mobile/views/auth/login_withpassword_only.dart';
+import 'package:brt_mobile/views/auth/pin_setup_page.dart';
 import 'package:brt_mobile/views/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -52,14 +54,14 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('fr'), // Français
+        Locale('fr'),
       ],
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       builder: EasyLoading.init(),
-      home: const HomeScreen(),
+      home: LoginWithPasswordOnly(),
     );
   }
 }

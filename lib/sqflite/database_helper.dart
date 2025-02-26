@@ -227,6 +227,7 @@ CREATE TABLE fiche_accident (
               nom TEXT,
               age INTEGER,
               tel TEXT,
+              sexe CHAR(1),
               etat_victime TEXT,
               structure_sanitaire_evac TEXT,
               statut_guerison TEXT,
@@ -620,7 +621,6 @@ CREATE TABLE fiche_accident (
   }
 
 
-
   Future<int> updateFicheAccidentIdServer({
     required int idFicheAccident,
     required int idServer,
@@ -727,9 +727,30 @@ CREATE TABLE fiche_accident (
   }
 
   Future<List<FicheIncident>> getAllFicheIncidents() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('fiche_incident');
-    return List.generate(maps.length, (i) => FicheIncident.fromMap(maps[i]));
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query('fiche_incident');
+
+      List<FicheIncident> incidents = [];
+
+      for (var i = 0; i < maps.length; i++) {
+        try {
+          print("✅ Traitement de l'entrée $i : ${maps[i]}");
+          FicheIncident incident = FicheIncident.fromMap(maps[i]);
+          incidents.add(incident);
+        } catch (e) {
+          print("⚠️ Ignoré : erreur lors de la conversion de l'entrée $i : ${maps[i]}");
+          print("Détail de l'erreur : $e");
+          // Continue sans ajouter cet incident à la liste
+        }
+      }
+
+      print("🔹 Nombre total d'incidents valides : ${incidents.length}");
+      return incidents;
+    } catch (e) {
+      print("🚨 Erreur générale lors de la récupération des fiches incidents : $e");
+      return [];
+    }
   }
 
   Future<List<FicheAccident>> getAllFicheAccidentsNonSync() async {
@@ -853,7 +874,6 @@ CREATE TABLE fiche_accident (
     }
   }
 
-// Fonction pour détecter le type SQLite en fonction de la valeur
   String _getSQLiteType(dynamic value) {
     if (value is int) return "INTEGER";
     if (value is double) return "REAL";
@@ -861,7 +881,6 @@ CREATE TABLE fiche_accident (
     if (value == null) return "TEXT"; // Par défaut si la valeur est nulle
     throw Exception("Type non supporté: ${value.runtimeType}");
   }
-
 
   Future<Map<String, dynamic>?> getUser() async {
     final db = await database;

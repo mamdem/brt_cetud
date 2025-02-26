@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:brt_mobile/core/constants/global.dart' as global;
+import 'package:brt_mobile/models/incident_degats_materiels.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import '../error/sync_logger.dart';
@@ -240,6 +242,16 @@ class AccIncService {
     }
   }
 
+  static Future<void> _addFileToRequest(http.MultipartRequest request, String fieldName, String? filePath) async {
+    if (filePath != null && filePath.isNotEmpty) {
+      final file = File(filePath);
+      if (await file.exists()) {
+        request.files.add(await http.MultipartFile.fromPath(fieldName, filePath));
+      } else {
+      }
+    }
+  }
+
   static Future<void> saveFicheAccident(FicheAccident ficheAccident) async {
     SyncLogger.addLog("Début de la synchronisation de l'accident ID: ${ficheAccident.idficheAccident}.", status: "info");
 
@@ -289,25 +301,10 @@ class AccIncService {
           }
         });
 
-        if (ficheAccident.traceFreinagePhoto != null) {
-          request.files.add(await http.MultipartFile.fromPath(
-            'trace_freinage_photo',
-            ficheAccident.traceFreinagePhoto!,
-          ));
-        }
-
-        if (ficheAccident.traceSangPhoto != null) {
-          request.files.add(await http.MultipartFile.fromPath(
-            'trace_sang_photo',
-            ficheAccident.traceSangPhoto!,
-          ));
-        }
-        if (ficheAccident.tracePneuePhoto != null) {
-          request.files.add(await http.MultipartFile.fromPath(
-            'trace_pneue_photo',
-            ficheAccident.tracePneuePhoto!,
-          ));
-        }
+        // Ajout des fichiers avec vérification
+        await _addFileToRequest(request, 'trace_pneue_photo', ficheAccident.tracePneuePhoto);
+        await _addFileToRequest(request, 'trace_freinage_photo', ficheAccident.traceFreinagePhoto);
+        await _addFileToRequest(request, 'trace_sang_photo', ficheAccident.traceSangPhoto);
 
         SyncLogger.addLog("Accident ID: trace_freinage_photo : ${ficheAccident.traceFreinagePhoto!}"
             "\ntrace_sang_photo: ${ficheAccident.traceSangPhoto!}"
@@ -395,6 +392,7 @@ class AccIncService {
       }
       return;
     }
+    print("LES DEUX SONT SYNC");
     for (FicheIncident fiche in fichesIncident) {
       await saveFicheIncident(fiche);
     }
@@ -536,6 +534,7 @@ class AccIncService {
   }
 
   static Future<void> saveFicheAccidentVictime(int accidentId, int accidentIdServer) async {
+    print("\n\n\n\n\n\n");
     SyncLogger.addLog(
       "Début de la synchronisation des victimes pour l'accident ID: $accidentId.",
       status: "info",
@@ -556,21 +555,17 @@ class AccIncService {
         FicheAccidentVictime victime = FicheAccidentVictime.fromMap(victimeData);
         final vehicule = await DatabaseHelper().getVehiculeByIdLocal(victime.vehicleId!);
 
-        if (vehicule == null || vehicule['id_server'] == null) {
-          SyncLogger.addLog(
-            "Aucune correspondance trouvée pour le véhicule ID: ${victime.vehicleId} associé à la victime ID: ${victime.idficheAccidentVictime}.",
-            status: "warning",
-          );
-          continue;
-        }
+        print(victimeData);
 
         if (victime.idServer == null) {
+          print(" ENREGISTREMENT DE CETTE VICTIME------------:");
+          print(victime);
           final Map<String, dynamic> params = {
             'code': 'victime',
             'mp': global.user['mp'],
             'device_info': global.phoneIdentifier,
             'accident_id': accidentIdServer,
-            'vehicule_id': vehicule['id_server'],
+            'vehicule_id': victime.vehicleId,
             'prenom': victime.prenom,
             'nom': victime.nom,
             'age': victime.age,
@@ -747,6 +742,7 @@ class AccIncService {
       for (Map<String, dynamic> victimeData in victimes) {
         FicheIncidentVictime victime = FicheIncidentVictime.fromMap(victimeData);
 
+        print(victime.toMap());
 
         if (victime.idServer == null) {
           final Map<String, dynamic> params = {
@@ -773,9 +769,10 @@ class AccIncService {
 
             if (response.statusCode == 200) {
               final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-
+              print(jsonResponse['data']);
               if (jsonResponse['succes'] == true) {
                 final int idServer = jsonResponse['data']['idfiche_incident_victime'];
+
                 final int idLocal = victime.idIncidentVictime!;
 
                 final int updateRows = await DatabaseHelper().updateFicheVictimeIdServer(
@@ -828,13 +825,11 @@ class AccIncService {
   }
 
   static Future<void> saveIncidentDegatsMateriels(int incidentId, int incidentIdServer) async {
-    print("Enregistrement des incidents dégâts matériels -------------------------------------------\n\n");
+    print("Enregistrement des incidents dégâts matériels -------------------------------------------\n");
     List<Map<String, dynamic>> degatsMateriels = await DatabaseHelper.getDegatsMaterielsByIncidentId(incidentId);
 
     for (Map<String, dynamic> degatData in degatsMateriels) {
-      AccidentDegatsMateriels degat = AccidentDegatsMateriels.fromMap(degatData);
-
-      print("Données du dégât matériel :");
+      IncidentDegatsMateriels degat = IncidentDegatsMateriels.fromMap(degatData);
       print(degat.toMap());
 
       if (degat.idServer == null) {

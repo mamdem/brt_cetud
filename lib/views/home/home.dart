@@ -73,23 +73,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initialize() async {
-    String?  identifier = await UniqueIdentifier.serial;
-    global.phoneIdentifier = identifier??"";
+
     bool? result = await global.isConnected();
+
     if(!(result!=null && (result==true))){
       Get.offAll(const StartupScreen());
     }
 
     Future.delayed(const Duration(seconds: 3), () async {
-      await fetchUser();
-      await AuthService.fetchAndSaveData().then((value){
-        _fetchFirstIncidents();
-        _fetchTotalAlerts();
+      if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
+        await fetchUser();
+        await AuthService.fetchAndSaveData().then((value){
+          _fetchFirstIncidents();
+          _fetchTotalAlerts();
+        });
+      }else{
+        showInfo("Impossible de recupérer les données en mode hors ligne");
+      }
+      setState(() {
+        _isLoading=false;
       });
-      _isLoading=false;
     });
 
-    Timer.periodic(const Duration(seconds: 20), (timer) async {
+    Timer.periodic(const Duration(seconds: 20000), (timer) async {
       if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
         print("Recupération données...");
         //await fetchUser();
@@ -121,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (user != null) {
       setState(() {
         global.user = user;
-        nomComplet = "${user['prenom']} ${user['nom']}";
+        nomComplet = "${user['prenom_user']} ${user['nom_user']}";
         imagePath = user['photo'];
       });
     } else {
@@ -569,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           AppButton(
                             onPressed: () async{
-                              Get.offAll(LoginScreen(), transition: Transition.circularReveal);
+                              Get.offAll(StartupScreen(), transition: Transition.circularReveal);
                               global.saveIsConnected(false);
                             },
                             backgroundColor: AppColors.red,
@@ -809,7 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
-                        height: 130, // Fixe la hauteur pour éviter les conflits
+                        height: 130,
                         child: Row(
                           children: [
                             Expanded(
@@ -817,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(10),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Icon(Icons.warning_amber, color: Colors.blue, size: 32),
                                       const SizedBox(height: 8),
@@ -863,7 +869,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       final String? logoPath = structureData['logo'];
 
                                       return Column(
-                                        mainAxisAlignment: MainAxisAlignment.center, // Centre le contenu verticalement
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           if (logoPath != null && File(logoPath).existsSync())
                                             Image.file(
@@ -926,8 +932,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(fontSize: 20, color: Colors.grey),
                             ),
                           )
-                      )
-                          : Column(
+                      ) : Column(
                         children: _firstIncidents.map((incident) {
                           return FutureBuilder<String>(
                             future: (incident['position_lat'] != null && incident['position_long'] != null)
@@ -968,6 +973,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               }
                             },
+
                           );
                         }).toList(),
                       ),

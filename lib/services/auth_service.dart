@@ -13,6 +13,8 @@ import '../models/fiche_accident_vehicule.dart';
 import '../models/fiche_accident_victime.dart';
 import '../models/responsable_saisi.dart';
 import '../sqflite/database_helper.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class AuthService {
 
@@ -21,7 +23,6 @@ class AuthService {
   static Future<void> fetchAndSaveData() async {
     final url =
         "${global.baseUrl}/getDataAccident?mp=${global.user['mp']}&device_info=${global.phoneIdentifier}";
-    // Étape 1 : Effectuer une requête GET
     final response = await http.post(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -44,7 +45,6 @@ class AuthService {
     for (var alert in alerts) {
       final idFicheAlert = alert['idfiche_alert'];
 
-      // Vérifier si l'alerte existe déjà
       final existingAlert = await dbase.query(
         'alerte',
         where: 'idfiche_alert = ?',
@@ -235,6 +235,66 @@ class AuthService {
             });
           }
         }
+
+        // Gérer les dégâts matériels
+        final incidentDegats = alert['accident_degats_materiels'] ?? [];
+        for (var degat in incidentDegats) {
+          final idDegat = degat['idaccident_degats_materiels'];
+
+          final existingDegat = await dbase.query(
+            'accident_degats_materiels',
+            where: 'id_server = ?',
+            whereArgs: [idDegat],
+          );
+
+          if (existingDegat.isEmpty) {
+            // Téléchargement et sauvegarde de la photo localement si elle existe
+            String? localPhotoPath;
+            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+              localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+            }
+
+            // Gérer les dégâts matériels
+            final incidentDegats = alert['accident_degats_materiels'] ?? [];
+            for (var degat in incidentDegats) {
+              final idDegat = degat['idaccident_degats_materiels'];
+
+              // Vérifier si l'ID existe déjà dans la base de données
+              final existingDegat = await dbase.query(
+                'accident_degats_materiels',
+                where: 'idaccident_degats_materiels = ?',
+                whereArgs: [idDegat],
+              );
+
+              String? localPhotoPath;
+              if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+                final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+                localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+              }
+
+              if (existingDegat.isEmpty) {
+                // Insérer uniquement si l'ID n'existe pas encore
+                await dbase.insert('accident_degats_materiels', {
+                  "idaccident_degats_materiels": idDegat,
+                  "id_server": idDegat,
+                  "libelle_materiels": degat['libelle_materiels'],
+                  "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
+                  "accident_id": degat['accident_id'],
+                  "user_saisie": degat['user_saisie'],
+                  "user_update": degat['user_update'],
+                  "user_delete": degat['user_delete'],
+                  "created_at": degat['created_at'],
+                  "updated_at": degat['updated_at'],
+                  "deleted_at": degat['deleted_at']
+                });
+              } else {
+                print("⚠️ Le dégât idaccident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+              }
+            }
+
+          }
+        }
       }
 
     }
@@ -293,15 +353,22 @@ class AuthService {
         for (var victime in victimes) {
           final idVictime = victime['idincident_victime'];
 
-          final existingVictime = await dbase.query(
-            'fiche_incident_victime',
-            where: 'id_server = ?',
-            whereArgs: [idVictime],
-          );
 
-          if (existingVictime.isEmpty) {
+          // Gérer les victimes associées
+          final victimes = alert['incident_victime'] ?? [];
+          for (var victime in victimes) {
+            final idVictime = victime['idincident_victime'];
+
+            // Vérifier si l'ID existe déjà dans la base de données
+            final existingVictime = await dbase.query(
+              'fiche_incident_victime',
+              where: 'idincident_victime = ?',
+              whereArgs: [idVictime],
+            );
+
             FicheIncidentVictime ficheVictime = FicheIncidentVictime.fromMap(victime);
-            await dbase.insert('fiche_incident_victime',{
+
+            Map<String, dynamic> data = {
               "idincident_victime": ficheVictime.idIncidentVictime,
               "id_server": ficheVictime.idIncidentVictime,
               "age": ficheVictime.age,
@@ -319,10 +386,81 @@ class AuthService {
               "created_at": victime['created_at'],
               "updated_at": victime['updated_at'],
               "deleted_at": victime['deleted_at']
-            });
+            };
+
+            if (existingVictime.isEmpty) {
+              await dbase.insert('fiche_incident_victime', data);
+            } else {
+              await dbase.update(
+                'fiche_incident_victime',
+                data,
+                where: 'idincident_victime = ?',
+                whereArgs: [idVictime],
+              );
+            }
           }
+
         }
 
+        // Gérer les dégâts matériels
+        final incidentDegats = alert['incident_degats_materiels'] ?? [];
+        for (var degat in incidentDegats) {
+          final idDegat = degat['idincident_degats_materiels'];
+
+          final existingDegat = await dbase.query(
+            'incident_degats_materiels',
+            where: 'id_server = ?',
+            whereArgs: [idDegat],
+          );
+
+          if (existingDegat.isEmpty) {
+            // Téléchargement et sauvegarde de la photo localement si elle existe
+            String? localPhotoPath;
+            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+              localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+            }
+
+            // Gérer les dégâts matériels
+            final incidentDegats = alert['incident_degats_materiels'] ?? [];
+            for (var degat in incidentDegats) {
+              final idDegat = degat['idincident_degats_materiels'];
+
+              // Vérifier si l'ID existe déjà dans la base de données
+              final existingDegat = await dbase.query(
+                'incident_degats_materiels',
+                where: 'idincident_degats_materiels = ?',
+                whereArgs: [idDegat],
+              );
+
+              String? localPhotoPath;
+              if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+                final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+                localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+              }
+
+              if (existingDegat.isEmpty) {
+                // Insérer uniquement si l'ID n'existe pas encore
+                await dbase.insert('incident_degats_materiels', {
+                  "idincident_degats_materiels": idDegat,
+                  "id_server": idDegat,
+                  "libelle_materiels": degat['libelle_materiels'],
+                  "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
+                  "incident_id": degat['incident_id'],
+                  "user_saisie": degat['user_saisie'],
+                  "user_update": degat['user_update'],
+                  "user_delete": degat['user_delete'],
+                  "created_at": degat['created_at'],
+                  "updated_at": degat['updated_at'],
+                  "deleted_at": degat['deleted_at']
+                });
+              } else {
+                print("⚠️ Le dégât idincident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+              }
+            }
+
+          }
+        }
       }
     }
 
@@ -344,7 +482,29 @@ class AuthService {
           'created_at': resp['created_at']
         });
       }
+    }
+  }
 
+  static Future<String?> _downloadAndSaveImage(String imageUrl, String fileName) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        final Directory appDocDir = await getApplicationDocumentsDirectory();
+        final String appDocPath = appDocDir.path;
+
+        final File localFile = File('$appDocPath/$fileName');
+
+        await localFile.writeAsBytes(response.bodyBytes);
+
+        return localFile.path;
+      } else {
+        print('Erreur lors du téléchargement de l\'image : ${response
+            .statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Erreur : $e');
+      return null;
     }
   }
 
@@ -404,6 +564,8 @@ class AuthService {
           final db = DatabaseHelper();
           db.saveJsonData(jsonData);
           global.saveIsConnected(true);
+          global.saveIsFirstConnection(true);
+          global.savePassword(mp);
           return jsonData;
         }else{
           return null;

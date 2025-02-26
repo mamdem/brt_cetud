@@ -320,17 +320,16 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
           showError("Veuillez renseigner un nombre valide de victimes.");
           return false;
         }
-        if (interruptionService && dateRepriseController.text.isEmpty) {
+        /*if (interruptionService && dateRepriseController.text.isEmpty) {
           showError("Veuillez sélectionner une date de reprise si le service est interrompu.");
           return false;
-        }
+        }*/
         return true;
 
       default:
         return true;
     }
   }
-
 
   void showError(String message) {
     Get.snackbar(
@@ -443,12 +442,11 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                       style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
                     ),
                     Column(
-                      children: rowsTI
-                          .map(
-                            (rowTypesIncident) => Row(
-                              children: rowTypesIncident
-                              .map(
-                              (typeIncident) => Expanded(
+                      children: rowsTI.map((rowTypesIncident) {
+                        return Row(
+                          children: rowTypesIncident.map((typeIncident) {
+                            bool isSelected = _selectedTypeIncident == typeIncident['id'];
+                            return Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.all(4.0),
                                 child: ElevatedButton(
@@ -456,9 +454,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                     _selectedTypeIncident = typeIncident['id'];
                                   }),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: _selectedTypeIncident == typeIncident['id']
-                                        ? Colors.blue
-                                        : Colors.white,
+                                    backgroundColor: isSelected ? Colors.blue : Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 12),
                                     side: BorderSide(color: Colors.grey[300]!),
                                     shape: RoundedRectangleBorder(
@@ -468,18 +464,17 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                   child: Text(
                                     typeIncident['libelle'],
                                     style: TextStyle(
-                                      color: _selectedTypeIncident == typeIncident['id']
-                                          ? Colors.white
-                                          : Colors.black87,
+                                      color: isSelected ? Colors.white : Colors.black87,
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ).toList(),
-                        ),
-                      ).toList(),
+                            );
+                          }).toList(),
+                        );
+                      }).toList(),
                     ),
+
                     const SizedBox(height: 12,),
 
                     //Libellé
@@ -925,7 +920,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     ),
                     const SizedBox(height: 12,),
                     //Date Reprise
-                    if(interruptionService)...[
+                    /*if(interruptionService)...[
                       const Text(
                         "Date reprise :",
                         style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
@@ -973,7 +968,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                         },
                       ),
                       SizedBox(height: 14,),
-                    ]
+                    ]*/
                   ],
                 ),
               ),
@@ -990,9 +985,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       "signalement_id": widget.alertId,
       "type_incident_id": _selectedTypeIncident,
       "libelle": libelleIncident.text,
-      "date_heure": dateIncidentController.text.isEmpty
-          ? null
-          : dateTimeFormat.format(dateTimeFormat.parse(dateIncidentController.text)),
+      "date_heure": DateTime.now().toIso8601String(),
       "section_id": _selectedSection,
       "position_lat": _alertDetails!["position_lat"],
       "position_long": _alertDetails!["position_long"],

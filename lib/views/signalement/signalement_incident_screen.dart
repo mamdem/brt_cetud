@@ -28,7 +28,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
 
   late double _latitude;
   late double _longitude;
-  final int nbStep=3;
+  final int nbStep=4;
 
   String currentAddress="";
 
@@ -46,6 +46,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
 
   final TextEditingController agentAssistantController = TextEditingController();
   final TextEditingController matriculeBusController = TextEditingController();
+  final TextEditingController lieuCorridorController = TextEditingController();
 
   late bool _serviceEnabled;
 
@@ -451,8 +452,10 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                             2,
                           );
 
+                          lieuCorridorController.text = currentAddress;
+
                           setState(() {
-                            isLocationAvailable = true; // Marquer la position comme disponible
+                            isLocationAvailable = true;
                           });
                         } catch (e) {
                           print("Erreur : $e");
@@ -485,7 +488,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                         style: const TextStyle(color: Colors.black87),
                       ),
                     ),
-                    if (isLocationAvailable && _latitude != null && _longitude != null)
+                    if (isLocationAvailable && _latitude != null && _longitude != null)...[
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Text(
@@ -493,7 +496,25 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                           style: const TextStyle(fontSize: 16, color: Colors.black87),
                         ),
                       ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                      const Text('Lieu corridor', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: lieuCorridorController,
+                        decoration: InputDecoration(
+                          hintText: "Lieu corridor",
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                        ),
+                      ),
+                    ]
                   ],
                 ),
               ),
@@ -607,6 +628,171 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     );
   }
 
+  Widget _buildVictimeStep() {
+    return Column(
+      children: [
+        Card(
+          elevation: 2,
+          margin: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(4),
+                    topRight: Radius.circular(4),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+
+                    Icon(Icons.personal_injury, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Text(
+                      "Victimes ?",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Y a t-il un victime ?', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => setState(() => _hasVictime = true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _hasVictime ? Colors.blue : Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text('Oui', style: TextStyle(color: _hasVictime ? Colors.white : Colors.black87)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => setState(() => _hasVictime = false),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: !_hasVictime ? Colors.blue : Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: Colors.grey[300]!),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text('Non', style: TextStyle(color: !_hasVictime ? Colors.white : Colors.black87)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if(_hasVictime)...[
+                      const SizedBox(height: 10,),
+                      const Divider(height: 10),
+                      _buildCounterRow('Victimes conscientes', _consciousController),
+                      _buildCounterRow('Victimes inconscientes', _unconsciousController),
+                      const Divider(height: 30),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Total: ',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              totalVictims.toString(),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ]
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCounterRow(String label, TextEditingController controller) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        //border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.remove_circle_outline, size: 30,),
+            onPressed: () => updateValue(controller, false),
+            color: Colors.red,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 5),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: 'Adresse ou description du lieu',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.add_circle_outline, size: 30,),
+            onPressed: () => updateValue(controller, true),
+            color: Colors.green,
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -625,6 +811,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                   ? _buildAlertLevelStep()
                   : currentStep == 2
                   ? _buildLocationStep()
+                  : currentStep == 3
+                  ? _buildVictimeStep()
                   : _buildBusDetailsStep(),
             ),
           ),

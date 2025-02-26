@@ -1,4 +1,4 @@
-package com.example.brt_mobile
+package com.app.brt_mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

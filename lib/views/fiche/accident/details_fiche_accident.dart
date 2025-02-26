@@ -31,14 +31,21 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   late Map<String, dynamic>? ficheResponsableSaisi;
   DatabaseHelper db = DatabaseHelper();
 
+  bool _isLoading=true;
   late bool bRespSaisi;
   late bool bRensFichAcc;
 
   @override
   void initState() {
     super.initState();
-    bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
-    bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isLoading = false;
+        bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
+        bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
+      });
+    });
+
   }
 
   String formatDate(String? isoDate) {
@@ -212,11 +219,25 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
+    return _isLoading
+        ? Center(
+      child: CircularProgressIndicator(
+        color: AppColors.appColor,
+      ),
+    )
+        : Container(
       height: screenHeight - 280,
       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
       child: ListView(
         children: [
+          _buildInfoTile(
+            icon: Icons.numbers,
+            title: "Code alerte",
+            content: Text(
+              (widget.alertDetails['code_alert']),
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
           _buildInfoTile(
             icon: Icons.location_on,
             title: "Localisation",
@@ -285,7 +306,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                 final Map<String, dynamic> dataFichResp = {
                   'code_alert': widget.alertDetails["code_alert"],
                   'responsable_saisie': global.user["idusers"],
-                  'prenom_nom': "${global.user['prenom']} ${global.user["nom"]}",
+                  'prenom_nom': "${global.user['prenom_user']} ${global.user["nom_user"]}",
                   'created_at': DateTime.now().toIso8601String(),
                 };
                 if(widget.alertDetails['id_server']!=null){ //Si l'alerte est deja synchronisée

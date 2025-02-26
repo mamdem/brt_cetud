@@ -1099,7 +1099,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   }
 
   Future<void> _saveFicheAccidentVehicule() async {
-    try {
       final fiche = FicheAccidentVehicule(
         accidentId: widget.accidentId,
         matricule: _matriculeController.text,
@@ -1148,7 +1147,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         etatPneueArriere: _etatPneueArriereController.text,
         positionLevierVitesse: _positionLevierVitessController.text,
         presencePosteRadio: _selectedPresencePosteRadio??44,
-        positionVolume: int.parse(_positionVolumeController.text),
+        positionVolume: (_positionVolumeController.text.isNotEmpty)
+            ? int.tryParse(_positionVolumeController.text)
+            : null,
 
         // Champs supplémentaires
         professionConducteur: _professionConducteurController.text,
@@ -1175,11 +1176,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
       } else {
         print("Aucune ligne n'a été modifiée.");
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'enregistrement: ${e.toString()}')),
-      );
-    }
+
   }
 
   void showError(String message) {

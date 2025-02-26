@@ -1,12 +1,12 @@
 import 'package:brt_mobile/res/constant/app_assets.dart';
 import 'package:brt_mobile/services/auth_service.dart';
+import 'package:brt_mobile/views/auth/pin_setup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/phone_number.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/otp_field_style.dart';
 import 'package:otp_text_field/style.dart';
@@ -33,7 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController phoneNumberController = TextEditingController();
   TextEditingController prenomController = TextEditingController();
   TextEditingController nomController = TextEditingController();
-
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         isValidNumber = phone.isValidNumber();
                       },
                     ),
-                    const SizedBox(height: 8,),
+                    /*const SizedBox(height: 8,),
                     TextField(
                       controller: prenomController,
                       decoration: InputDecoration(
@@ -149,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
                       ),
-                    ),
+                    ),*/
                     const SizedBox(height: 40.0),
                   ],
                   if(nbStep==2)...[
@@ -289,8 +288,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               }else if (nbStep==2){
                                 if(loginController.text.isNotEmpty && passwordController.text.isNotEmpty){
                                   EasyLoading.instance.backgroundColor = Colors.black;
-                                  EasyLoading.show(status: 'Requête en cours...');
-                                  bool result = await AuthService.getFirstConnexion(numTel: phoneNumber, prenom: prenomController.text, nom: nomController.text, deviceInfo: global.phoneIdentifier);
+                                  EasyLoading.show(status: 'Connexion en cours...');
+                                  bool result = await AuthService.getFirstConnexion(numTel: phoneNumber, prenom: "---", nom: "---", deviceInfo: global.phoneIdentifier);
                                   EasyLoading.dismiss();
                                   print(phoneNumber);
                                   if(result){
@@ -314,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 EasyLoading.dismiss();
                                 print(result);
                                 if(result!=null){
-                                  Get.offAll(const HomeScreen(), transition: Transition.rightToLeft);
+                                  Get.offAll(const PinSetupPage(), transition: Transition.rightToLeft);
                                 }else{
                                   EasyLoading.instance.backgroundColor = Colors.red;
                                   EasyLoading.showError("Connexion impossible, vérifiez vos infos de connexion");
