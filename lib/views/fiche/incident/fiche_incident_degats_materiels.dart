@@ -149,7 +149,8 @@ class DetailsFicheIncidentDegatsMateriels extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
-
+    print("LES DEGATTTT INCIDENTTTT !!!");
+    print(degatDetails);
     return Scaffold(
       body: Container(
         height: screenHeight - 280,

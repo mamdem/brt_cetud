@@ -47,6 +47,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
   final TextEditingController agentAssistantController = TextEditingController();
   final TextEditingController matriculeBusController = TextEditingController();
   final TextEditingController lieuCorridorController = TextEditingController();
+  final TextEditingController dateHeureController = TextEditingController();
+
 
   late bool _serviceEnabled;
 
@@ -134,6 +136,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
   void openDialogSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche accident enregistrée avec succès !",
@@ -155,7 +158,9 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     final alert = Alerte(
         codeAlert: global.generateAlertCode(),
         typeAlert: 40,
-        dateAlert: DateTime.now(),
+        dateAlert: dateHeureController.text.isEmpty
+            ? DateTime.now()
+            : DateTime.tryParse(dateHeureController.text),
         userAlert: global.user["idusers"],
         alerteNiveauId: _selectedAlertLevel == "NIVEAU_1"
             ? 1
@@ -163,6 +168,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
             ? 2
             : 3,
         positionLat: !_locationData.isNull?_locationData.latitude:null,
+        lieuCorridor: lieuCorridorController.text,
         positionLong: !_locationData.isNull?_locationData.longitude:null,
         busOperateurImplique: _busImplique ? 43 : 44,
         matriculeBus: _busImplique ? matriculeBusController.text : null,
@@ -365,6 +371,59 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      "Date et Heure de l'accident",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: dateHeureController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        // Sélectionner la date
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          // Sélectionner l'heure
+                          final TimeOfDay? pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+                          );
+
+                          if (pickedTime != null) {
+                            // Créer une DateTime avec la date et l'heure sélectionnées
+                            final DateTime pickedDateTime = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+
+                            // Formater la date et l'heure au format ISO8601
+                            String formattedDateTime = pickedDateTime.toIso8601String();
+
+                            // Afficher la date et l'heure sélectionnées dans le TextField
+                            dateHeureController.text = formattedDateTime;
+                          }
+                        }
+                      },
+                    ),
+                    SizedBox(height: 15,),
                     const Row(
                       children: [
                         Icon(Icons.location_on_outlined,
@@ -452,9 +511,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                             2,
                           );
 
-                          lieuCorridorController.text = currentAddress;
-
                           setState(() {
+                            lieuCorridorController.text = currentAddress;
                             isLocationAvailable = true;
                           });
                         } catch (e) {

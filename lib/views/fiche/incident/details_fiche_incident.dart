@@ -37,7 +37,7 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _isLoading = false;
         bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
@@ -335,13 +335,19 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                   Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
                   print("Insertion réussie, ID inséré : $insertedId");
                 }else{
-                  try {
-                    final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
-                    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-                    print("Insertion réussie, ID inséré : $insertedId");
-                  } catch (e) {
+                  try{
+                    await AuthService.saveResponsableEnLocal(
+                        codeAlert: widget.alertDetails["code_alert"],
+                        responsableSaisie: (global.user["idusers"]),
+                        prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                        createdAt: DateTime.now().toIso8601String().toString(),
+                        mp: global.user['mp'],
+                        deviceInfo: global.phoneIdentifier
+                    );
+                  }catch(e){
                     print("Erreur lors de l'insertion : $e");
                   }
+                  Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
                 }
                 setState(() {
                   bRensFichAcc = true;

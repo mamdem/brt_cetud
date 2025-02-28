@@ -23,7 +23,7 @@ class CollectIncidentScreen extends StatefulWidget {
 class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
   int currentStep = 1;
   final int nbStep = 3;
-
+  String? errorText;
   final _formKey = GlobalKey<FormState>();
 
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
@@ -354,6 +354,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
   void showSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche accident enregistrée avec succès !",
@@ -519,24 +520,22 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           if (alertDate != null) {
                             final DateTime now = DateTime.now();
 
-                            // Sélectionner la date
                             final DateTime? pickedDate = await showDatePicker(
                               context: context,
                               initialDate: now.isAfter(alertDate) ? now : alertDate,
                               firstDate: alertDate,
-                              lastDate: DateTime(2100),
+                              lastDate: now,
                               locale: const Locale('fr'),
                             );
 
                             if (pickedDate != null) {
-                              // Sélectionner l'heure
                               final TimeOfDay? pickedTime = await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.fromDateTime(now),
                               );
 
                               if (pickedTime != null) {
-                                final DateTime finalDateTime = DateTime(
+                                final DateTime pickedDateTime = DateTime(
                                   pickedDate.year,
                                   pickedDate.month,
                                   pickedDate.day,
@@ -544,7 +543,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                   pickedTime.minute,
                                 );
 
-                                dateIncidentController.text = dateTimeFormat.format(finalDateTime);
+                                String formattedDateTime = pickedDateTime.toIso8601String();
+                                dateIncidentController.text = formattedDateTime;
                               }
                             }
                           } else {
@@ -831,10 +831,32 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           hintText: 'Nombre de victime',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
+                            borderSide: errorText == null
+                                ? BorderSide(color: Colors.grey) // Bordure normale
+                                : BorderSide(color: Colors.red), // Bordure rouge si erreur
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: errorText == null
+                                ? BorderSide(color: AppColors.appColor) // Bordure normale quand sélectionné
+                                : BorderSide(color: Colors.yellow), // Bordure rouge si erreur
+                          ),
+                          helperText: errorText, // Affichage du message d'erreur
                         ),
-
-                      ),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isNotEmpty) {
+                              if (_alertDetails!['nb_victime'] < int.parse(value)) {
+                                errorText = "${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
+                              } else {
+                                errorText = null; // Supprime l'erreur si la valeur est correcte
+                              }
+                            } else {
+                              errorText = null; // Supprime l'erreur si le champ est vide
+                            }
+                          });
+                        },
+                      )
                     ],
                     const SizedBox(height: 12,),
                     const Divider(

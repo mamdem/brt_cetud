@@ -166,6 +166,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
   void openDialogSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche victime enregistré avec succès !",

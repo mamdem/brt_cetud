@@ -25,6 +25,13 @@ class DatabaseHelper {
     return _database!;
   }
 
+
+  static Future<void> deleteLocalDatabase() async {
+    String dbPath = join(await getDatabasesPath(), 'alerts.db');
+    await deleteDatabase(dbPath);
+    print('Base de données supprimée.');
+  }
+
   Future<Database> _initDatabase() async {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, 'alerts.db');
@@ -60,6 +67,7 @@ class DatabaseHelper {
         alerte_niveau_id INTEGER,
         position_lat REAL,
         position_long REAL,
+        lieu_corridor TEXT,
         bus_operateur_implique INTEGER,
         matricule_bus TEXT,
         voie INTEGER,
@@ -339,15 +347,18 @@ CREATE TABLE fiche_accident (
   }
 
 
-  Future<List<Map<String, dynamic>>> getResponsablesNonSync() async {
+  Future<List<Map<String, dynamic>>> getResponsablesNonSync(String codeAlert) async {
     final db = await database;
     return await db.query(
       'responsable_saisi',
-      where: 'id_server IS NULL',
+      where: 'id_server IS NULL  AND code_alert = ?',
+      whereArgs: [codeAlert],
+      limit: 1
     );
   }
 
   Future<void> deleteAllTableSynced() async {
+    await deleteTableWithServerId("responsable_saisi");
     await deleteTableWithServerId("accident_degats_materiels");
     await deleteTableWithServerId("incident_degats_materiels");
     await deleteTableWithServerId("fiche_accident_victime");
@@ -355,18 +366,19 @@ CREATE TABLE fiche_accident (
     await deleteTableWithServerId("fiche_accident_vehicule");
     await deleteTableWithServerId("fiche_accident");
     await deleteTableWithServerId("fiche_incident");
+
     await deleteTableWithServerId("alerte");
   }
 
-  Future<int> updateResponsableSaisiIdServerById(int id, int idServer) async {
+  Future<int> updateResponsableSaisiIdServerById(String codeAlert, int idServer) async {
     final db = await database;
     return await db.update(
       'responsable_saisi',
       {
         'id_server': idServer,
       },
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'code_alert = ?',
+      whereArgs: [codeAlert],
     );
   }
 
@@ -620,6 +632,22 @@ CREATE TABLE fiche_accident (
     return result;
   }
 
+  Future<int> updateResponsableSaisiIdServer({
+    required int id,
+    required int idServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      "responsable_saisi",
+      {'id_server': idServer},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    return result;
+  }
+
 
   Future<int> updateFicheAccidentIdServer({
     required int idFicheAccident,
@@ -630,6 +658,22 @@ CREATE TABLE fiche_accident (
     int result = await db.update(
       'fiche_accident',
       {'id_server': idServer},
+      where: 'idfiche_accident = ?',
+      whereArgs: [idFicheAccident],
+    );
+
+    return result;
+  }
+
+  Future<int> updateFicheAccidentSignalementIdServer({
+    required int idFicheAccident,
+    required int signalementIdServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      'fiche_accident',
+      {'signalement_id_server': signalementIdServer},
       where: 'idfiche_accident = ?',
       whereArgs: [idFicheAccident],
     );
@@ -653,7 +697,24 @@ CREATE TABLE fiche_accident (
     return result;
   }
 
-  Future<int> updateFicheVictimeIdServer({
+
+  Future<int> updateFicheIncidentSignalementIdServer({
+    required int idFicheIncident,
+    required int signalementIdServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      'fiche_incident',
+      {'signalement_id_server': signalementIdServer},
+      where: 'idfiche_incident = ?',
+      whereArgs: [idFicheIncident],
+    );
+
+    return result;
+  }
+
+  Future<int> updateFicheAccidentVictimeIdServer({
     required int idFicheAccidentVictime,
     required int idServer,
   }) async {
@@ -669,7 +730,23 @@ CREATE TABLE fiche_accident (
     return result;
   }
 
-  Future<int> updateDegatsMaterielsIdServer({
+  Future<int> updateFicheIncidentVictimeIdServer({
+    required int idFicheIncidentVictime,
+    required int idServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      'fiche_incident_victime',
+      {'id_server': idServer},
+      where: 'idincident_victime = ?',
+      whereArgs: [idFicheIncidentVictime],
+    );
+
+    return result;
+  }
+
+  Future<int> updateAccidentDegatsMaterielsIdServer({
     required int idAccidentDM,
     required int idServer,
   }) async {
@@ -680,6 +757,23 @@ CREATE TABLE fiche_accident (
       {'id_server': idServer},
       where: 'idaccident_degats_materiels = ?',
       whereArgs: [idAccidentDM],
+    );
+
+    return result;
+  }
+
+
+  Future<int> updateIncidentDegatsMaterielsIdServer({
+    required int idIncidentDM,
+    required int idServer,
+  }) async {
+    final db = await DatabaseHelper().database;
+
+    int result = await db.update(
+      'incident_degats_materiels',
+      {'id_server': idServer},
+      where: 'idincident_degats_materiels = ?',
+      whereArgs: [idIncidentDM],
     );
 
     return result;
@@ -1186,7 +1280,7 @@ CREATE TABLE fiche_accident (
     final db = await database;
     return await db.rawQuery('''
       SELECT 
-        distinct a.*, r.prenom_nom
+        distinct a.*, r.code_alert  , r.prenom_nom
       FROM 
         alerte a left join responsable_saisi r 
       on a.code_alert = r.code_alert
@@ -1211,7 +1305,7 @@ CREATE TABLE fiche_accident (
     final db = await database;
     return await db.rawQuery('''
     SELECT 
-      distinct a.*, r.prenom_nom
+      distinct a.*,   r.prenom_nom
     FROM 
       alerte a left join responsable_saisi r on a.code_alert = r.code_alert
     order by a.date_alert desc limit 2

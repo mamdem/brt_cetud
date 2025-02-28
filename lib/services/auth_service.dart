@@ -44,11 +44,12 @@ class AuthService {
 
     for (var alert in alerts) {
       final idFicheAlert = alert['idfiche_alert'];
+      final codeAlert = alert['code_alert'];
 
       final existingAlert = await dbase.query(
         'alerte',
-        where: 'idfiche_alert = ?',
-        whereArgs: [idFicheAlert],
+        where: 'code_alert = ?',
+        whereArgs: [codeAlert],
       );
 
       if (existingAlert.isEmpty) {
@@ -126,7 +127,10 @@ class AuthService {
 
         // Gérer les véhicules associés
         final vehicules = alert['fiche_acident_vehicucle'] ?? [];
+
         for (var vehicule in vehicules) {
+          print("GET DATA ACCIDENT");
+          print(vehicule);
           final idVehicule = vehicule['idfiche_acident_vehucle'];
 
           final existingVehicule = await dbase.query(
@@ -407,58 +411,36 @@ class AuthService {
         for (var degat in incidentDegats) {
           final idDegat = degat['idincident_degats_materiels'];
 
+          // Vérifier si l'ID existe déjà dans la base de données
           final existingDegat = await dbase.query(
             'incident_degats_materiels',
-            where: 'id_server = ?',
+            where: 'idincident_degats_materiels = ?',
             whereArgs: [idDegat],
           );
 
+          String? localPhotoPath;
+          if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+            final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+            localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+          }
+
           if (existingDegat.isEmpty) {
-            // Téléchargement et sauvegarde de la photo localement si elle existe
-            String? localPhotoPath;
-            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
-              localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
-            }
-
-            // Gérer les dégâts matériels
-            final incidentDegats = alert['incident_degats_materiels'] ?? [];
-            for (var degat in incidentDegats) {
-              final idDegat = degat['idincident_degats_materiels'];
-
-              // Vérifier si l'ID existe déjà dans la base de données
-              final existingDegat = await dbase.query(
-                'incident_degats_materiels',
-                where: 'idincident_degats_materiels = ?',
-                whereArgs: [idDegat],
-              );
-
-              String? localPhotoPath;
-              if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-                final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
-                localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
-              }
-
-              if (existingDegat.isEmpty) {
-                // Insérer uniquement si l'ID n'existe pas encore
-                await dbase.insert('incident_degats_materiels', {
-                  "idincident_degats_materiels": idDegat,
-                  "id_server": idDegat,
-                  "libelle_materiels": degat['libelle_materiels'],
-                  "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
-                  "incident_id": degat['incident_id'],
-                  "user_saisie": degat['user_saisie'],
-                  "user_update": degat['user_update'],
-                  "user_delete": degat['user_delete'],
-                  "created_at": degat['created_at'],
-                  "updated_at": degat['updated_at'],
-                  "deleted_at": degat['deleted_at']
-                });
-              } else {
-                print("⚠️ Le dégât idincident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
-              }
-            }
-
+            // Insérer uniquement si l'ID n'existe pas encore
+            await dbase.insert('incident_degats_materiels', {
+              "idincident_degats_materiels": idDegat,
+              "id_server": idDegat,
+              "libelle_materiels": degat['libelle_materiels'],
+              "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
+              "incident_id": degat['incident_id'],
+              "user_saisie": degat['user_saisie'],
+              "user_update": degat['user_update'],
+              "user_delete": degat['user_delete'],
+              "created_at": degat['created_at'],
+              "updated_at": degat['updated_at'],
+              "deleted_at": degat['deleted_at']
+            });
+          } else {
+            print("⚠️ Le dégât idincident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
           }
         }
       }
@@ -468,13 +450,13 @@ class AuthService {
       final respSaisiId = resp['id'];
       final existingRespSaisi = await dbase.query(
         'responsable_saisi',
-        where: 'id = ?',
+        where: 'id_server = ?',
         whereArgs: [respSaisiId],
       );
 
       if(existingRespSaisi.isEmpty){
         await dbase.insert('responsable_saisi', {
-          'id': resp['id'],
+          //'id': resp['id'],
           'id_server': resp['id'],
           'code_alert': resp['code_alert'],
           'responsable_saisie': resp['responsable_saisie'],
@@ -580,6 +562,7 @@ class AuthService {
 
   static Future<bool> saveResponsable({
     int? id,
+    int? idServer,
     required String codeAlert,
     required int responsableSaisie,
     required String prenomNom,
@@ -587,6 +570,7 @@ class AuthService {
     required String mp,
     required String deviceInfo
   }) async {
+    final dbase = await DatabaseHelper().database;
     EasyLoading.instance.backgroundColor = Colors.black;
     EasyLoading.show(status: 'Requête en cours...');
 
@@ -612,14 +596,7 @@ class AuthService {
         print(response.body);
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if(jsonResponse["succes"]==true){
-          if(id!=null){ //Si l'alerte est dejà en local, on update id_server
-            await DatabaseHelper().updateResponsableSaisiIdServerById(id, jsonResponse['data']['id']);
-            EasyLoading.dismiss();
-            Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-            print('responsable saisi enregistré en local');
-            return true;
-          }
-          else{
+
             final Map<String, dynamic> data = {
               'id_server': jsonResponse["data"]["id"],
               'code_alert': codeAlert,
@@ -628,14 +605,22 @@ class AuthService {
               'created_at': DateTime.now().toIso8601String(),
             };
 
+            final existinResp = await dbase.query(
+              'alerte',
+              where: 'code_alert = ?',
+              whereArgs: [codeAlert],
+            );
+
+            if(existinResp.isEmpty){
               final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
               print("Insertion réussie, ID inséré : $insertedId");
-              EasyLoading.dismiss();
               Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-              return true;
+            }else{
+              await DatabaseHelper().updateResponsableSaisiIdServerById(codeAlert, jsonResponse['data']['id']);
+            }
+            EasyLoading.dismiss();
 
-          }
-
+            return true;
 
         }else{
           EasyLoading.dismiss();
@@ -647,6 +632,41 @@ class AuthService {
         EasyLoading.showError("Erreur de traitement");
         return false;
       }
+  }
+
+
+  static Future<bool> saveResponsableEnLocal({
+    required String codeAlert,
+    required int responsableSaisie,
+    required String prenomNom,
+    required String createdAt,
+    required String mp,
+    required String deviceInfo
+  }) async {
+    final dbase = await DatabaseHelper().database;
+    EasyLoading.instance.backgroundColor = Colors.black;
+    EasyLoading.show(status: 'Requête en cours...');
+
+    final Map<String, dynamic> data = {
+      'code_alert': codeAlert,
+      'responsable_saisie': (global.user["idusers"]),
+      'prenom_nom': "${global.user['prenom']} ${global.user["nom"]}",
+      'created_at': DateTime.now().toIso8601String(),
+    };
+
+    final existinResp = await dbase.query(
+      'alerte',
+      where: 'code_alert = ?',
+      whereArgs: [codeAlert],
+    );
+
+      final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
+      print("Insertion réussie, ID inséré : $insertedId");
+      Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+
+    EasyLoading.dismiss();
+
+    return true;
   }
 
 }

@@ -117,6 +117,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   void showSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche accident enregistrée avec succès !",
@@ -209,8 +210,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         setState(() {
                           if (value.isNotEmpty) {
                             final age = int.tryParse(value);
-                            if (age == null || age < 10 || age > 120) {
-                              _ageErrorText = "L'âge doit être entre 10 et 120";
+                            if (age == null || age < 1 || age > 120) {
+                              _ageErrorText = "L'âge doit être entre 1 et 120";
                             } else {
                               _ageErrorText = null; // Pas d'erreur si l'âge est valide
                             }
@@ -375,7 +376,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       "Date délivrance permis:",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
                     ),
-                    _buildDatePickerField(controller: _dateDelivrancePermisController),
+                    _buildDatePickerField(controller: _dateDelivrancePermisController, ),
                     const SizedBox(height: 16),
                     const Text('date dernière visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildDatePickerField(
@@ -390,8 +391,38 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     const SizedBox(height: 16),
                     const Text('Date d\'expiration visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
-                    _buildDatePickerField(
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
                       controller: _dateExpirationVisiteController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          final DateTime pickedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                          );
+
+                          String formattedDateTime = pickedDateTime.toIso8601String();
+
+                          _dateExpirationVisiteController.text = formattedDateTime;
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -910,7 +941,39 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     SizedBox(height: 12,),
                     const Text('Date expiration assurance',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildDatePickerField(controller: _dateExpirationAssuranceController),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: _dateExpirationAssuranceController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(2900),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          final DateTime pickedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                          );
+
+                          String formattedDateTime = pickedDateTime.toIso8601String();
+
+                          _dateExpirationAssuranceController.text = formattedDateTime;
+                        }
+                      },
+                    )
                   ],
                 ),
               ),
@@ -1030,7 +1093,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     );
   }
 
-  Widget _buildDatePickerField({required TextEditingController controller}) {
+  Widget _buildDatePickerField({required TextEditingController controller, bool useCurrentDateAsLast = true}) {
     return TextField(
       cursorColor: AppColors.appColor,
       readOnly: true,
@@ -1046,8 +1109,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         final DateTime? pickedDate = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime(2100),
+          firstDate: useCurrentDateAsLast ? DateTime(1900) : DateTime.now(),
+          lastDate: useCurrentDateAsLast ? DateTime.now():DateTime(2900),
           locale: const Locale('fr'),
         );
 
@@ -1245,10 +1308,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           showError("Veuillez entrer le numéro de permis.");
           return false;
         }
-        if (_dateDelivrancePermisController.text.isEmpty) {
-          showError("Veuillez entrer la date de délivrance du permis.");
-          return false;
-        }
         if (_selectedCategorie == null) {
           showError("Veuillez sélectionner une catégorie de permis.");
           return false;
@@ -1354,10 +1413,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         }
         if (_assureurController.text.isEmpty) {
           showError("Veuillez entrer le nom de l’assureur.");
-          return false;
-        }
-        if (_dateExpirationAssuranceController.text.isEmpty) {
-          showError("Veuillez entrer la date d’expiration de l’assurance.");
           return false;
         }
         break;

@@ -1,5 +1,6 @@
 class ResponsableSaisi {
   int? id;
+  int? idServer;
   String codeAlert;
   int responsableSaisi;
   String prenomNom;
@@ -15,6 +16,7 @@ class ResponsableSaisi {
     required this.codeAlert,
     required this.responsableSaisi,
     required this.prenomNom,
+    this.idServer,
     this.userSaisie,
     this.userUpdate,
     this.userDelete,
@@ -27,6 +29,7 @@ class ResponsableSaisi {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'id_server': idServer,
       'code_alert': codeAlert,
       'responsable_saisie': responsableSaisi,
       'prenom_nom': prenomNom,
@@ -43,6 +46,7 @@ class ResponsableSaisi {
   factory ResponsableSaisi.fromMap(Map<String, dynamic> map) {
     return ResponsableSaisi(
       id: map['id'],
+      idServer: map['id_server'],
       codeAlert: map['code_alert'],
       responsableSaisi: map['responsable_saisie'],
       prenomNom: map['prenom_nom'],

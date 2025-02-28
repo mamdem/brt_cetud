@@ -46,6 +46,8 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
 
   final TextEditingController agentAssistantController = TextEditingController();
   final TextEditingController matriculeBusController = TextEditingController();
+  final TextEditingController lieuCorridorController = TextEditingController();
+  final TextEditingController dateHeureController = TextEditingController();
 
   late bool _serviceEnabled;
 
@@ -139,6 +141,7 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
   void openDialogSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche accident enregistrée avec succès !",
@@ -160,7 +163,9 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
     final alert = Alerte(
       codeAlert: global.generateAlertCode(),
       typeAlert: 41,
-      dateAlert: DateTime.now(),
+      dateAlert: dateHeureController.text.isEmpty
+          ? DateTime.now()
+          : DateTime.tryParse(dateHeureController.text),
       userAlert: global.user["idusers"],
       alerteNiveauId: _selectedAlertLevel == "NIVEAU_1"
           ? 1
@@ -168,6 +173,7 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
           ? 2
           : 3,
       positionLat: !_locationData.isNull?_locationData.latitude:null,
+      lieuCorridor: lieuCorridorController.text,
       positionLong: !_locationData.isNull?_locationData.longitude:null,
       busOperateurImplique: _busImplique ? 43 : 44,
       matriculeBus: _busImplique ? matriculeBusController.text : null,
@@ -534,6 +540,59 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      "Date et Heure de l'accident",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: dateHeureController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        // Sélectionner la date
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          // Sélectionner l'heure
+                          final TimeOfDay? pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(DateTime.now()),
+                          );
+
+                          if (pickedTime != null) {
+                            // Créer une DateTime avec la date et l'heure sélectionnées
+                            final DateTime pickedDateTime = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+
+                            // Formater la date et l'heure au format ISO8601
+                            String formattedDateTime = pickedDateTime.toIso8601String();
+
+                            // Afficher la date et l'heure sélectionnées dans le TextField
+                            dateHeureController.text = formattedDateTime;
+                          }
+                        }
+                      },
+                    ),
+                    SizedBox(height: 15,),
                     const Row(
                       children: [
                         Icon(Icons.location_on_outlined,
@@ -622,7 +681,8 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                           );
 
                           setState(() {
-                            isLocationAvailable = true; // Marquer la position comme disponible
+                            lieuCorridorController.text = currentAddress;
+                            isLocationAvailable = true;
                           });
                         } catch (e) {
                           print("Erreur : $e");
@@ -655,7 +715,7 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                         style: const TextStyle(color: Colors.black87),
                       ),
                     ),
-                    if (isLocationAvailable && _latitude != null && _longitude != null)
+                    if (isLocationAvailable && _latitude != null && _longitude != null)...[
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Text(
@@ -663,7 +723,25 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                           style: const TextStyle(fontSize: 16, color: Colors.black87),
                         ),
                       ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
+                      const Text('Lieu corridor', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: lieuCorridorController,
+                        decoration: InputDecoration(
+                          hintText: "Lieu corridor",
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                        ),
+                      ),
+                    ]
                   ],
                 ),
               ),

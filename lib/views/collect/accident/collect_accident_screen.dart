@@ -23,6 +23,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   int currentStep = 1;
   final int nbStep = 5;
 
+  String? errorText;
+
   final _formKey = GlobalKey<FormState>();
 
   // Nouvelles variables pour "État des lieux"
@@ -454,6 +456,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   void showSuccess(){
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Fiche accident enregistrée avec succès !",
@@ -674,10 +677,32 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                           hintText: 'Nombre de victime',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
+                            borderSide: errorText == null
+                                ? BorderSide(color: Colors.grey) // Bordure normale
+                                : BorderSide(color: Colors.red), // Bordure rouge si erreur
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: errorText == null
+                                ? BorderSide(color: AppColors.appColor) // Bordure normale quand sélectionné
+                                : BorderSide(color: Colors.yellow), // Bordure rouge si erreur
+                          ),
+                          helperText: errorText, // Affichage du message d'erreur
                         ),
-
-                      ),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isNotEmpty) {
+                              if (_alertDetails!['nb_victime'] < int.parse(value)) {
+                                errorText = "${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
+                              } else {
+                                errorText = null; // Supprime l'erreur si la valeur est correcte
+                              }
+                            } else {
+                              errorText = null; // Supprime l'erreur si le champ est vide
+                            }
+                          });
+                        },
+                      )
                     ],
                     const SizedBox(height: 12,),
                     const Divider(
@@ -722,7 +747,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                               );
 
                               if (pickedTime != null) {
-                                final DateTime finalDateTime = DateTime(
+                                final DateTime pickedDateTime = DateTime(
                                   pickedDate.year,
                                   pickedDate.month,
                                   pickedDate.day,
@@ -730,18 +755,11 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                                   pickedTime.minute,
                                 );
 
-                                if (finalDateTime.isAfter(alertDate) && finalDateTime.isBefore(now.add(const Duration(seconds: 1)))) {
-                                  dateController.text =
-                                  '${finalDateTime.day}/${finalDateTime.month}/${finalDateTime.year} ${pickedTime.format(context)}';
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('La date sélectionnée est invalide.')),
-                                  );
-                                }
+                                String formattedDateTime = pickedDateTime.toIso8601String();
+                                dateController.text = formattedDateTime;
                               }
                             }
                           } else {
-                            // Si la date d'alerte n'est pas valide
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Date d\'alerte invalide.')),
                             );
@@ -753,6 +771,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                         }
                       },
                     ),
+
                     SizedBox(height: 8,),
                     const Text(
                       "Sélection entre la date d'alerte et la date d'aujourd'hui",

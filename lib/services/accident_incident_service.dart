@@ -72,11 +72,12 @@ class AccIncService {
             signalementIdServer: idServer,
           );
 
-            final responsables = await DatabaseHelper().getResponsablesNonSync();
+            final responsables = await DatabaseHelper().getResponsablesNonSync(alerte.codeAlert!);
             for (Map<String, dynamic> resp in responsables){
               ResponsableSaisi responsableSaisi = ResponsableSaisi.fromMap(resp);
-              await AuthService.saveResponsable( //On save a distance
+              await AuthService.saveResponsable(
                   id: responsableSaisi.id,
+                  idServer: responsableSaisi.idServer,
                   codeAlert: responsableSaisi.codeAlert,
                   responsableSaisie: (global.user["idusers"]),
                   prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
@@ -85,6 +86,7 @@ class AccIncService {
                   deviceInfo: global.phoneIdentifier
               );
             }
+
             SyncLogger.addLog(
               "Mise à jour de id_server réussie pour l'alerte ID: $idficheAlert.",
               status: "success",
@@ -141,7 +143,6 @@ class AccIncService {
       status: "info",
     );
 
-    try {
       if (ficheIncident.idServer == null) {
         final Map<String, dynamic> params = {
           'signalement_id': ficheIncident.signalementId,
@@ -192,6 +193,7 @@ class AccIncService {
             );
 
             int idServer = jsonResponse['data']['idfiche_incident'];
+            //int signamementIdServer = int.parse(jsonResponse['data']['signalemen_id']);
             final int idficheIncident = ficheIncident.idficheIncident!;
 
             // Mise à jour de la colonne id_server dans la table incident
@@ -200,7 +202,14 @@ class AccIncService {
               idServer: idServer,
             );
 
-            if (updatedRows > 0) {
+            // Mise à jour de la colonne signalement_id_server dans la table incident
+            final int updatedRows1 = await db.updateFicheIncidentSignalementIdServer(
+              idFicheIncident: idficheIncident,
+              signalementIdServer: idServer,
+            );
+
+            if (updatedRows > 0 && updatedRows1 > 0) {
+              //print("Mise à jour idServer: $idServer et signalementIdServer: $sign")
               SyncLogger.addLog(
                 "Mise à jour locale réussie pour l'incident ID: $idficheIncident.",
                 status: "success",
@@ -234,12 +243,7 @@ class AccIncService {
         await saveFicheIncidentVictime(ficheIncident.idficheIncident!, ficheIncident.idServer!);
         await saveIncidentDegatsMateriels(ficheIncident.idficheIncident!, ficheIncident.idServer!);
       }
-    } catch (e) {
-      SyncLogger.addLog(
-        "Exception lors de la synchronisation de l'incident ID: ${ficheIncident.idficheIncident} - Erreur: $e.",
-        status: "error",
-      );
-    }
+    
   }
 
   static Future<void> _addFileToRequest(http.MultipartRequest request, String fieldName, String? filePath) async {
@@ -255,7 +259,6 @@ class AccIncService {
   static Future<void> saveFicheAccident(FicheAccident ficheAccident) async {
     SyncLogger.addLog("Début de la synchronisation de l'accident ID: ${ficheAccident.idficheAccident}.", status: "info");
 
-    try {
       if (ficheAccident.idServer == null) {
         final Map<String, dynamic> params = {
           'signalemen_id': ficheAccident.signalemenIdServer ?? ficheAccident.signalemenId,
@@ -301,14 +304,13 @@ class AccIncService {
           }
         });
 
-        // Ajout des fichiers avec vérification
         await _addFileToRequest(request, 'trace_pneue_photo', ficheAccident.tracePneuePhoto);
         await _addFileToRequest(request, 'trace_freinage_photo', ficheAccident.traceFreinagePhoto);
         await _addFileToRequest(request, 'trace_sang_photo', ficheAccident.traceSangPhoto);
 
-        SyncLogger.addLog("Accident ID: trace_freinage_photo : ${ficheAccident.traceFreinagePhoto!}"
-            "\ntrace_sang_photo: ${ficheAccident.traceSangPhoto!}"
-            "\ntrace_pneue_photo: ${ficheAccident.tracePneuePhoto}", status: "success");
+        SyncLogger.addLog("Accident ID: trace_freinage_photo : "
+            "\ntrace_sang_photo: "
+            "\ntrace_pneue_photo:", status: "success");
 
         // Envoi de la requête
         var response = await request.send();
@@ -321,6 +323,8 @@ class AccIncService {
             SyncLogger.addLog("Accident ID: ${ficheAccident.idficheAccident} synchronisé avec succès.", status: "success");
 
             int idServer = jsonResponse['data']['idfiche_accident'];
+            print("#################### ${jsonResponse['data']['signalemen_id']}");
+            int signalementIdServer = int.parse(jsonResponse['data']['signalemen_id']);
             final int idficheAccident = ficheAccident.idficheAccident!;
 
             // Mise à jour de la colonne id_server dans la table accident
@@ -329,7 +333,14 @@ class AccIncService {
               idServer: idServer,
             );
 
-            if (updatedRows > 0) {
+            // Mise à jour de la colonne id_server dans la table accident
+            final int updatedRows1 = await db.updateFicheAccidentSignalementIdServer(
+              idFicheAccident: idficheAccident,
+              signalementIdServer: signalementIdServer,
+            );
+
+            if (updatedRows > 0 && updatedRows1 > 0) {
+              print("UpdateRow ok: $idServer et UpdateRow2 ok: $signalementIdServer");
               SyncLogger.addLog(
                 "Mise à jour locale réussie pour l'accident ID: $idficheAccident.",
                 status: "success",
@@ -364,12 +375,7 @@ class AccIncService {
         await saveFicheAccidentVictime(ficheAccident.idficheAccident!, ficheAccident.idServer!);
         await saveAccidentDegatsMateriels(ficheAccident.idficheAccident!, ficheAccident.idServer!);
       }
-    } catch (e) {
-      SyncLogger.addLog(
-        "Exception lors de la synchronisation de l'accident ID: ${ficheAccident.idficheAccident} - Erreur: $e.",
-        status: "error",
-      );
-    }
+
   }
 
   static Future<void> syncAllFicheAccidents() async {
@@ -409,7 +415,6 @@ class AccIncService {
       status: "info",
     );
 
-    try {
       List<Map<String, dynamic>> vehicules = await DatabaseHelper.getVehiculesByAccidentId(accidentId);
 
       if (vehicules.isEmpty) {
@@ -495,6 +500,9 @@ class AccIncService {
                 idServer: idServer,
               );
 
+              print("ACCIDENT VEHICULEEEEEEEEEE !!!");
+              print(vehi);
+
               if (updateRows > 0) {
                 SyncLogger.addLog(
                   "Véhicule ID local: $idLocal synchronisé avec succès pour l'accident ID: $accidentId.",
@@ -525,22 +533,14 @@ class AccIncService {
           );
         }
       }
-    } catch (e) {
-      SyncLogger.addLog(
-        "Exception lors de la synchronisation des véhicules pour l'accident ID: $accidentId - Erreur: $e.",
-        status: "error",
-      );
-    }
   }
 
   static Future<void> saveFicheAccidentVictime(int accidentId, int accidentIdServer) async {
-    print("\n\n\n\n\n\n");
     SyncLogger.addLog(
       "Début de la synchronisation des victimes pour l'accident ID: $accidentId.",
       status: "info",
     );
 
-    try {
       List<Map<String, dynamic>> victimes = await DatabaseHelper.getVictimeByAccidentId(accidentId);
 
       if (victimes.isEmpty) {
@@ -552,6 +552,7 @@ class AccIncService {
       }
 
       for (Map<String, dynamic> victimeData in victimes) {
+
         FicheAccidentVictime victime = FicheAccidentVictime.fromMap(victimeData);
         final vehicule = await DatabaseHelper().getVehiculeByIdLocal(victime.vehicleId!);
 
@@ -591,17 +592,15 @@ class AccIncService {
             queryParameters: params.map((key, value) => MapEntry(key, value?.toString())),
           );
 
-          try {
             final response = await http.post(uri);
 
             if (response.statusCode == 200) {
               final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
 
-              if (jsonResponse['succes'] == true) {
-                final int idServer = jsonResponse['data']['idfiche_accident_victime'];
-                final int idLocal = victime.idficheAccidentVictime!;
+                final int idServer = (jsonResponse['data']['idfiche_accident_victime']);
+                final int idLocal = victime.idficheAccidentVictime!.toInt();
 
-                final int updateRows = await DatabaseHelper().updateFicheVictimeIdServer(
+                final int updateRows = await DatabaseHelper().updateFicheAccidentVictimeIdServer(
                   idFicheAccidentVictime: idLocal,
                   idServer: idServer,
                 );
@@ -617,24 +616,12 @@ class AccIncService {
                     status: "warning",
                   );
                 }
-              } else {
-                SyncLogger.addLog(
-                  "Erreur API lors de la synchronisation de la victime pour l'accident ID: $accidentId - Message: ${jsonResponse['message']}.",
-                  status: "error",
-                );
-              }
             } else {
               SyncLogger.addLog(
                 "Erreur HTTP lors de la synchronisation de la victime pour l'accident ID: $accidentId - Code: ${response.statusCode}, Réponse: ${response.body}.",
                 status: "error",
               );
             }
-          } catch (e) {
-            SyncLogger.addLog(
-              "Erreur réseau ou serveur lors de la synchronisation de la victime ID: ${victime.idficheAccidentVictime} pour l'accident ID: $accidentId - Erreur: $e.",
-              status: "error",
-            );
-          }
         } else {
           SyncLogger.addLog(
             "La victime ID local: ${victime.idficheAccidentVictime} est déjà synchronisée avec le serveur.",
@@ -642,12 +629,6 @@ class AccIncService {
           );
         }
       }
-    } catch (e) {
-      SyncLogger.addLog(
-        "Exception lors de la synchronisation des victimes pour l'accident ID: $accidentId - Erreur: $e.",
-        status: "error",
-      );
-    }
   }
 
   static Future<void> saveAccidentDegatsMateriels(int accidentId, int accidentIdServer) async {
@@ -661,7 +642,6 @@ class AccIncService {
       print(degat.toMap());
 
       if (degat.idServer == null) {
-        try {
           final Map<String, dynamic> params ={
             'code': 'accident_degats_materiels',
             'mp': global.user['mp'],
@@ -699,7 +679,7 @@ class AccIncService {
               final int idServer = jsonResponse['data']['idaccident_degats_materiels'];
               final int idLocal = degat.id!;
 
-              final int updateRows = await DatabaseHelper().updateDegatsMaterielsIdServer(
+              final int updateRows = await DatabaseHelper().updateAccidentDegatsMaterielsIdServer(
                 idAccidentDM: idLocal,
                 idServer: idServer,
               );
@@ -715,9 +695,6 @@ class AccIncService {
           } else {
             print("Erreur HTTP : ${response.statusCode}");
           }
-        } catch (e) {
-          print("Erreur réseau ou serveur : $e");
-        }
       }
     }
   }
@@ -728,7 +705,6 @@ class AccIncService {
       status: "info",
     );
 
-    try {
       List<Map<String, dynamic>> victimes = await DatabaseHelper.getVictimeByIncidentId(incidentId);
 
       if (victimes.isEmpty) {
@@ -764,19 +740,17 @@ class AccIncService {
             queryParameters: params.map((key, value) => MapEntry(key, value?.toString())),
           );
 
-          try {
             final response = await http.post(uri);
 
             if (response.statusCode == 200) {
               final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
               print(jsonResponse['data']);
-              if (jsonResponse['succes'] == true) {
-                final int idServer = jsonResponse['data']['idfiche_incident_victime'];
+                final int idServer = jsonResponse['data']['idincident_victime'];
 
                 final int idLocal = victime.idIncidentVictime!;
 
-                final int updateRows = await DatabaseHelper().updateFicheVictimeIdServer(
-                  idFicheAccidentVictime: idLocal,
+                final int updateRows = await DatabaseHelper().updateFicheIncidentVictimeIdServer(
+                  idFicheIncidentVictime: idLocal,
                   idServer: idServer,
                 );
 
@@ -791,24 +765,13 @@ class AccIncService {
                     status: "warning",
                   );
                 }
-              } else {
-                SyncLogger.addLog(
-                  "Erreur API lors de la synchronisation de la victime pour l'incident ID: $incidentId - Message: ${jsonResponse['message']}.",
-                  status: "error",
-                );
-              }
             } else {
               SyncLogger.addLog(
                 "Erreur HTTP lors de la synchronisation de la victime pour l'incident ID: $incidentId - Code: ${response.statusCode}, Réponse: ${response.body}.",
                 status: "error",
               );
             }
-          } catch (e) {
-            SyncLogger.addLog(
-              "Erreur réseau ou serveur lors de la synchronisation de la victime ID: ${victime.idIncidentVictime} pour l'incident ID: $incidentId - Erreur: $e.",
-              status: "error",
-            );
-          }
+
         } else {
           SyncLogger.addLog(
             "La victime ID local: ${victime.idIncidentVictime} est déjà synchronisée avec le serveur.",
@@ -816,12 +779,7 @@ class AccIncService {
           );
         }
       }
-    } catch (e) {
-      SyncLogger.addLog(
-        "Exception lors de la synchronisation des victimes pour l'incident ID: $incidentId - Erreur: $e.",
-        status: "error",
-      );
-    }
+
   }
 
   static Future<void> saveIncidentDegatsMateriels(int incidentId, int incidentIdServer) async {
@@ -871,8 +829,8 @@ class AccIncService {
               final int idServer = jsonResponse['data']['idincident_degats_materiels'];
               final int idLocal = degat.id!;
 
-              final int updateRows = await DatabaseHelper().updateDegatsMaterielsIdServer(
-                idAccidentDM: idLocal,
+              final int updateRows = await DatabaseHelper().updateIncidentDegatsMaterielsIdServer(
+                idIncidentDM: idLocal,
                 idServer: idServer,
               );
 

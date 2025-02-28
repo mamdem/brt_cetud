@@ -58,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void openDialogSuccess() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Synchronisation effectuée !",
@@ -95,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
 
-    Timer.periodic(const Duration(seconds: 20000), (timer) async {
+    Timer.periodic(const Duration(seconds: 1500000), (timer) async {
       if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
         print("Recupération données...");
         //await fetchUser();
@@ -306,9 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isLoading = true;
-    });
+
     if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
       try {
         await fetchUser();
@@ -321,9 +320,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }else{
       showInfo("Impossible de rafraîchir en mode hors ligne");
     }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void showInfo(String message) {
@@ -577,6 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () async{
                               Get.offAll(StartupScreen(), transition: Transition.circularReveal);
                               global.saveIsConnected(false);
+                              DatabaseHelper.deleteLocalDatabase();
                             },
                             backgroundColor: AppColors.red,
                             foregroundColor: AppColors.white,

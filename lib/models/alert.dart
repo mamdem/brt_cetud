@@ -6,6 +6,7 @@ class Alerte {
   String? autresAlert;
   DateTime? dateAlert;
   int? alerteNiveauId;
+  String? lieuCorridor;
   double? positionLat;
   double? positionLong;
   int? busOperateurImplique;
@@ -37,6 +38,7 @@ class Alerte {
     this.busOperateurImplique,
     this.matriculeBus,
     this.voie,
+    this.lieuCorridor,
     this.userAlert,
     this.ficheAlertecol,
     this.userSaisie,
@@ -62,6 +64,7 @@ class Alerte {
       'date_alert': dateAlert?.toIso8601String(),
       'alerte_niveau_id': alerteNiveauId,
       'position_lat': positionLat,
+      'lieu_corridor': lieuCorridor,
       'position_long': positionLong,
       'bus_operateur_implique': busOperateurImplique,
       'matricule_bus': matriculeBus,
@@ -93,6 +96,7 @@ class Alerte {
       alerteNiveauId: map['alerte_niveau_id'],
       positionLat: map['position_lat'],
       positionLong: map['position_long'],
+      lieuCorridor: map['lieu_corridor'],
       busOperateurImplique: map['bus_oparateur_implique'],
       matriculeBus: map['matricule_bus'],
       voie: map['voie'],

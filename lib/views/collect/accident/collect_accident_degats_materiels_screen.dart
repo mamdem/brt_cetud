@@ -29,6 +29,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
   void openDialogSuccess() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Dégâts matériels enregistrés avec succès !",
