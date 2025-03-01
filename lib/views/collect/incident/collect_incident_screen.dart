@@ -847,7 +847,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           setState(() {
                             if (value.isNotEmpty) {
                               if (_alertDetails!['nb_victime'] < int.parse(value)) {
-                                errorText = "${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
+                                errorText = "Attention! ${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
                               } else {
                                 errorText = null; // Supprime l'erreur si la valeur est correcte
                               }

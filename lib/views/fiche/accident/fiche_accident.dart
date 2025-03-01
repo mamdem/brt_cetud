@@ -112,7 +112,6 @@ class _DetailsAccidentState extends State<DetailsAccident> {
   Future<void> _fetchFicheVehiculeDetails() async {
     try{
       final ficheAccidentVehicule = await db.getFicheVehiculeByAccidentId(_ficheAccidentDetails!["idfiche_accident"]);
-      print("VOILAAAAAAAAAAAAAAAAAAAAAAAa LES VEHICULE");
       print(ficheAccidentVehicule);
       setState(() {
         _ficheVehiculeDetails = ficheAccidentVehicule;

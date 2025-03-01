@@ -214,6 +214,16 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     );
   }
 
+  void showError(String message) {
+    Get.snackbar(
+      "Validation",
+      message,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.TOP,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -318,6 +328,10 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                         mp: global.user['mp'],
                         deviceInfo: global.phoneIdentifier
                     );
+                    setState(() {
+                      bRensFichAcc = true;
+                      bRespSaisi = false;
+                    });
                   }catch(e){
                     print("Erreur lors de l'insertion : $e");
                   }
@@ -325,18 +339,9 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                   Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
                   print("Insertion réussie, ID inséré : $insertedId");
                 }else{
-                  try {
-                    final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
-                    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-                    print("Insertion réussie, ID inséré : $insertedId");
-                  } catch (e) {
-                    print("Erreur lors de l'insertion : $e");
-                  }
+                  showError("Veuillez d'abord synchroniser !");
                 }
-                setState(() {
-                  bRensFichAcc = true;
-                  bRespSaisi = false;
-                });
+
               },
               style: ElevatedButton.styleFrom(
                 primary: AppColors.appColor,

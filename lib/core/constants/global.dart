@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geocoding/geocoding.dart' as geocodingLocation;
 import 'package:brt_mobile/core/constants/global.dart' as global;
 
-const String baseUrl = "https://cetud.saytu.pro/api";
+const String baseUrl = "http://sicacetud.groupesoterco.com/api";
 
 late String phoneIdentifier;
 

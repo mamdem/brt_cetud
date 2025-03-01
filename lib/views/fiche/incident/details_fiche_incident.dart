@@ -57,6 +57,16 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
     }
   }
 
+  void showError(String message) {
+    Get.snackbar(
+      "Validation",
+      message,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.TOP,
+    );
+  }
+
   String getAlertNiveauValueString(int value) {
     switch (value) {
       case 1:
@@ -328,6 +338,10 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                         mp: global.user['mp'],
                         deviceInfo: global.phoneIdentifier
                     );
+                    setState(() {
+                      bRensFichAcc = true;
+                      bRespSaisi = false;
+                    });
                   }catch(e){
                     print("Erreur lors de l'insertion : $e");
                   }
@@ -335,24 +349,10 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                   Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
                   print("Insertion réussie, ID inséré : $insertedId");
                 }else{
-                  try{
-                    await AuthService.saveResponsableEnLocal(
-                        codeAlert: widget.alertDetails["code_alert"],
-                        responsableSaisie: (global.user["idusers"]),
-                        prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
-                        createdAt: DateTime.now().toIso8601String().toString(),
-                        mp: global.user['mp'],
-                        deviceInfo: global.phoneIdentifier
-                    );
-                  }catch(e){
-                    print("Erreur lors de l'insertion : $e");
-                  }
+                  showError("Veuillez d'abord synchroniser !");
                   Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
                 }
-                setState(() {
-                  bRensFichAcc = true;
-                  bRespSaisi = false;
-                });
+
               },
               style: ElevatedButton.styleFrom(
                 primary: AppColors.appColor,

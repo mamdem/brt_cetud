@@ -113,13 +113,9 @@ class VictimDetailsDialog extends StatelessWidget {
                       _buildInfoRow("Âge", "${victimInfo['age']} ans"),
                       _buildInfoRow("Téléphone", victimInfo['tel']),
 
-                      const SizedBox(height: 16),
-                      _buildInfoRow("Statut", victimInfo['etat_victime']=='b'?"Blessé":"Mort"),
+                      //const SizedBox(height: 16),
                       _buildInfoRow("Structure sanitaire", victimInfo['structure_sanitaire_evac']),
 
-                      const SizedBox(height: 16),
-                      _buildInfoRow("Guérison", victimInfo['statut_guerison']=='e'?"En traitement":"Guéri"),
-                      _buildInfoRow("Date de guérison", victimInfo['date_guerison']),
 
                       const SizedBox(height: 16),
                       _buildSectionTitle("Conscient/Inconscient"),

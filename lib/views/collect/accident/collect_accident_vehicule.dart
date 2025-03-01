@@ -22,7 +22,7 @@ class CollectAccidentVehiculeScreen extends StatefulWidget {
 
 class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeScreen> {
   int currentStep = 1;
-  final int nbStep = 10;
+  final int nbStep = 8;
 
   bool isValidNumber=false;
   String? _ageErrorText;
@@ -193,8 +193,20 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Prénom :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(title: 'Prénom', controller: _prenomController),
+                    Text(
+                      "Nom :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(title: 'Nom', controller: _nomController),
+                    Text(
+                      "Age :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -223,10 +235,15 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     ),
                     ),
                     const SizedBox(height: 8,),
+                    SizedBox(height: 5,),
+                    Text(
+                      "Sexe :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     DropdownButtonFormField<String>(
                       value: _selectedSexe,
                       decoration: InputDecoration(
-                        labelText: "Sexe",
+                        //labelText: "Sexe",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -243,6 +260,12 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       },
                     ),
                     const SizedBox(height: 12,),
+                    SizedBox(height: 8,),
+                    Text(
+                      "Téléphone :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    SizedBox(height: 5,),
                     IntlPhoneField(
                       controller: _telController,
                       style: safeGoogleFont(
@@ -279,10 +302,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         isValidNumber = phone.isValidNumber();
                       },
                     ),
-                    _buildTextField(
-                        title: 'Domicile du conducteur', controller: _domicileConducteurController),
-                    _buildTextField(
-                        title: 'Profession du conducteur', controller: _professionConducteurController),
+
                   ],
                 ),
               ),
@@ -312,9 +332,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.family_restroom, color: Colors.deepOrange, size: 24),
+                    Icon(Icons.person, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
-                    Text('Informations familiales',
+                    Text('Conducteur',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -324,9 +344,32 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Domicile du conducteur :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    _buildTextField(
+                        title: 'Domicile du conducteur', controller: _domicileConducteurController),
+
+                    Text(
+                      "Profession du conducteur :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    _buildTextField(
+                        title: 'Profession du conducteur', controller: _professionConducteurController),
+
+                    Text(
+                      "Filiation (Prénom et nom du père) :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom du père)',
                         controller: _filiationPrenomPereController),
+
+                    Text(
+                      "Filiation (Prénom et nom de la mère) :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom de la mère)',
                         controller: _filiationPrenomNomMereController),
@@ -371,25 +414,29 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTextField(title: 'Numéro du permis', controller: _numeroPermisController),
+                    Text(
+                      "Numéro du permis :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    _buildTextField(title: 'Numéro du permis :', controller: _numeroPermisController),
                     const Text(
                       "Date délivrance permis:",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
                     ),
                     _buildDatePickerField(controller: _dateDelivrancePermisController, ),
                     const SizedBox(height: 16),
-                    const Text('date dernière visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date dernière visite :', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildDatePickerField(
                       controller: _dateDerniereVisiteController,
                     ),
                     const SizedBox(height: 16),
-                    const Text('Date mise circulation', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date mise circulation :', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     _buildDatePickerField(
                       controller: _dateMiseCirculationController,
                     ),
                     const SizedBox(height: 16),
-                    const Text('Date d\'expiration visite', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date d\'expiration visite :', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -426,11 +473,12 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     ),
                     const SizedBox(height: 16),
 
-                    SizedBox(height: 10,),
+                    SizedBox(height: 5,),
                     const Text(
                       "Catégorie permis:",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
                     ),
+                    SizedBox(height: 5,),
                     DropdownButtonFormField<String>(
                       value: _selectedCategorie,
                       decoration: InputDecoration(
@@ -458,50 +506,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         });
                       },
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOwnerInfoStep() {
-    return Column(
-      children: [
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.person_outline, color: Colors.deepOrange, size: 24),
-                    SizedBox(width: 8),
-                    Text('Propriétaire',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTextField(
-                        title: 'Prénom et nom du propriétaire',
-                        controller: _prenomNomProprietaireController),
                   ],
                 ),
               ),
@@ -543,8 +547,35 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      "Prénom et nom du propriétaire :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    _buildTextField(
+                        title: 'Prénom et nom du propriétaire',
+                        controller: _prenomNomProprietaireController),
+                    Text(
+                      "Matricule :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(title: 'Matricule', controller: _matriculeController),
+                    const Text(
+                      "Date d'immatriculation :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    SizedBox(height: 5,),
+                    _buildDatePickerField(controller: _dateImmatriculationVehiculeController, ),
+                    SizedBox(height: 15,),
+                    Text(
+                      "Numéro de carte grise :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
                     _buildTextField(title: 'Numéro de carte grise', controller: _carteGriseController),
+                    Text(
+                      "Catégorie :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    SizedBox(height: 12,),
                     DropdownButtonFormField<String>(
                       value: _selectedCategorie,
                       decoration: InputDecoration(
@@ -572,6 +603,51 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         });
                       },
                     ),
+                    SizedBox(height: 12,),
+                    const Text('Assureur :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    _buildTextField(title: 'Assureur', controller: _assureurController),
+                    const Text('Numéro d\'assurance : ',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    _buildTextField(title: 'Numéro d’assurance', controller: _numeroAssuranceController),
+                    SizedBox(height: 8,),
+
+                    const Text('Date expiration assurance :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    SizedBox(height: 5,),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: _dateExpirationAssuranceController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(2900),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          final DateTime pickedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                          );
+
+                          String formattedDateTime = pickedDateTime.toIso8601String();
+
+                          _dateExpirationAssuranceController.text = formattedDateTime;
+                        }
+                      },
+                    )
                   ],
                 ),
               ),
@@ -613,6 +689,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text('Largeur (en m)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -622,7 +700,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
-                          labelText: "Largeur (en m)",
+                          hintText: "Largeur (en m)",
                           border: const OutlineInputBorder(),
                           errorText: _puissanceErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -642,6 +720,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         },
                       ),
                     ),
+                    SizedBox(height: 8,),
+                    const Text('Hauteur (en m)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -651,7 +732,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                         ],
                         decoration: InputDecoration(
-                          labelText: "Hauteur (en m)",
+                          hintText: "Hauteur (en m)",
                           border: const OutlineInputBorder(),
                           errorText: _heightErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -671,6 +752,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         },
                       ),
                     ),
+                    SizedBox(height: 8,),
+                    const Text('Longueur (en m)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -680,7 +764,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
-                          labelText: "Longueur (en m)",
+                          hintText: "Longueur (en m)",
                           border: const OutlineInputBorder(),
                           errorText: _longErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -700,7 +784,13 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         },
                       ),
                     ),
+                    SizedBox(height: 8,),
+                    const Text('Kilométrage (en km)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildNumberField(title: 'Kilométrage (en km)', controller: _kilometrageController),
+                    SizedBox(height: 8,),
+                    const Text('Puissance (en Ch)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -761,7 +851,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Icon(Icons.car_repair, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
-                    Text('État des équipements',
+                    Text('Situations',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -771,13 +861,24 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text('État des pneus avant :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildTextField(title: 'État des pneus avant', controller: _etatPneueAvantController),
+
+                    const Text('État des pneus arrière :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildTextField(title: 'État des pneus arrière', controller: _etatPneueArriereController),
+
+                    const Text('État du pare-brise :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildTextField(title: 'État du pare-brise', controller: _etatParebriseController),
-                    _buildTextField(title: 'État général', controller: _etatGeneraleController),
+
+                    const Text('Position levier de vitesse :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildNumberField(title: 'Position levier de vitesse', controller: _positionLevierVitessController),
                     SizedBox(height: 8,),
-                    const Text('Présence Poste Radio',
+
+                    const Text('Présence Poste Radio :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     DropdownButtonFormField<int>(
                       value: _selectedPresencePosteRadio,
@@ -800,9 +901,14 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         });
                       },
                     ),
+
                     SizedBox(height: 15,),
                     if(_selectedPresencePosteRadio==43)
                     _buildNumberField(title: 'Position volume', controller: _positionVolumeController),
+
+                    const Text('État général :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    _buildTextField(title: 'État général', controller: _etatGeneraleController),
                   ],
                 ),
               ),
@@ -899,91 +1005,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     );
   }
 
-  Widget _buildInsuranceStep() {
-    return Column(
-      children: [
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.security, color: Colors.deepOrange, size: 24),
-                    SizedBox(width: 8),
-                    Text('Informations sur l’assurance',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 12,),
-                    const Text('Numéro d\'assurance',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Numéro d’assurance', controller: _numeroAssuranceController),
-                    SizedBox(height: 12,),
-                    const Text('Assureur',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Assureur', controller: _assureurController),
-                    SizedBox(height: 12,),
-                    const Text('Date expiration assurance',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    TextField(
-                      cursorColor: AppColors.appColor,
-                      readOnly: true,
-                      controller: _dateExpirationAssuranceController,
-                      decoration: InputDecoration(
-                        hintText: 'jj/mm/aaaa --:--',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        suffixIcon: const Icon(Icons.calendar_today),
-                      ),
-                      onTap: () async {
-                        final DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime(2900),
-                          locale: const Locale('fr'),
-                        );
-
-                        if (pickedDate != null) {
-                          final DateTime pickedDateTime = DateTime(
-                            pickedDate.year,
-                            pickedDate.month,
-                            pickedDate.day,
-                          );
-
-                          String formattedDateTime = pickedDateTime.toIso8601String();
-
-                          _dateExpirationAssuranceController.text = formattedDateTime;
-                        }
-                      },
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildAdditionalInfoStep() {
     return Column(
       children: [
@@ -1007,7 +1028,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Icon(Icons.info, color: Colors.blue, size: 24),
                     SizedBox(width: 8),
-                    Text('Infos supplémentaires',
+                    Text('Comportements',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -1068,13 +1089,18 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   Widget _buildTextField({required String title, required TextEditingController controller}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: title,
-          border: const OutlineInputBorder(),
-        ),
-      ),
+      child: Column(
+        children: [
+          TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: title,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          SizedBox(height: 10,)
+        ],
+      )
     );
   }
 
@@ -1222,7 +1248,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         dateImmatriculationVehicule: _dateImmatriculationVehiculeController.text.isEmpty
             ? null
             : DateTime.tryParse(_dateImmatriculationVehiculeController.text),
-        comportementConducteur: _selectedComportementId.toString(),
+        comportementConducteur: _selectedComportement.toString(),
         prenomNomProprietaire: _prenomNomProprietaireController.text,
         puissanceVehicule: _puissanceVehiculeController.text.isEmpty
             ? 0
@@ -1275,6 +1301,10 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           showError("Veuillez entrer un numéro de téléphone valide.");
           return false;
         }
+
+        break;
+
+      case 2: // Validation des informations familiales
         if (_domicileConducteurController.text.isEmpty) {
           showError("Veuillez entrer le domicile du conducteur.");
           return false;
@@ -1283,9 +1313,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           showError("Veuillez entrer la profession du conducteur.");
           return false;
         }
-        break;
-
-      case 2: // Validation des informations familiales
         if (_filiationPrenomPereController.text.isEmpty) {
           showError("Veuillez entrer le prénom et le nom du père.");
           return false;
@@ -1296,14 +1323,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         }
         break;
 
-      case 3: // Validation des informations du propriétaire
-        if (_prenomNomProprietaireController.text.isEmpty) {
-          showError("Veuillez entrer le prénom et le nom du propriétaire.");
-          return false;
-        }
-        break;
 
-      case 4: // Validation des informations sur le permis
+      case 3: // Validation des informations sur le permis
         if (_numeroPermisController.text.isEmpty) {
           showError("Veuillez entrer le numéro de permis.");
           return false;
@@ -1458,14 +1479,12 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
               child: SingleChildScrollView(
                 child: currentStep == 1 ? _buildDriverInfoStep()
                     : currentStep == 2 ? _buildDriverFamilyInfoStep()
-                    : currentStep == 3 ? _buildOwnerInfoStep()
-                    : currentStep == 4 ? _buildLicenseInfoStep()
+                    : currentStep == 3 ? _buildLicenseInfoStep()
+                    : currentStep == 4 ? _buildAdditionalInfoStep()
                     : currentStep == 5 ? _buildVehicleInfoStep()
                     : currentStep == 6 ? _buildVehicleDimensionsStep()
                     : currentStep == 7 ? _buildEquipmentStateStep()
-                    : currentStep == 8 ? _buildEquipmentFunctionalityStep()
-                    : currentStep == 9 ? _buildInsuranceStep()
-                    :                    _buildAdditionalInfoStep(),
+                    :                    _buildEquipmentFunctionalityStep()
               ),
             ),
             Padding(

@@ -855,7 +855,6 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

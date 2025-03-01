@@ -21,7 +21,7 @@ class CollectAccidentScreen extends StatefulWidget {
 
 class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   int currentStep = 1;
-  final int nbStep = 5;
+  final int nbStep = 4;
 
   String? errorText;
 
@@ -63,7 +63,6 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   final nombreVehiculeImplique = TextEditingController();
   final largeurVoieEclairage = TextEditingController();
   final nombreBlesse = TextEditingController();
-
 
   Future<void> selectPhoto(String type) async {
     final picker = ImagePicker();
@@ -123,7 +122,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w300)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -181,10 +180,10 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.location_on, color: Colors.green),
+                    Icon(Icons.add_card_outlined, color: Colors.orange),
                     SizedBox(width: 8),
                     Text(
-                      "État des lieux",
+                      "Etat des lieux",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -198,21 +197,21 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 child: Column(
                   children: [
                     _buildPhotoField(
-                      "Trace de freinage",
+                      "Trace de freinage :",
                       traceFreinageController,
                       traceFreinagePhoto,
                       "traceFreinage",
                     ),
                     const SizedBox(height: 16),
                     _buildPhotoField(
-                      "Trace de sang",
+                      "Trace de sang :",
                       traceSangController,
                       traceSangPhoto,
                       "traceSang",
                     ),
                     const SizedBox(height: 16),
                     _buildPhotoField(
-                      "Trace de pneu",
+                      "Trace de pneu :",
                       tracePneueController,
                       tracePneuePhoto,
                       "tracePneue",
@@ -385,16 +384,20 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   bool validateCurrentStep() {
     switch (currentStep) {
       case 1:
-        if (blesseSelection && (nombreBlesse.text.isEmpty || int.tryParse(nombreBlesse.text) == null)) {
-          showError("Veuillez renseigner un nombre valide de victimes.");
-          return false;
-        }
         if (dateController.text.isEmpty) {
           showError("La date et l'heure de l'accident sont obligatoires.");
           return false;
         }
-        if(nombreVehiculeImplique.text.isEmpty || largeurVoieEclairage.text.isEmpty){
-          showError("Nombre de véhicule et largeur voie éclairage sont obligatoires.");
+        if (blesseSelection && (nombreBlesse.text.isEmpty || int.tryParse(nombreBlesse.text) == null)) {
+          showError("Veuillez renseigner un nombre valide de victimes.");
+          return false;
+        }
+        if(nombreVehiculeImplique.text.isEmpty){
+          showError("Nombre de véhicule est obligatoire.");
+          return false;
+        }
+        if (_selectedTypeJour == null) {
+          showError("Veuillez sélectionner un type de jour.");
           return false;
         }
         return true;
@@ -413,12 +416,6 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
           showError("Veuillez sélectionner une condition atmosphérique.");
           return false;
         }
-        if (_selectedTypeJour == null) {
-          showError("Veuillez sélectionner un type de jour.");
-          return false;
-        }
-        return true;
-      case 4:
         if (_selectedVisibilite == null) {
           showError("Veuillez sélectionner une visibilité.");
           return false;
@@ -427,7 +424,12 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
           showError("Veuillez sélectionner un type de chaussée.");
           return false;
         }
+        if(largeurVoieEclairage.text.isEmpty){
+          showError("Largeur voie éclairage est obligatoire.");
+          return false;
+        }
         return true;
+
       default:
         return true;
     }
@@ -502,6 +504,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   }
 
   Widget _buildCriticalDetailsStep() {
+    final rowsTj = _chunk(typeJours, 2);
     return Column(
       children: [
         Card(
@@ -523,7 +526,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                     Icon(Icons.warning, color: Colors.orange),
                     SizedBox(width: 8),
                     Text(
-                      "Détails",
+                      "Informations générales",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -537,54 +540,105 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Nombre de véhicule impliquée:",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      cursorColor: AppColors.appColor,
-                      controller: nombreVehiculeImplique,
-                      decoration: InputDecoration(
-                        hintText: 'nombre de véhicule',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      
-                    ),
-                    const SizedBox(height: 12,),
-                    const SizedBox(height: 12,),
-                    const Text(
-                      "Largeur voie éclairage:",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      cursorColor: AppColors.appColor,
-                      controller: largeurVoieEclairage,
-                      decoration: InputDecoration(
-                        hintText: 'Largeur voie éclairage',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
 
-                    ),
                     const SizedBox(height: 12,),
+                    const Text(
+                      "Date et Heure de l'accident :",
+                        style: TextStyle(fontSize: 14, color: Colors.grey)
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: dateController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa HH:mm',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        if (_alertDetails != null && _alertDetails!['date_alert'] != null) {
+                          final DateTime? alertDate = DateTime.tryParse(_alertDetails!['date_alert']);
+                          if (alertDate != null) {
+                            final DateTime now = DateTime.now();
+
+                            final DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: now.isAfter(alertDate) ? now : alertDate,
+                              firstDate: alertDate,
+                              lastDate: now,
+                              locale: const Locale('fr'),
+                            );
+
+                            if (pickedDate != null) {
+                              final TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(now),
+                              );
+
+                              if (pickedTime != null) {
+                                final DateTime pickedDateTime = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                  pickedTime.hour,
+                                  pickedTime.minute,
+                                );
+
+                                String formattedDateTime = pickedDateTime.toIso8601String();
+                                dateController.text = formattedDateTime;
+                              }
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Date d\'alerte invalide.')),
+                            );
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Les détails de l\'alerte sont indisponibles.')),
+                          );
+                        }
+                      },
+                    ),
+
+                    SizedBox(height: 8,),
+                    const Text(
+                      "Sélection entre la date d'alerte et la date d'aujourd'hui",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    SizedBox(height: 8,),
                     const Divider(
                       color: Colors.grey, // Couleur de la ligne
                       thickness: 0.5,       // Épaisseur de la ligne
                     ),
-                    const SizedBox(height: 12,),
+                    SizedBox(height: 8,),
+
+                    //Agent assistant
+                    const Text('Agent assistant :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      //maxLines: 3,
+                      controller: agentAssistantController,
+                      decoration: InputDecoration(
+                        hintText: 'Nom complet ?',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15,),
+
+                    //Existance et nombre de victimes
                     Row(
                       children: [
                         const Expanded(
@@ -693,7 +747,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                           setState(() {
                             if (value.isNotEmpty) {
                               if (_alertDetails!['nb_victime'] < int.parse(value)) {
-                                errorText = "${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
+                                errorText = "Attention! ${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
                               } else {
                                 errorText = null; // Supprime l'erreur si la valeur est correcte
                               }
@@ -705,77 +759,80 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                       )
                     ],
                     const SizedBox(height: 12,),
-                    const Divider(
-                      color: Colors.grey, // Couleur de la ligne
-                      thickness: 0.5,       // Épaisseur de la ligne
-                    ),
-                    const SizedBox(height: 12,),
+
+                    //Nombre de véhicule impliqué
+                    SizedBox(height: 8,),
                     const Text(
-                      "Date et Heure de l'accident",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      "Nombre de véhicule impliquée :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       cursorColor: AppColors.appColor,
-                      readOnly: true,
-                      controller: dateController,
+                      controller: nombreVehiculeImplique,
                       decoration: InputDecoration(
-                        hintText: 'jj/mm/aaaa HH:mm',
+                        hintText: 'Nombre ?',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        suffixIcon: const Icon(Icons.calendar_today),
                       ),
-                      onTap: () async {
-                        if (_alertDetails != null && _alertDetails!['date_alert'] != null) {
-                          final DateTime? alertDate = DateTime.tryParse(_alertDetails!['date_alert']);
-                          if (alertDate != null) {
-                            final DateTime now = DateTime.now();
-
-                            final DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: now.isAfter(alertDate) ? now : alertDate,
-                              firstDate: alertDate,
-                              lastDate: now,
-                              locale: const Locale('fr'),
-                            );
-
-                            if (pickedDate != null) {
-                              final TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(now),
-                              );
-
-                              if (pickedTime != null) {
-                                final DateTime pickedDateTime = DateTime(
-                                  pickedDate.year,
-                                  pickedDate.month,
-                                  pickedDate.day,
-                                  pickedTime.hour,
-                                  pickedTime.minute,
-                                );
-
-                                String formattedDateTime = pickedDateTime.toIso8601String();
-                                dateController.text = formattedDateTime;
-                              }
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Date d\'alerte invalide.')),
-                            );
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Les détails de l\'alerte sont indisponibles.')),
-                          );
-                        }
-                      },
+                      
                     ),
+                    const SizedBox(height: 12,),
 
-                    SizedBox(height: 8,),
+                    Divider(
+                      color: Colors.grey,
+                      thickness: 0.5,
+                    ),
+                    SizedBox(height: 12,),
                     const Text(
-                      "Sélection entre la date d'alerte et la date d'aujourd'hui",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w300, color: Colors.grey),
+                      "Type de jour :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: rowsTj
+                          .map(
+                            (rowTypeJours) => Row(
+                          children: rowTypeJours
+                              .map(
+                                (typeJour) => Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: ElevatedButton(
+                                  onPressed: () => setState(() {
+                                    _selectedTypeJour = typeJour['id'];
+                                  }),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _selectedTypeJour == typeJour['id']
+                                        ? Colors.blue
+                                        : Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    typeJour['libelle'],
+                                    style: TextStyle(
+                                      color: _selectedTypeJour == typeJour['id']
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                              .toList(),
+                        ),
+                      )
+                          .toList(),
                     ),
                   ],
                 ),
@@ -855,7 +912,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
 
                   const SizedBox(height: 16),
                   const Text(
-                    'Collision entre',
+                    'Collision entre :',
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
@@ -891,26 +948,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                  const Text('Agent assistant',
-                      style: TextStyle(fontSize: 14, color: Colors.grey)),
                   const SizedBox(height: 8),
-                  TextField(
-                      //maxLines: 3,
-                      controller: agentAssistantController,
-                      decoration: InputDecoration(
-                        hintText: 'Agent assistant ?',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -923,7 +961,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
 
   Widget _buildConditionAtmospheriqueStep() {
     final rowsAtm = _chunk(condAtmospheriques, 2);
-    final rowsTj = _chunk(typeJours, 2);
+    final rowsVis = _chunk(visibilites, 2);
+    final rowsChau = _chunk(chaussees, 2);
     return Column(
       children: [
         Card(
@@ -942,10 +981,10 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.wb_sunny, color: Colors.orange),
+                    Icon(Icons.add_card_outlined, color: Colors.orange),
                     SizedBox(width: 8),
                     Text(
-                      "Condition Atmosphérique",
+                      "Etat des lieux",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -959,6 +998,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    //Conditions atmosphériques
                     const Text(
                       "Condition Atmosphérique :",
                       style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
@@ -1004,105 +1044,15 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                       )
                           .toList(),
                     ),
-                    SizedBox(height: 12,),
+
+                    SizedBox(height: 8,),
                     Divider(
                       color: Colors.grey, // Couleur de la ligne
                       thickness: 0.5,       // Épaisseur de la ligne
                     ),
-                    SizedBox(height: 12,),
-                    const Text(
-                      "Type de jour :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
                     const SizedBox(height: 8),
-                    Column(
-                      children: rowsTj
-                          .map(
-                            (rowTypeJours) => Row(
-                          children: rowTypeJours
-                              .map(
-                                (typeJour) => Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: ElevatedButton(
-                                  onPressed: () => setState(() {
-                                    _selectedTypeJour = typeJour['id'];
-                                  }),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _selectedTypeJour == typeJour['id']
-                                        ? Colors.blue
-                                        : Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    side: BorderSide(color: Colors.grey[300]!),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    typeJour['libelle'],
-                                    style: TextStyle(
-                                      color: _selectedTypeJour == typeJour['id']
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                              .toList(),
-                        ),
-                      )
-                          .toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildVisibiliteEtChausseeStep() {
-    final rowsVis = _chunk(visibilites, 2);
-    final rowsChau = _chunk(chaussees, 2);
-    return Column(
-      children: [
-        Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.route, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Text(
-                      "Visibilité & Chaussée",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                    //Visibilité
                     const Text(
                       "Visibilité :",
                       style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
@@ -1143,17 +1093,20 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                               ),
                             ),
                           )
-                          .toList(),
+                              .toList(),
                         ),
                       )
                           .toList(),
                     ),
-                    SizedBox(height: 12,),
+
+                    SizedBox(height: 8,),
                     Divider(
                       color: Colors.grey, // Couleur de la ligne
                       thickness: 0.5,       // Épaisseur de la ligne
                     ),
-                    SizedBox(height: 12,),
+                    SizedBox(height: 8,),
+
+                    //Chaussée
                     const Text(
                       "Chaussée :",
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
@@ -1199,6 +1152,36 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                       )
                           .toList(),
                     ),
+
+                    const Divider(
+                      color: Colors.grey, // Couleur de la ligne
+                      thickness: 0.5,       // Épaisseur de la ligne
+                    ),
+                    const SizedBox(height: 8,),
+
+                    //Largeur eclairage voie
+                    const Text (
+                      "Largeur voie éclairage :",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      cursorColor: AppColors.appColor,
+                      controller: largeurVoieEclairage,
+                      decoration: InputDecoration(
+                        hintText: 'Largeur voie éclairage',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+
+                    ),
+                    const SizedBox(height: 12,),
+
                   ],
                 ),
               ),
@@ -1287,7 +1270,6 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 child: currentStep == 1 ? _buildCriticalDetailsStep()
                      : currentStep == 2 ? _buildSectionCollisionStep()
                      : currentStep == 3 ? _buildConditionAtmospheriqueStep()
-                     : currentStep == 4 ? _buildVisibiliteEtChausseeStep()
                      :                    _buildEtatDesLieuxStep()
               ),
             ),
