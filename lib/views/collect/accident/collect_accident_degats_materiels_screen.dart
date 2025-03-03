@@ -36,12 +36,14 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
         return BeautifulSuccessAlert(
           message: "Dégâts matériels enregistrés avec succès !",
           onPressed: () {
-            Get.back();
-            Get.back(result: true);
+            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 3),
+                transition: Transition.leftToRight
+            );
           },
           onClose: () {
-            Get.back();
-            Get.back(result: true);
+            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 3),
+                transition: Transition.leftToRight
+            );
           },
         );
       },

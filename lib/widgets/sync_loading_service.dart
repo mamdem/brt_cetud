@@ -86,9 +86,15 @@ class SyncLoadingService {
       );
     }
 
+    // Si on atteint 100%, on ferme le loading
+    if (_progress.value >= 1.0) {
+      await EasyLoading.dismiss();
+      return;
+    }
+
     // Mettre à jour uniquement le texte de statut
     EasyLoading.instance
-      ..indicatorType = EasyLoadingIndicatorType.ring // Assure une animation continue
+      ..indicatorType = EasyLoadingIndicatorType.ring
       ..maskType = EasyLoadingMaskType.black;
 
     await EasyLoading.show(
@@ -108,7 +114,10 @@ class SyncLoadingService {
   }
 
   static Future<void> showSummary({Map<String, int> stats = const {}}) async {
-    EasyLoading.dismiss();
+    // S'assurer que le loading est fermé
+    if (EasyLoading.isShow) {
+      await EasyLoading.dismiss();
+    }
 
     // Mettre à jour les statistiques avec celles fournies en paramètre
     stats.forEach((key, value) {
@@ -119,9 +128,14 @@ class SyncLoadingService {
       }
     });
     
-    // Filtrer pour ne garder que les opérations avec éléments synchronisés
+    // Filtrer pour ne garder que les opérations avec éléments réellement synchronisés
     final filteredOperations = _completedOperations
-        .where((operation) => !operation.contains("Aucun") && operation.contains("✅"))
+        .where((operation) {
+          // Vérifie si l'opération contient un nombre entre parenthèses
+          final hasNumber = RegExp(r'\((\d+)\)').hasMatch(operation);
+          // Ne garde que les opérations réussies (✅) et qui ont synchronisé des éléments
+          return operation.contains("✅") && hasNumber;
+        })
         .toList();
 
     await Get.dialog(
@@ -182,7 +196,7 @@ class SyncLoadingService {
                     ),
                   ),
               const SizedBox(height: 15),
-              if (filteredOperations.isNotEmpty) ...[
+              if (_hasSyncedItems() && filteredOperations.isNotEmpty) ...[
                 const Text('Détails:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 ...List.generate(

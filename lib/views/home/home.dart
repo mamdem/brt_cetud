@@ -648,7 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Center(
                     child: Text(
-                      "Version : V01.00.001",
+                      "Version : V01.00.002",
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.w400,

@@ -188,7 +188,7 @@ class _DetailsIncidentState extends State<DetailsIncident> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Get.back();
+        Get.offAll(() => const HomeScreen());
         return false;
       },
       child: Scaffold(

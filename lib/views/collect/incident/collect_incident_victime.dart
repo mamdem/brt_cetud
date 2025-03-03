@@ -123,12 +123,14 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
         return BeautifulSuccessAlert(
           message: "Victime enregistrée avec succès !",
           onPressed: () {
-            Get.back();
-            Get.back(result: true);
+            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 1),
+                transition: Transition.leftToRight
+            );
           },
           onClose: () {
-            Get.back();
-            Get.back(result: true);
+            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 1),
+                transition: Transition.leftToRight
+            );
           },
         );
       },

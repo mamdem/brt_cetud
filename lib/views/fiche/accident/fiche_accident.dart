@@ -160,7 +160,7 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     double screenHeight = MediaQuery.of(context).size.height;
     return WillPopScope(
       onWillPop: () async {
-        Get.back();
+        Get.offAll(() => const HomeScreen());
         return false;
       },
       child: Scaffold(
@@ -172,7 +172,6 @@ class _DetailsAccidentState extends State<DetailsAccident> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              // Rediriger vers home.dart en utilisant Get.offAll()
               Get.offAll(() => const HomeScreen());
             },
           ),
