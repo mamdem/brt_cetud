@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../../widgets/success_alert.dart';
 import 'package:intl/intl.dart';
+import '../../fiche/incident/fiche_incident.dart';
 
 class CollectIncidentScreen extends StatefulWidget {
   final int alertId;
@@ -357,12 +358,18 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
-          message: "Fiche accident enregistrée avec succès !",
+          message: "Incident enregistré avec succès !",
           onPressed: () {
-            Get.offAll(const HomeScreen(), transition: Transition.leftToRight);
+            // Naviguer vers l'écran de détails d'incident avec le premier onglet sélectionné
+            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 0), 
+              transition: Transition.leftToRight
+            );
           },
           onClose: () {
-            Get.offAll(const HomeScreen(), transition: Transition.leftToRight);
+            // Naviguer vers l'écran de détails d'incident avec le premier onglet sélectionné
+            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 0), 
+              transition: Transition.leftToRight
+            );
           },
         );
       },

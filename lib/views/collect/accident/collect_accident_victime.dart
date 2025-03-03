@@ -16,6 +16,7 @@ import '../../../sqflite/database_helper.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/damage_item.dart';
 import '../../../widgets/success_alert.dart';
+import '../../fiche/accident/fiche_accident.dart';
 
 class CollectAccidentVictimeScreen extends StatefulWidget {
   final int accidentId;
@@ -169,12 +170,38 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
-          message: "Fiche victime enregistré avec succès !",
-          onPressed: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+          message: "Victime enregistrée avec succès !",
+          onPressed: () async {
+            // Récupérer la fiche accident pour obtenir l'ID d'alerte
+            final db = DatabaseHelper();
+            final accident = await db.getFicheAccidentById(widget.accidentId);
+            if (accident != null) {
+              final alertId = accident['signalement_id'];
+              
+              // Naviguer vers l'écran de détails avec l'onglet des victimes sélectionné (index 2)
+              Get.offAll(
+                () => DetailsAccident(alertId: alertId, initialTab: 2),
+                transition: Transition.leftToRight
+              );
+            } else {
+              // Fallback en cas d'erreur
+              Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            }
           },
-          onClose: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+          onClose: () async {
+            // Même comportement que onPressed
+            final db = DatabaseHelper();
+            final accident = await db.getFicheAccidentById(widget.accidentId);
+            if (accident != null) {
+              final alertId = accident['signalement_id'];
+              
+              Get.offAll(
+                () => DetailsAccident(alertId: alertId, initialTab: 2),
+                transition: Transition.leftToRight
+              );
+            } else {
+              Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            }
           },
         );
       },

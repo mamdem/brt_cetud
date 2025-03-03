@@ -347,13 +347,11 @@ CREATE TABLE fiche_accident (
   }
 
 
-  Future<List<Map<String, dynamic>>> getResponsablesNonSync(String codeAlert) async {
+  Future<List<Map<String, dynamic>>> getResponsablesNonSync() async {
     final db = await database;
     return await db.query(
       'responsable_saisi',
-      where: 'id_server IS NULL  AND code_alert = ?',
-      whereArgs: [codeAlert],
-      limit: 1
+      where: 'id_server IS NULL '
     );
   }
 
@@ -411,9 +409,43 @@ CREATE TABLE fiche_accident (
     });
   }
 
-  Future<int> insertAccidentDegatsMateriels(Map<String, dynamic> data) async {
+  Future<int> insertAccidentDegatsMateriels(Map<String, dynamic> degatsMateriels) async {
     final db = await database;
-    return await db.insert('accident_degats_materiels', data);
+    
+    // Create a map with all the data including ID if provided
+    Map<String, dynamic> dataToInsert = {
+      'libelle_materiels': degatsMateriels['libelle_materiels'],
+      'photos': degatsMateriels['photos'],
+      'accident_id': degatsMateriels['accident_id'],
+      'user_saisie': degatsMateriels['user_saisie'],
+      'created_at': degatsMateriels['created_at'],
+    };
+    
+    // Add ID to the map if it exists in the input data
+    if (degatsMateriels.containsKey('idaccident_degats_materiels')) {
+      dataToInsert['idaccident_degats_materiels'] = degatsMateriels['idaccident_degats_materiels'];
+    }
+    
+    // Add id_server if it exists
+    if (degatsMateriels.containsKey('id_server')) {
+      dataToInsert['id_server'] = degatsMateriels['id_server'];
+    }
+    
+    // Add updated_at if it exists
+    if (degatsMateriels.containsKey('updated_at')) {
+      dataToInsert['updated_at'] = degatsMateriels['updated_at'];
+    }
+    
+    // Add user_update if it exists
+    if (degatsMateriels.containsKey('user_update')) {
+      dataToInsert['user_update'] = degatsMateriels['user_update'];
+    }
+    
+    return await db.insert(
+      'accident_degats_materiels',
+      dataToInsert,
+      conflictAlgorithm: ConflictAlgorithm.replace, // This will replace existing records with the same ID
+    );
   }
 
   Future<List<Map<String, dynamic>>> getAllAccidentDegatsMateriels() async {
@@ -437,6 +469,11 @@ CREATE TABLE fiche_accident (
       where: 'incident_id = ?',
       whereArgs: [incidentId],
     );
+  }
+
+  // Alias method to maintain compatibility with existing code
+  Future<List<Map<String, dynamic>>> getIncidentDegatsMaterielsById(int incidentId) async {
+    return getIncidentDegatsMaterielsByIncidentId(incidentId);
   }
 
   Future<void> clearTables() async {
@@ -468,9 +505,43 @@ CREATE TABLE fiche_accident (
     );
   }
 
-  Future<int> insertIncidentDegatsMateriels(Map<String, dynamic> data) async {
+  Future<int> insertIncidentDegatsMateriels(Map<String, dynamic> degatsMateriels) async {
     final db = await database;
-    return await db.insert('incident_degats_materiels', data);
+    
+    // Create a map with all the data including ID if provided
+    Map<String, dynamic> dataToInsert = {
+      'libelle_materiels': degatsMateriels['libelle_materiels'],
+      'photos': degatsMateriels['photos'],
+      'incident_id': degatsMateriels['incident_id'],
+      'user_saisie': degatsMateriels['user_saisie'],
+      'created_at': degatsMateriels['created_at'],
+    };
+    
+    // Add ID to the map if it exists in the input data
+    if (degatsMateriels.containsKey('idincident_degats_materiels')) {
+      dataToInsert['idincident_degats_materiels'] = degatsMateriels['idincident_degats_materiels'];
+    }
+    
+    // Add id_server if it exists
+    if (degatsMateriels.containsKey('id_server')) {
+      dataToInsert['id_server'] = degatsMateriels['id_server'];
+    }
+    
+    // Add updated_at if it exists
+    if (degatsMateriels.containsKey('updated_at')) {
+      dataToInsert['updated_at'] = degatsMateriels['updated_at'];
+    }
+    
+    // Add user_update if it exists
+    if (degatsMateriels.containsKey('user_update')) {
+      dataToInsert['user_update'] = degatsMateriels['user_update'];
+    }
+    
+    return await db.insert(
+      'incident_degats_materiels',
+      dataToInsert,
+      conflictAlgorithm: ConflictAlgorithm.replace, // This will replace existing records with the same ID
+    );
   }
 
   Future<int> insertResponsableSaisi(Map<String, dynamic> data) async {
@@ -481,15 +552,6 @@ CREATE TABLE fiche_accident (
   Future<List<Map<String, dynamic>>> getAllIncidentDegatsMateriels() async {
     final db = await database;
     return await db.query('incident_degats_materiels');
-  }
-
-  Future<List<Map<String, dynamic>>> getIncidentDegatsMaterielsById(int incidentId) async {
-    final db = await database;
-    return await db.query(
-      'incident_degats_materiels',
-      where: 'incident_id = ?',
-      whereArgs: [incidentId],
-    );
   }
 
   Future<int> updateIncidentDegatsMateriels(int id, Map<String, dynamic> data) async {
@@ -785,7 +847,7 @@ CREATE TABLE fiche_accident (
     return await db.insert('fiche_accidents_causes', cause);
   }
 
-  // Méthode pour récupérer toutes les causes d’un accident
+  // Méthode pour récupérer toutes les causes d'un accident
   Future<List<Map<String, dynamic>>> getCausesByAccidentId(int accidentId) async {
     final db = await database;
     return await db.query(
@@ -1312,6 +1374,19 @@ CREATE TABLE fiche_accident (
     ''');
   }
 
+  Future<Map<String, dynamic>?>  getFicheAccidentById(int accidentId) async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT 
+      *      
+    FROM 
+      fiche_accident
+    where idfiche_accident=? limit 1
+    ''', [accidentId]);
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
   Future<Map<String, dynamic>?>  getFicheAccidentByIdAlert(int signalementID) async {
     final db = await database;
     final results = await db.rawQuery('''
@@ -1319,19 +1394,6 @@ CREATE TABLE fiche_accident (
       *      
     FROM 
       fiche_accident
-    where signalement_id=? or signalement_id_server=? limit 1
-    ''', [signalementID, signalementID]);
-
-    return results.isNotEmpty ? results.first : null;
-  }
-
-  Future<Map<String, dynamic>?>  getFicheIncidentByIdAlert(int signalementID) async {
-    final db = await database;
-    final results = await db.rawQuery('''
-    SELECT 
-      *      
-    FROM 
-      fiche_incident
     where signalement_id=? or signalement_id_server=? limit 1
     ''', [signalementID, signalementID]);
 
@@ -1452,5 +1514,19 @@ CREATE TABLE fiche_accident (
     );
   }
 
+
+  
+  Future<Map<String, dynamic>?>  getFicheIncidentByIdAlert(int signalementID) async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT 
+      *      
+    FROM 
+      fiche_incident
+    where signalement_id=? or signalement_id_server=? limit 1
+    ''', [signalementID, signalementID]);
+
+    return results.isNotEmpty ? results.first : null;
+  }
 
 }

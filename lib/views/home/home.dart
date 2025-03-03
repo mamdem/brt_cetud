@@ -332,6 +332,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void showError(String message) {
+    Get.snackbar(
+      "Validation",
+      message,
+      //backgroundColor: Colors.grey.shade100,
+      colorText: Colors.red,
+      snackPosition: SnackPosition.TOP,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -465,14 +475,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   AppButton(
                                     onPressed: () async{
-                                      Navigator.pop(context);
-                                      EasyLoading.instance.backgroundColor = Colors.black;
-                                      EasyLoading.show(status: 'Requête en cours...');
-                                      await AccIncService.syncAllAlert();
-                                      await AccIncService.syncAllFicheAccidents();
-                                      EasyLoading.dismiss();
-                                      Get.snackbar("Reussi", "Synchronisation effectuée  avec succés");
-                                      Navigator.pop(context);
+                                      if(_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile){
+                                        Navigator.pop(context);
+                                        await AccIncService.syncAll();
+                                      }else{
+                                        showError("Impossible de synchroniser en mode hors ligne !");
+                                      }
                                     },
                                     backgroundColor: AppColors.appColor,
                                     foregroundColor: AppColors.white,
@@ -634,13 +642,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
+
+
                   SizedBox(height: 20),
-                  Text(
-                    'Numéro vert : 202 123',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
+
+                  Center(
+                    child: Text(
+                      "Version : V01.00.001",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
@@ -673,7 +687,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(12.0),
                       child: Builder(
                         builder: (context) {
                           return Column(
@@ -681,29 +695,44 @@ class _HomeScreenState extends State<HomeScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.menu,
-                                      color: Colors.white,
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    onPressed: () {
-                                      Scaffold.of(context).openDrawer();
-                                    },
+                                    child: IconButton(
+                                      padding: const EdgeInsets.all(8),
+                                      constraints: const BoxConstraints(),
+                                      icon: const Icon(
+                                        Icons.menu,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        Scaffold.of(context).openDrawer();
+                                      },
+                                    ),
                                   ),
-                                  const Text(
-                                    "Système d'Alerte BRT",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: Text(
+                                        "Système d'Alerte BRT",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
                                   Container(
-                                    width: 35,
-                                    height: 35,
+                                    width: 36,
+                                    height: 36,
                                     decoration: BoxDecoration(
                                       color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(50),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(
                                       Icons.person_outline,
@@ -715,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
 
                               const SizedBox(height: 16),
-                              // Conteneur de signalement
+                              // Conteneur de signalement amélioré
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -723,7 +752,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.1),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -736,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: const Icon(
                                         Icons.warning_outlined,
                                         color: Colors.white,
-                                        size: 20,
+                                        size: 18,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -755,22 +788,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Text(
                                             'Rapportez tout incident en un clic',
                                             style: TextStyle(
-                                              color: Colors.white.withOpacity(0.8),
-                                              fontSize: 14,
+                                              color: Colors.white.withOpacity(0.9),
+                                              fontSize: 13,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    (_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile)?
-                                    const Icon(
-                                      Icons.cloud_queue_rounded,
-                                      color: Colors.green,
-                                      size: 24,
-                                    ):const Icon(
-                                      Icons.cloud_off,
-                                      color: Colors.orange,
-                                      size: 24,
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: (_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile) 
+                                          ? Colors.green.withOpacity(0.2) 
+                                          : Colors.orange.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                      child: (_connectionStatus==ConnectivityResult.wifi || _connectionStatus==ConnectivityResult.mobile)?
+                                      const Icon(
+                                        Icons.cloud_queue_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ):const Icon(
+                                        Icons.cloud_off,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -786,43 +828,71 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Contenu principal
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     children: [
-                      ElevatedButton(
-                        onPressed: showReportTypeDialog,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.notifications_active),
-                            SizedBox(width: 8),
-                            Text(
-                              'FAIRE UN SIGNALEMENT',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      // Bouton de signalement amélioré
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.redAccent.withOpacity(0.25),
+                              spreadRadius: 1,
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
+                        child: ElevatedButton(
+                          onPressed: showReportTypeDialog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.notifications_active, size: 24),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'FAIRE UN SIGNALEMENT',
+                                  style: const TextStyle(
+                                    fontSize: 16, 
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
+                      
+                      // Statistiques et structure améliorées
                       SizedBox(
                         height: 130,
                         child: Row(
                           children: [
                             Expanded(
                               child: Card(
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(12),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.warning_amber, color: Colors.blue, size: 32),
+                                      const Icon(Icons.warning_amber, color: Colors.blue, size: 28),
                                       const SizedBox(height: 8),
                                       const Text(
                                         'Incidents Actifs',
@@ -830,6 +900,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
+                                        textAlign: TextAlign.center,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -845,16 +916,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Card(
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(12),
                                   child: FutureBuilder<Map<String, dynamic>>(
                                     future: _fetchStructureData(),
                                     builder: (context, snapshot) {
                                       if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return const Center(child: CircularProgressIndicator());
+                                        return const Center(child: SizedBox(
+                                          width: 24, 
+                                          height: 24, 
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ));
                                       } else if (snapshot.hasError) {
                                         return const Center(child: Text('Erreur de chargement'));
                                       } else if (!snapshot.hasData || snapshot.data == null) {
@@ -869,21 +948,34 @@ class _HomeScreenState extends State<HomeScreen> {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           if (logoPath != null && File(logoPath).existsSync())
-                                            Image.file(
-                                              File(logoPath),
-                                              //width: 64,
-                                              //height: 64,
-                                              fit: BoxFit.cover,
+                                            Padding(
+                                              padding: const EdgeInsets.only(bottom: 4),
+                                              child: SizedBox(
+                                                width: 75,
+                                                height: 65,
+                                                child: Center(
+                                                  child: Image.file(
+                                                    File(logoPath),
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
                                             )
                                           else
-                                            const Icon(Icons.image_not_supported, color: Colors.grey, size: 64),
+                                            const Padding(
+                                              padding: EdgeInsets.only(bottom: 4),
+                                              child: Icon(Icons.image_not_supported, color: Colors.grey, size: 60),
+                                            ),
                                           const SizedBox(height: 8),
                                           Text(
                                             structureName,
+                                            textAlign: TextAlign.center,
                                             style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w500,
                                             ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
                                       );
@@ -896,84 +988,150 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      // Affichage des deux premières alertes
-                      _firstIncidents.isNotEmpty ?Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Incidents/Accidents Récents',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
+                      // Section incidents récents améliorée
+                      if (_firstIncidents.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.appColor,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.appColor.withOpacity(0.15),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Get.to(const AllIncident(), transition: Transition.rightToLeft);
-                            },
-                            child: const Text(
-                              'Voir Plus >',
-                              style: TextStyle(color: AppColors.appColor),
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.history, color: Colors.white, size: 18),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Incidents/Accidents Récents',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Get.to(const AllIncident(), transition: Transition.rightToLeft);
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Voir',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 12),
+                                    ),
+                                    Icon(Icons.arrow_forward, color: Colors.white, size: 12),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ):const Text(""),
+                        ),
+                      ],
+                      
                       _isLoading
-                          ? const Padding(padding: EdgeInsets.symmetric(vertical: 50), child: Center(child: CircularProgressIndicator()),)
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 40),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.appColor),
+                                ),
+                              ),
+                            )
                           : _firstIncidents.isEmpty
-                          ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 40),
-                            child: Text(
-                              "Aucun signalement !",
-                              style: TextStyle(fontSize: 20, color: Colors.grey),
-                            ),
-                          )
-                      ) : Column(
-                        children: _firstIncidents.map((incident) {
-                          return FutureBuilder<String>(
-                            future: (incident['position_lat'] != null && incident['position_long'] != null)
-                                ? global.getAddressFromLatLong(incident['position_lat'], incident['position_long'], 2)
-                                : Future.value("Coordonnées indisponibles"),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return IncidentCard(
-                                  idficheAlert: incident['idfiche_alert'],
-                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                  location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
-                                  time: formatDate(incident['date_alert']),
-                                  userAffected: incident['prenom_nom'],
-                                  isIncident: !(incident['type_alert'] == 41),
-                                  isSynced: incident['id_user']!=null,
-                                );
-                              } else if (snapshot.hasError) {
-                                return IncidentCard(
-                                  idficheAlert: incident['idfiche_alert'],
-                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                  location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
-                                  time: formatDate(incident['date_alert']),
-                                  userAffected: incident['prenom_nom'],
-                                  isIncident: !(incident['type_alert'] == 41),
-                                  isSynced: incident['id_user']!=null,
-                                );
-                              } else {
-                                return IncidentCard(
-                                  idficheAlert: incident['idfiche_alert'],
-                                  title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
-                                  location: incident['voie'] == 1
-                                      ? "Corridor: : ${snapshot.data!}"
-                                      : "Hors Corridor: ${snapshot.data!}",
-                                  time: formatDate(incident['date_alert']),
-                                  userAffected: incident['prenom_nom'],
-                                  isIncident: !(incident['type_alert'] == 41),
-                                  isSynced: incident['id_server']!=null,
-                                );
-                              }
-                            },
-
-                          );
-                        }).toList(),
-                      ),
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.notifications_off,
+                                      size: 50,
+                                      color: Colors.grey.withOpacity(0.5),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      "Aucun signalement !",
+                                      style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Les incidents et accidents récents apparaîtront ici",
+                                      style: TextStyle(fontSize: 13, color: Colors.grey.withOpacity(0.7)),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
+                          ) : Column(
+                            children: _firstIncidents.map((incident) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: FutureBuilder<String>(
+                                  future: (incident['position_lat'] != null && incident['position_long'] != null)
+                                      ? global.getAddressFromLatLong(incident['position_lat'], incident['position_long'], 2)
+                                      : Future.value("Coordonnées indisponibles"),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return IncidentCard(
+                                        idficheAlert: incident['idfiche_alert'],
+                                        title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                        location: incident['voie'] == 1  ? "Corridor: Chargement..." : "Hors Corridor: Chargement...",
+                                        time: formatDate(incident['date_alert']),
+                                        userAffected: incident['prenom_nom'],
+                                        isIncident: !(incident['type_alert'] == 41),
+                                        isSynced: incident['id_user']!=null,
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return IncidentCard(
+                                        idficheAlert: incident['idfiche_alert'],
+                                        title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                        location: incident['voie'] == 1 ? "Corridor: Adresse indisponible" : "Hors Corridor: Adresse indisponible",
+                                        time: formatDate(incident['date_alert']),
+                                        userAffected: incident['prenom_nom'],
+                                        isIncident: !(incident['type_alert'] == 41),
+                                        isSynced: incident['id_user']!=null,
+                                      );
+                                    } else {
+                                      return IncidentCard(
+                                        idficheAlert: incident['idfiche_alert'],
+                                        title: incident['type_alert'] == 41 ? 'Accident' : 'Incident',
+                                        location: incident['voie'] == 1
+                                            ? "Corridor: ${snapshot.data!}"
+                                            : "Hors Corridor: ${snapshot.data!}",
+                                        time: formatDate(incident['date_alert']),
+                                        userAffected: incident['prenom_nom'],
+                                        isIncident: !(incident['type_alert'] == 41),
+                                        isSynced: incident['id_server']!=null,
+                                      );
+                                    }
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
                     ],
                   ),
                 ),

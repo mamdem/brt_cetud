@@ -30,21 +30,44 @@ class DetailsFicheAccident extends StatefulWidget {
 class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   late Map<String, dynamic>? ficheResponsableSaisi;
   DatabaseHelper db = DatabaseHelper();
-
-  bool _isLoading=true;
+  bool _isLoading = true;
+  bool _imagesLoading = true;
   late bool bRespSaisi;
   late bool bRensFichAcc;
+  List<Map<String, dynamic>> degatsMateriels = [];
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 1), () {
+    bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
+    bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
+    
+    // Charger les dégâts matériels et leurs images
+    _loadDegatsMateriels();
+  }
+
+  Future<void> _loadDegatsMateriels() async {
+    if (widget.ficheAccidentDetails != null) {
+      try {
+        final degats = await DatabaseHelper.getDegatsMaterielsByAccidentId(widget.ficheAccidentDetails!['idfiche_accident']);
+        setState(() {
+          degatsMateriels = degats;
+          _imagesLoading = false;
+          _isLoading = false;
+        });
+      } catch (e) {
+        print('Erreur lors du chargement des dégâts matériels: $e');
+        setState(() {
+          _imagesLoading = false;
+          _isLoading = false;
+        });
+      }
+    } else {
       setState(() {
+        _imagesLoading = false;
         _isLoading = false;
-        bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
-        bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
       });
-    });
+    }
   }
 
   String formatDate(String? isoDate) {
@@ -214,6 +237,68 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     );
   }
 
+  Widget _buildDegatsMaterielsSection() {
+    if (_imagesLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (degatsMateriels.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(height: 30),
+        _buildInfoTile(
+          icon: Icons.broken_image,
+          title: "Dégâts Matériels",
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: degatsMateriels.map((degat) {
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        degat['libelle_materiels'] ?? 'Sans description',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (degat['photos'] != null && degat['photos'].toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Image.network(
+                            'https://cetud.saytu.pro/storage/${degat['photos']}',
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Text('Erreur de chargement de l\'image');
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   void showError(String message) {
     Get.snackbar(
       "Validation",
@@ -228,13 +313,13 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    return _isLoading
-        ? Center(
-      child: CircularProgressIndicator(
-        color: AppColors.appColor,
-      ),
-    )
-        : Container(
+    if (_isLoading || _imagesLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return Container(
       height: screenHeight - 280,
       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
       child: ListView(
@@ -307,6 +392,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                 ),
               ),
             _buildConditionsSection(),
+            _buildDegatsMaterielsSection(),
             const SizedBox(height: 20),
           ],
           if(bRespSaisi)...[
@@ -328,6 +414,9 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                         mp: global.user['mp'],
                         deviceInfo: global.phoneIdentifier
                     );
+                    final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
+                    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+                    print("Insertion réussie, ID inséré : $insertedId");
                     setState(() {
                       bRensFichAcc = true;
                       bRespSaisi = false;
@@ -335,11 +424,20 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                   }catch(e){
                     print("Erreur lors de l'insertion : $e");
                   }
-                  final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
-                  Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-                  print("Insertion réussie, ID inséré : $insertedId");
                 }else{
-                  showError("Veuillez d'abord synchroniser !");
+                  AuthService.saveResponsableEnLocal(
+                      codeAlert: widget.alertDetails["code_alert"],
+                      responsableSaisie: (global.user["idusers"]),
+                      prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                      createdAt: DateTime.now().toIso8601String().toString(),
+                      mp: global.user['mp'],
+                      deviceInfo: global.phoneIdentifier
+                  );
+                  setState(() {
+                    bRensFichAcc = true;
+                    bRespSaisi = false;
+                  });
+                  //showError("Veuillez d'abord synchroniser !");
                 }
 
               },

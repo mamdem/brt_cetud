@@ -37,14 +37,10 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _isLoading = false;
-        bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
-        bRensFichAcc = (widget.ficheIncidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
-      });
-    });
-
+    bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
+    bRensFichAcc = (widget.ficheIncidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
+    
+    _isLoading = false;
   }
 
   String formatDate(String? isoDate) {

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../collect/accident/collect_accident_degats_materiels_screen.dart';
+import '../../collect/incident/collect_incident_degats_materiels_screen.dart';
 
 class DetailsFicheDegatsMateriels extends StatelessWidget {
   final List<Map<String, dynamic>> degatDetails;
@@ -148,7 +149,7 @@ class DetailsFicheDegatsMateriels extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
-
+    print(degatDetails);
     return Scaffold(
       body: Container(
         height: screenHeight - 280,

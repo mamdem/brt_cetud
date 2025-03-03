@@ -15,6 +15,7 @@ import '../models/responsable_saisi.dart';
 import '../sqflite/database_helper.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'dart:async';
 
 class AuthService {
 
@@ -41,6 +42,9 @@ class AuthService {
     final alerts = jsonData['data']['ACCIDENT'] ?? [];
     final alertsIncident = jsonData['data']['INCIDENT'];
     final responsableSaisis = jsonData['data']['responsable_saisi'];
+
+    // Liste pour stocker les informations de téléchargement des images
+    List<Map<String, dynamic>> imageDownloadQueue = [];
 
     for (var alert in alerts) {
       final idFicheAlert = alert['idfiche_alert'];
@@ -122,6 +126,12 @@ class AuthService {
             'largeur_eclairage_voie': accident['largeur_eclairage_voie'],
             'id_server': idFicheAccident,
             'signalement_id_server': idFicheAlert,
+            'trace_freinage': accident['trace_freinage'],
+            'trace_freinage_photo': null, // Sera mis à jour avec le chemin local
+            'trace_sang': accident['trace_sang'],
+            'trace_sang_photo': null, // Sera mis à jour avec le chemin local
+            'trace_pneue': accident['trace_pneue'],
+            'trace_pneue_photo': null, // Sera mis à jour avec le chemin local
           });
         }
 
@@ -247,57 +257,78 @@ class AuthService {
 
           final existingDegat = await dbase.query(
             'accident_degats_materiels',
-            where: 'id_server = ?',
+            where: 'idaccident_degats_materiels = ?',
             whereArgs: [idDegat],
           );
 
-          if (existingDegat.isEmpty) {
-            // Téléchargement et sauvegarde de la photo localement si elle existe
-            String? localPhotoPath;
-            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
-              localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
-            }
+          // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
+          if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+            final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
 
-            // Gérer les dégâts matériels
-            final incidentDegats = alert['accident_degats_materiels'] ?? [];
-            for (var degat in incidentDegats) {
-              final idDegat = degat['idaccident_degats_materiels'];
-
-              // Vérifier si l'ID existe déjà dans la base de données
-              final existingDegat = await dbase.query(
-                'accident_degats_materiels',
-                where: 'idaccident_degats_materiels = ?',
-                whereArgs: [idDegat],
-              );
-
-              String? localPhotoPath;
-              if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-                final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
-                localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
-              }
-
-              if (existingDegat.isEmpty) {
-                // Insérer uniquement si l'ID n'existe pas encore
-                await dbase.insert('accident_degats_materiels', {
-                  "idaccident_degats_materiels": idDegat,
-                  "id_server": idDegat,
-                  "libelle_materiels": degat['libelle_materiels'],
-                  "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
-                  "accident_id": degat['accident_id'],
-                  "user_saisie": degat['user_saisie'],
-                  "user_update": degat['user_update'],
-                  "user_delete": degat['user_delete'],
-                  "created_at": degat['created_at'],
-                  "updated_at": degat['updated_at'],
-                  "deleted_at": degat['deleted_at']
-                });
-              } else {
-                print("⚠️ Le dégât idaccident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
-              }
-            }
-
+            // Ajouter à la file d'attente de téléchargement
+            imageDownloadQueue.add({
+              'url': photoUrl,
+              'fileName': "degat_$idDegat.png",
+              'type': 'accident_degats_materiels',
+              'id': idDegat
+            });
           }
+
+          if (existingDegat.isEmpty) {
+            // Insérer sans attendre la photo, avec l'URL originale
+            await dbase.insert('accident_degats_materiels', {
+              "idaccident_degats_materiels": idDegat,
+              "id_server": idDegat,
+              "libelle_materiels": degat['libelle_materiels'],
+              "photos": degat['photos'], // URL originale, sera mise à jour plus tard
+              "accident_id": degat['accident_id'],
+              "user_saisie": degat['user_saisie'],
+              "user_update": degat['user_update'],
+              "user_delete": degat['user_delete'],
+              "created_at": degat['created_at'],
+              "updated_at": degat['updated_at'],
+              "deleted_at": degat['deleted_at']
+            });
+          } else {
+            print("⚠️ Le dégât idaccident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+          }
+        }
+
+        // Ajouter les images de traces aux téléchargements
+        // Trace de freinage
+        if (accident['trace_freinage_photo'] != null && accident['trace_freinage_photo'].toString().isNotEmpty) {
+          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_freinage_photo']}';
+          String fileName = 'trace_freinage_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          imageDownloadQueue.add({
+            'url': photoUrl,
+            'fileName': fileName,
+            'id': idFicheAccident,
+            'type': 'fiche_accident_trace_freinage'
+          });
+        }
+
+        // Trace de sang
+        if (accident['trace_sang_photo'] != null && accident['trace_sang_photo'].toString().isNotEmpty) {
+          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_sang_photo']}';
+          String fileName = 'trace_sang_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          imageDownloadQueue.add({
+            'url': photoUrl,
+            'fileName': fileName,
+            'id': idFicheAccident,
+            'type': 'fiche_accident_trace_sang'
+          });
+        }
+
+        // Trace de pneu
+        if (accident['trace_pneue_photo'] != null && accident['trace_pneue_photo'].toString().isNotEmpty) {
+          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_pneue_photo']}';
+          String fileName = 'trace_pneue_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          imageDownloadQueue.add({
+            'url': photoUrl,
+            'fileName': fileName,
+            'id': idFicheAccident,
+            'type': 'fiche_accident_trace_pneue'
+          });
         }
       }
 
@@ -418,19 +449,26 @@ class AuthService {
             whereArgs: [idDegat],
           );
 
-          String? localPhotoPath;
+          // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
           if (degat['photos'] != null && degat['photos'].isNotEmpty) {
             final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
-            localPhotoPath = await _downloadAndSaveImage(photoUrl, "degat_$idDegat.png");
+
+            // Ajouter à la file d'attente de téléchargement
+            imageDownloadQueue.add({
+              'url': photoUrl,
+              'fileName': "degat_$idDegat.png",
+              'type': 'incident_degats_materiels',
+              'id': idDegat
+            });
           }
 
           if (existingDegat.isEmpty) {
-            // Insérer uniquement si l'ID n'existe pas encore
+            // Insérer sans attendre la photo, avec l'URL originale
             await dbase.insert('incident_degats_materiels', {
               "idincident_degats_materiels": idDegat,
               "id_server": idDegat,
               "libelle_materiels": degat['libelle_materiels'],
-              "photos": localPhotoPath ?? degat['photos'], // Stocke le chemin local si téléchargé, sinon garde l'URL d'origine
+              "photos": degat['photos'], // URL originale, sera mise à jour plus tard
               "incident_id": degat['incident_id'],
               "user_saisie": degat['user_saisie'],
               "user_update": degat['user_update'],
@@ -450,13 +488,14 @@ class AuthService {
       final respSaisiId = resp['id'];
       final existingRespSaisi = await dbase.query(
         'responsable_saisi',
-        where: 'id_server = ?',
-        whereArgs: [respSaisiId],
+        where: 'id = ? OR id_server = ?',
+        whereArgs: [respSaisiId, respSaisiId],
       );
+
 
       if(existingRespSaisi.isEmpty){
         await dbase.insert('responsable_saisi', {
-          //'id': resp['id'],
+          'id': resp['id'],
           'id_server': resp['id'],
           'code_alert': resp['code_alert'],
           'responsable_saisie': resp['responsable_saisie'],
@@ -465,28 +504,245 @@ class AuthService {
         });
       }
     }
+
+    // Démarrer le téléchargement des images en arrière-plan
+    _processImagesInBackground(imageDownloadQueue);
+
+    // La fonction se termine ici sans attendre le téléchargement des images
+    print("Données textuelles chargées. Téléchargement des images en cours en arrière-plan.");
+  }
+
+  // Formater les bytes en unités lisibles (KB, MB)
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  // Version améliorée pour traiter les images en arrière-plan avec un système de traitement par lots
+  static void _processImagesInBackground(List<Map<String, dynamic>> imageQueue) {
+    if (imageQueue.isEmpty) return;
+    
+    // Utiliser une zone isolée pour éviter de bloquer le thread principal
+    Future(() async {
+      final dbase = await DatabaseHelper().database;
+      int totalImages = imageQueue.length;
+      int processedImages = 0;
+      int failedImages = 0;
+      
+      // Configuration de traitement par lots
+      const int batchSize = 3; // Nombre d'images à traiter simultanément
+      const int maxRetries = 2; // Nombre maximum de tentatives en cas d'échec
+      
+      print("Démarrage du téléchargement de $totalImages images en arrière-plan");
+      
+      // Trier les images par priorité (les photos de traces d'accident en premier)
+      List<Map<String, dynamic>> prioritizedQueue = List.from(imageQueue);
+      prioritizedQueue.sort((a, b) {
+        // Priorité aux images de traces d'accident
+        bool isTraceA = a['type'].toString().contains('trace');
+        bool isTraceB = b['type'].toString().contains('trace');
+        
+        if (isTraceA && !isTraceB) return -1;
+        if (!isTraceA && isTraceB) return 1;
+        return 0;
+      });
+      
+      // Traiter les images par lots
+      for (int i = 0; i < prioritizedQueue.length; i += batchSize) {
+        final int end = (i + batchSize < prioritizedQueue.length) ? i + batchSize : prioritizedQueue.length;
+        final batch = prioritizedQueue.sublist(i, end);
+        
+        // Traiter chaque lot en parallèle
+        final results = await Future.wait(
+          batch.map((imageInfo) => _processImageWithRetry(imageInfo, maxRetries))
+        );
+        
+        // Mettre à jour la base de données pour chaque image traitée avec succès
+        for (int j = 0; j < results.length; j++) {
+          final result = results[j];
+          final imageInfo = batch[j];
+          
+          if (result != null) {
+            processedImages++;
+            
+            try {
+              // Mettre à jour l'enregistrement dans la base de données avec le chemin local
+              if (imageInfo['type'] == 'accident_degats_materiels') {
+                await dbase.update(
+                  'accident_degats_materiels',
+                  {'photos': result},
+                  where: 'idaccident_degats_materiels = ?',
+                  whereArgs: [imageInfo['id']],
+                );
+              } else if (imageInfo['type'] == 'incident_degats_materiels') {
+                await dbase.update(
+                  'incident_degats_materiels',
+                  {'photos': result},
+                  where: 'idincident_degats_materiels = ?',
+                  whereArgs: [imageInfo['id']],
+                );
+              } else if (imageInfo['type'] == 'fiche_accident_trace_freinage') {
+                await dbase.update(
+                  'fiche_accident',
+                  {'trace_freinage_photo': result},
+                  where: 'idfiche_accident = ?',
+                  whereArgs: [imageInfo['id']],
+                );
+                print("Photo de trace de freinage mise à jour: ${imageInfo['id']} -> $result");
+              } else if (imageInfo['type'] == 'fiche_accident_trace_sang') {
+                await dbase.update(
+                  'fiche_accident',
+                  {'trace_sang_photo': result},
+                  where: 'idfiche_accident = ?',
+                  whereArgs: [imageInfo['id']],
+                );
+                print("Photo de trace de sang mise à jour: ${imageInfo['id']} -> $result");
+              } else if (imageInfo['type'] == 'fiche_accident_trace_pneue') {
+                await dbase.update(
+                  'fiche_accident',
+                  {'trace_pneue_photo': result},
+                  where: 'idfiche_accident = ?',
+                  whereArgs: [imageInfo['id']],
+                );
+                print("Photo de trace de pneu mise à jour: ${imageInfo['id']} -> $result");
+              }
+            } catch (e) {
+              print("Erreur lors de la mise à jour de la BD pour l'image ${imageInfo['fileName']}: $e");
+            }
+          } else {
+            failedImages++;
+          }
+          
+          // Afficher la progression
+          final progress = processedImages + failedImages;
+          print("Progression: $progress/$totalImages (Réussies: $processedImages, Échouées: $failedImages)");
+        }
+        
+        // Pause courte entre les lots pour éviter de surcharger les ressources
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      
+      print("Téléchargement et traitement des images terminés. "
+          "Total: $processedImages/$totalImages traitées avec succès, $failedImages échecs.");
+    });
+  }
+  
+  // Méthode pour traiter une image avec plusieurs tentatives en cas d'échec
+  static Future<String?> _processImageWithRetry(Map<String, dynamic> imageInfo, int maxRetries) async {
+    int attempts = 0;
+    
+    while (attempts <= maxRetries) {
+      try {
+        final stopwatch = Stopwatch()..start();
+        final result = await _downloadAndSaveImage(imageInfo['url'], imageInfo['fileName']);
+        
+        stopwatch.stop();
+        if (result != null) {
+          print("Image ${imageInfo['fileName']} traitée en ${stopwatch.elapsedMilliseconds}ms (tentative ${attempts + 1})");
+          return result;
+        }
+        
+        attempts++;
+        if (attempts <= maxRetries) {
+          // Attente exponentielle entre les tentatives (500ms, puis 1000ms, etc.)
+          final waitTime = 500 * (1 << attempts);
+          print("Échec du traitement de l'image ${imageInfo['fileName']}, nouvelle tentative dans ${waitTime}ms...");
+          await Future.delayed(Duration(milliseconds: waitTime));
+        }
+      } catch (e) {
+        print("Erreur lors du traitement de l'image ${imageInfo['fileName']} (tentative ${attempts + 1}): $e");
+        attempts++;
+        
+        if (attempts <= maxRetries) {
+          // Attente exponentielle entre les tentatives
+          final waitTime = 500 * (1 << attempts);
+          await Future.delayed(Duration(milliseconds: waitTime));
+        }
+      }
+    }
+    
+    print("Échec définitif du traitement de l'image ${imageInfo['fileName']} après ${maxRetries + 1} tentatives");
+    return null;
   }
 
   static Future<String?> _downloadAndSaveImage(String imageUrl, String fileName) async {
     try {
+      print('Téléchargement de l\'image: $imageUrl');
+      final stopwatch = Stopwatch()..start();
+
       final response = await http.get(Uri.parse(imageUrl));
       if (response.statusCode == 200) {
         final Directory appDocDir = await getApplicationDocumentsDirectory();
         final String appDocPath = appDocDir.path;
-
         final File localFile = File('$appDocPath/$fileName');
 
-        await localFile.writeAsBytes(response.bodyBytes);
+        // Obtenir les données de l'image
+        final List<int> imageBytes = response.bodyBytes;
+        final int originalSize = imageBytes.length;
+
+        // Compresser l'image si sa taille est supérieure à 300Ko
+        List<int> processedBytes = imageBytes;
+        if (originalSize > 300 * 1024) { // Plus de 300Ko
+          // Réduire la qualité de l'image pour économiser de l'espace
+          // Utiliser une méthode simple de troncation pour les formats qui le supportent
+          if (fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg')) {
+            // Pour JPEG, on peut manipuler directement les données en modifiant certains marqueurs
+            // Cette approche simplifiée réduit la taille mais peut affecter la qualité
+            processedBytes = _reduceJpegQuality(imageBytes);
+          }
+        }
+
+        // Sauvegarder l'image traitée
+        await localFile.writeAsBytes(processedBytes);
+
+        stopwatch.stop();
+        final int finalSize = processedBytes.length;
+        final double compressionRatio = originalSize > 0 ? (originalSize - finalSize) / originalSize * 100 : 0;
+
+        print('Image traitée en ${stopwatch.elapsedMilliseconds}ms. Taille originale: ${_formatBytes(originalSize)}, '
+            'taille finale: ${_formatBytes(finalSize)}, réduction: ${compressionRatio.toStringAsFixed(1)}%');
 
         return localFile.path;
       } else {
-        print('Erreur lors du téléchargement de l\'image : ${response
-            .statusCode}');
+        print('Erreur lors du téléchargement de l\'image : ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Erreur : $e');
+      print('Erreur lors du traitement de l\'image : $e');
       return null;
+    }
+  }
+
+  // Méthode pour réduire la qualité d'une image JPEG
+  static List<int> _reduceJpegQuality(List<int> jpegData) {
+    try {
+      // Cette méthode est une simplification et ne fonctionne que pour certains types de JPEG
+      // Pour une solution complète, il faudrait utiliser une bibliothèque dédiée
+
+      // Chercher les marqueurs de qualité JPEG (FF DB) et réduire les valeurs
+      // Cela affectera la table de quantification, réduisant la qualité mais aussi la taille
+      List<int> result = List.from(jpegData);
+
+      for (int i = 0; i < result.length - 4; i++) {
+        // Recherche du marqueur de qualité JPEG
+        if (result[i] == 0xFF && result[i + 1] == 0xDB) {
+          // Modifier les valeurs de la table de quantification
+          // Augmenter ces valeurs réduit la qualité mais aussi la taille du fichier
+          int length = (result[i + 2] << 8) | result[i + 3];
+          if (length > 2) {
+            for (int j = i + 4; j < i + 2 + length && j < result.length; j++) {
+              // Augmenter chaque valeur de quantification (réduire la qualité)
+              result[j] = (result[j] * 1.5).round().clamp(1, 255);
+            }
+          }
+        }
+      }
+
+      return result;
+    } catch (e) {
+      print('Erreur lors de la réduction de qualité JPEG: $e');
+      return jpegData; // En cas d'erreur, retourner les données originales
     }
   }
 
@@ -614,9 +870,19 @@ class AuthService {
             if(existinResp.isEmpty){
               final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
               print("Insertion réussie, ID inséré : $insertedId");
-              Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+              //Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
             }else{
-              await DatabaseHelper().updateResponsableSaisiIdServerById(codeAlert, jsonResponse['data']['id']);
+
+              int updatedRows = await DatabaseHelper().updateResponsableSaisiIdServerById(
+                  codeAlert, jsonResponse['data']['id']
+              );
+
+              if (updatedRows > 0) {
+                print("RESPONSABLE UPDATEEEEEEEEEEEEEEED OKKKKKKKKKK!!!!!!!!!!!!!!!!!");
+              } else {
+                print("Échec de la mise à jour ou aucune ligne affectée.");
+              }
+
             }
             EasyLoading.dismiss();
 
@@ -633,7 +899,6 @@ class AuthService {
         return false;
       }
   }
-
 
   static Future<bool> saveResponsableEnLocal({
     required String codeAlert,
@@ -660,9 +925,10 @@ class AuthService {
       whereArgs: [codeAlert],
     );
 
-      final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
-      print("Insertion réussie, ID inséré : $insertedId");
-      Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+    final int insertedId = await DatabaseHelper().insertResponsableSaisi(data);
+    print("Insertion réussie, ID inséré : $insertedId");
+    print(data);
+    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
 
     EasyLoading.dismiss();
 

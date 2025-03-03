@@ -19,8 +19,9 @@ import 'fiche_incident_victime.dart';
 
 class DetailsIncident extends StatefulWidget {
   final int alertId;
+  final int initialTab;
 
-  const DetailsIncident({super.key, required this.alertId});
+  const DetailsIncident({super.key, required this.alertId, this.initialTab = 0});
 
   @override
   _DetailsIncidentState createState() => _DetailsIncidentState();
@@ -29,7 +30,7 @@ class DetailsIncident extends StatefulWidget {
 class _DetailsIncidentState extends State<DetailsIncident> {
   int _selectedIndex = 0;
   int currentStepAcc = 1;
-  final int initialTabIndex=0; // Index de l'onglet initial
+  late int initialTabIndex; // Index de l'onglet initial
 
   Map<String, dynamic>? _alertDetails;
   Map<String, dynamic>? _ficheIncidentDetails;
@@ -62,6 +63,7 @@ class _DetailsIncidentState extends State<DetailsIncident> {
   @override
   void initState() {
     super.initState();
+    initialTabIndex = widget.initialTab; // Utiliser l'onglet initial fourni
     try{
       _fetchFuture = _fetchFicheIncidentDetails();
     }catch(e){}

@@ -11,6 +11,7 @@ import '../../../core/utils/google_fonts.dart';
 import '../../../models/fiche_accident_vehicule.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../../widgets/success_alert.dart';
+import '../../fiche/accident/fiche_accident.dart';
 
 class CollectAccidentVehiculeScreen extends StatefulWidget {
   final int accidentId;
@@ -120,12 +121,34 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
-          message: "Fiche accident enregistrée avec succès !",
-          onPressed: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+          message: "Véhicule enregistré avec succès !",
+          onPressed: () async {
+            final db = DatabaseHelper();
+            final accident = await db.getFicheAccidentById(widget.accidentId);
+            if (accident != null) {
+              final alertId = accident['signalement_id'];
+              
+              Get.offAll(
+                () => DetailsAccident(alertId: alertId, initialTab: 1),
+                transition: Transition.leftToRight
+              );
+            } else {
+              Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            }
           },
-          onClose: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+          onClose: () async {
+            final db = DatabaseHelper();
+            final accident = await db.getFicheAccidentById(widget.accidentId);
+            if (accident != null) {
+              final alertId = accident['signalement_id'];
+              
+              Get.offAll(
+                () => DetailsAccident(alertId: alertId, initialTab: 1),
+                transition: Transition.leftToRight
+              );
+            } else {
+              Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            }
           },
         );
       },
@@ -609,7 +632,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     _buildTextField(title: 'Assureur', controller: _assureurController),
                     const Text('Numéro d\'assurance : ',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Numéro d’assurance', controller: _numeroAssuranceController),
+                    _buildTextField(title: 'Numéro d\'assurance', controller: _numeroAssuranceController),
                     SizedBox(height: 8,),
 
                     const Text('Date expiration assurance :',
@@ -1387,15 +1410,15 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
 
       case 7: // Validation de l'état des équipements
         if (_etatPneueAvantController.text.isEmpty) {
-          showError("Veuillez indiquer l’état des pneus avant.");
+          showError("Veuillez indiquer l'état des pneus avant.");
           return false;
         }
         if (_etatPneueArriereController.text.isEmpty) {
-          showError("Veuillez indiquer l’état des pneus arrière.");
+          showError("Veuillez indiquer l'état des pneus arrière.");
           return false;
         }
         if (_etatParebriseController.text.isEmpty) {
-          showError("Veuillez indiquer l’état du pare-brise.");
+          showError("Veuillez indiquer l'état du pare-brise.");
           return false;
         }
         if (_positionLevierVitessController.text.isEmpty || int.tryParse(_positionLevierVitessController.text) == null) {
@@ -1406,19 +1429,19 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
 
       case 8: // Validation des fonctionnalités des équipements
         if (_selectedAvertisseur == null) {
-          showError("Veuillez sélectionner un état pour l’avertisseur.");
+          showError("Veuillez sélectionner un état pour l'avertisseur.");
           return false;
         }
         if (_selectedIndicateurDirection == null) {
-          showError("Veuillez sélectionner un état pour l’indicateur de direction.");
+          showError("Veuillez sélectionner un état pour l'indicateur de direction.");
           return false;
         }
         if (_selectedIndicateurVitesse == null) {
-          showError("Veuillez sélectionner un état pour l’indicateur de vitesse.");
+          showError("Veuillez sélectionner un état pour l'indicateur de vitesse.");
           return false;
         }
         if (_selectedEssuieGlace == null) {
-          showError("Veuillez sélectionner un état pour l’essuie-glace.");
+          showError("Veuillez sélectionner un état pour l'essuie-glace.");
           return false;
         }
         if (_selectedRetroviseur == null) {
@@ -1427,13 +1450,13 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         }
         break;
 
-      case 9: // Validation des informations sur l’assurance
+      case 9: // Validation des informations sur l'assurance
         if (_numeroAssuranceController.text.isEmpty) {
-          showError("Veuillez entrer le numéro d’assurance.");
+          showError("Veuillez entrer le numéro d'assurance.");
           return false;
         }
         if (_assureurController.text.isEmpty) {
-          showError("Veuillez entrer le nom de l’assureur.");
+          showError("Veuillez entrer le nom de l'assureur.");
           return false;
         }
         break;
