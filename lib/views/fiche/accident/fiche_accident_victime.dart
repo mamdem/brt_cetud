@@ -10,8 +10,9 @@ import '../../../sqflite/database_helper.dart';
 class DetailsFicheAccidentVictime extends StatelessWidget {
   final List<Map<String, dynamic>> victimeDetails;
   final int accidentID;
+  final int alertId;
 
-  DetailsFicheAccidentVictime({super.key, required this.victimeDetails, required this.accidentID});
+  DetailsFicheAccidentVictime({super.key, required this.victimeDetails, required this.accidentID, required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -131,14 +132,19 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           if(accidentID!=-1){
-            Get.off(
+            final result = await Get.to(
               CollectAccidentVictimeScreen(
                 accidentId: accidentID,
+                alertId: alertId,
               ),
               transition: Transition.rightToLeft,
             );
+            if (result == true) {
+              // Rafraîchir la page
+              Get.forceAppUpdate();
+            }
           }else{
             Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche accident");
           }

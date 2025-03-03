@@ -23,9 +23,10 @@ class SyncLoadingService {
     _hasErrors.value = false;
     _errors.clear();
 
+    // Configuration améliorée de l'indicateur de chargement
     EasyLoading.instance
       ..displayDuration = const Duration(milliseconds: 2000)
-      ..indicatorType = EasyLoadingIndicatorType.fadingCircle
+      ..indicatorType = EasyLoadingIndicatorType.ring
       ..loadingStyle = EasyLoadingStyle.custom
       ..indicatorSize = 45.0
       ..radius = 10.0
@@ -35,7 +36,10 @@ class SyncLoadingService {
       ..textColor = Colors.white
       ..maskColor = Colors.black.withOpacity(0.5)
       ..userInteractions = false
-      ..dismissOnTap = false;
+      ..dismissOnTap = false
+      ..animationStyle = EasyLoadingAnimationStyle.offset
+      ..animationDuration = const Duration(milliseconds: 200)
+      ..maskType = EasyLoadingMaskType.black;
 
     _showCustomProgress();
   }
@@ -71,13 +75,31 @@ class SyncLoadingService {
 
   static Future<void> _showCustomProgress() async {
     if (!EasyLoading.isShow) {
-      EasyLoading.show(status: 'Initialisation...');
+      await EasyLoading.show(
+        status: 'Initialisation...',
+        maskType: EasyLoadingMaskType.black,
+        dismissOnTap: false,
+        indicator: const CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          strokeWidth: 3,
+        ),
+      );
     }
 
-    EasyLoading.showProgress(
-        _progress.value,
-        status: '${(_progress.value * 100).toInt()}% - ${_currentOperation.value}\n'
-            'Étape ${_completedSteps.value}/${_totalSteps.value}'
+    // Mettre à jour uniquement le texte de statut
+    EasyLoading.instance
+      ..indicatorType = EasyLoadingIndicatorType.ring // Assure une animation continue
+      ..maskType = EasyLoadingMaskType.black;
+
+    await EasyLoading.show(
+      status: '${(_progress.value * 100).toInt()}% - ${_currentOperation.value}\n'
+          'Étape ${_completedSteps.value}/${_totalSteps.value}',
+      maskType: EasyLoadingMaskType.black,
+      dismissOnTap: false,
+      indicator: const CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        strokeWidth: 3,
+      ),
     );
   }
 

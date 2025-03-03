@@ -14,10 +14,13 @@ import '../../../sqflite/database_helper.dart';
 import '../../../widgets/app_button.dart';
 import '../../../widgets/damage_item.dart';
 import '../../../widgets/success_alert.dart';
+import '../../fiche/incident/details_fiche_incident.dart';
+import '../../fiche/incident/fiche_incident.dart';
 
 class CollectIncidentVictimeScreen extends StatefulWidget {
   final int incidentId;
-  const CollectIncidentVictimeScreen({Key? key, required this.incidentId}) : super(key: key);
+  final int alertId;
+  const CollectIncidentVictimeScreen({Key? key, required this.incidentId, required this.alertId}) : super(key: key);
 
   @override
   _CollectIncidentVictimeScreenState createState() => _CollectIncidentVictimeScreenState();
@@ -26,6 +29,8 @@ class CollectIncidentVictimeScreen extends StatefulWidget {
 class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScreen> {
   int currentStep = 1;
   final int nbStep = 2;
+  int? _conscient;
+  int? _selectedPosVictime;
 
   String? _selectedSexe;
 
@@ -69,6 +74,10 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
           showError("Veuillez entrer le nom de la victime.");
           return false;
         }
+        if(_selectedSexe==null){
+          showError("Veuillez selectionner le sexe.");
+          return false;
+        }
         if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
@@ -79,15 +88,23 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
           showError("Veuillez entrer un numéro de téléphone.");
           return false;
         }
+        if(_selectedPosVictime == null){
+          showError("Veuillez entrer la position du victime.");
+          return false;
+        }
         break;
 
-      case 2: // Validation de l'état et de la structure sanitaire
+      case 2:
         if (_structureSanitaireController.text.isEmpty) {
           showError("Veuillez entrer une structure sanitaire.");
           return false;
         }
         if (_traumatismeController.text.isEmpty) {
           showError("Veuillez décrire la nature des blessures.");
+          return false;
+        }
+        if (_conscient == null) {
+          showError("Veuillez indiquer si la victime est consciente ou non.");
           return false;
         }
         break;
@@ -98,18 +115,20 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
     return true;
   }
 
-  void openDialogSuccess(){
+  void openDialogSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
-          message: "Fiche victime enregistré avec succès !",
+          message: "Victime enregistrée avec succès !",
           onPressed: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
           onClose: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
         );
       },
@@ -128,21 +147,19 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
   }
 
   Future<void> saveVictime() async {
-    // Récupération des données des steps
     final fiche = FicheIncidentVictime(
-        incidentId: widget.incidentId,
-        prenom: _prenomController.text,
-        sexe: _selectedSexe,
-        nom: _nomController.text,
-        age: int.tryParse(_ageController.text),
-        tel: _telController.text,
-        structureEvacuation: _structureSanitaireController.text,
-        userSaisie: global.user['idusers'],
-        createdAt: DateTime.now(),
-      traumatisme: _traumatismeController.text
+      incidentId: widget.incidentId,
+      prenom: _prenomController.text,
+      sexe: _selectedSexe,
+      nom: _nomController.text,
+      age: int.tryParse(_ageController.text),
+      tel: _telController.text,
+      structureEvacuation: _structureSanitaireController.text,
+      userSaisie: global.user['idusers'],
+      createdAt: DateTime.now(),
+      traumatisme: _traumatismeController.text,
     );
 
-    // Insérer dans la base de données locale
     final db = DatabaseHelper();
     await db.insertFicheIncidentVictime(fiche);
 
@@ -240,6 +257,44 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Le victime est-il conscient ?',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: RadioListTile<int>(
+                                title: const Text('Oui'),
+                                value: 35,
+                                groupValue: _conscient,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _conscient = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: RadioListTile<int>(
+                                title: const Text('Non'),
+                                value: 36,
+                                groupValue: _conscient,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _conscient = value;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -399,6 +454,29 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
                       },
                     ),
                     const SizedBox(height: 8),
+                    const Text('Position victime', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int>(
+                      value: _selectedPosVictime,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      hint: const Text('Sélectionnez une option'),
+                      items: posVictime
+                          .map((item) => DropdownMenuItem<int>(
+                        value: item['id'],
+                        child: Text(item['libelle']),
+                      ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPosVictime = value;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),

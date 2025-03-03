@@ -20,7 +20,8 @@ import '../../fiche/accident/fiche_accident.dart';
 
 class CollectAccidentVictimeScreen extends StatefulWidget {
   final int accidentId;
-  const CollectAccidentVictimeScreen({Key? key, required this.accidentId}) : super(key: key);
+  final int alertId;
+  const CollectAccidentVictimeScreen({Key? key, required this.accidentId, required this.alertId}) : super(key: key);
 
   @override
   _CollectAccidentVictimeScreenState createState() => _CollectAccidentVictimeScreenState();
@@ -164,44 +165,20 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
     return true;
   }
 
-  void openDialogSuccess(){
+  void openDialogSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Victime enregistrée avec succès !",
-          onPressed: () async {
-            // Récupérer la fiche accident pour obtenir l'ID d'alerte
-            final db = DatabaseHelper();
-            final accident = await db.getFicheAccidentById(widget.accidentId);
-            if (accident != null) {
-              final alertId = accident['signalement_id'];
-              
-              // Naviguer vers l'écran de détails avec l'onglet des victimes sélectionné (index 2)
-              Get.offAll(
-                () => DetailsAccident(alertId: alertId, initialTab: 2),
-                transition: Transition.leftToRight
-              );
-            } else {
-              // Fallback en cas d'erreur
-              Get.off(const HomeScreen(), transition: Transition.leftToRight);
-            }
+          onPressed: () {
+            Get.back();
+            Get.back(result: true);
           },
-          onClose: () async {
-            // Même comportement que onPressed
-            final db = DatabaseHelper();
-            final accident = await db.getFicheAccidentById(widget.accidentId);
-            if (accident != null) {
-              final alertId = accident['signalement_id'];
-              
-              Get.offAll(
-                () => DetailsAccident(alertId: alertId, initialTab: 2),
-                transition: Transition.leftToRight
-              );
-            } else {
-              Get.off(const HomeScreen(), transition: Transition.leftToRight);
-            }
+          onClose: () {
+            Get.back();
+            Get.back(result: true);
           },
         );
       },

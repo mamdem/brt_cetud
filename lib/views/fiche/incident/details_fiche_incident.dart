@@ -324,9 +324,9 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                   'prenom_nom': "${global.user['prenom_user']} ${global.user["nom_user"]}",
                   'created_at': DateTime.now().toIso8601String(),
                 };
-                if(widget.alertDetails['id_server']!=null){
+                if(widget.alertDetails['id_server']!=null){ //Si l'alerte est deja synchronisée
                   try{
-                    await AuthService.saveResponsable(
+                    await AuthService.saveResponsable( //On save a distance
                         codeAlert: widget.alertDetails["code_alert"],
                         responsableSaisie: (global.user["idusers"]),
                         prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
@@ -334,6 +334,9 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                         mp: global.user['mp'],
                         deviceInfo: global.phoneIdentifier
                     );
+                    final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
+                    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+                    print("Insertion réussie, ID inséré : $insertedId");
                     setState(() {
                       bRensFichAcc = true;
                       bRespSaisi = false;
@@ -341,12 +344,20 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
                   }catch(e){
                     print("Erreur lors de l'insertion : $e");
                   }
-                  final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
-                  Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
-                  print("Insertion réussie, ID inséré : $insertedId");
                 }else{
-                  showError("Veuillez d'abord synchroniser !");
-                  Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+                  AuthService.saveResponsableEnLocal(
+                      codeAlert: widget.alertDetails["code_alert"],
+                      responsableSaisie: (global.user["idusers"]),
+                      prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                      createdAt: DateTime.now().toIso8601String().toString(),
+                      mp: global.user['mp'],
+                      deviceInfo: global.phoneIdentifier
+                  );
+                  setState(() {
+                    bRensFichAcc = true;
+                    bRespSaisi = false;
+                  });
+                  //showError("Veuillez d'abord synchroniser !");
                 }
 
               },

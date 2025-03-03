@@ -6,13 +6,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import '../../../sqflite/database_helper.dart';
+import '../../fiche/incident/details_fiche_incident.dart';
 import '../../home/home.dart';
 import '../../../widgets/success_alert.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
+import '../../fiche/incident/fiche_incident.dart';
 
 class CollectIncidentDegatMaterielsScreen extends StatefulWidget {
   final int incidentId;
-  const CollectIncidentDegatMaterielsScreen({Key? key, required this.incidentId}) : super(key: key);
+  final int alertId;
+  const CollectIncidentDegatMaterielsScreen({Key? key, required this.incidentId, required this.alertId}) : super(key: key);
 
   @override
   _CollectIncidentDegatMaterielsScreenState createState() =>
@@ -34,10 +37,12 @@ class _CollectIncidentDegatMaterielsScreenState extends State<CollectIncidentDeg
         return BeautifulSuccessAlert(
           message: "Dégâts matériels enregistrés avec succès !",
           onPressed: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
           onClose: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
         );
       },

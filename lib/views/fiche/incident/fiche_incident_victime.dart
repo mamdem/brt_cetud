@@ -12,8 +12,9 @@ import '../../collect/incident/collect_incident_victime.dart';
 class DetailsFicheIncidentVictime extends StatelessWidget {
   final List<Map<String, dynamic>> victimeDetails;
   final int accidentID;
+  final int alertId;
 
-  DetailsFicheIncidentVictime({super.key, required this.victimeDetails, required this.accidentID});
+  DetailsFicheIncidentVictime({super.key, required this.victimeDetails, required this.accidentID, required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -136,16 +137,21 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           if(accidentID!=-1){
-            Get.off(
+            final result = await Get.to(
               CollectIncidentVictimeScreen(
                 incidentId: accidentID,
+                alertId: alertId,
               ),
               transition: Transition.rightToLeft,
             );
+            if (result == true) {
+              // Rafraîchir la page
+              Get.forceAppUpdate();
+            }
           }else{
-            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche accident");
+            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche incident");
           }
         },
         backgroundColor: AppColors.appColor,

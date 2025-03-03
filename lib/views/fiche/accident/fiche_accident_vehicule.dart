@@ -10,8 +10,9 @@ import '../../../core/dialog/accident/vehicle_details_dialog.dart';
 class DetailsFicheVehicule extends StatelessWidget {
   final List<Map<String, dynamic>> vehiculeDetails;
   final int accidentID;
+  final int alertId;
 
-  DetailsFicheVehicule({super.key, required this.vehiculeDetails, required this.accidentID});
+  DetailsFicheVehicule({super.key, required this.vehiculeDetails, required this.accidentID, required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -252,9 +253,10 @@ class DetailsFicheVehicule extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if(accidentID!=-1){
-            Get.off(
+            Get.to(
               CollectAccidentVehiculeScreen(
                 accidentId: accidentID,
+                alertId: alertId,
               ),
               transition: Transition.rightToLeft,
             );

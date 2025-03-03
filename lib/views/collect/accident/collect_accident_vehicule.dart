@@ -15,7 +15,8 @@ import '../../fiche/accident/fiche_accident.dart';
 
 class CollectAccidentVehiculeScreen extends StatefulWidget {
   final int accidentId;
-  const CollectAccidentVehiculeScreen({Key? key, required this.accidentId}) : super(key: key);
+  final int alertId;
+  const CollectAccidentVehiculeScreen({Key? key, required this.accidentId, required this.alertId}) : super(key: key);
 
   @override
   _CollectAccidentVehiculeScreenState createState() => _CollectAccidentVehiculeScreenState();
@@ -115,40 +116,22 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     });
   }
 
-  void showSuccess(){
+  void openDialogSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return BeautifulSuccessAlert(
           message: "Véhicule enregistré avec succès !",
-          onPressed: () async {
-            final db = DatabaseHelper();
-            final accident = await db.getFicheAccidentById(widget.accidentId);
-            if (accident != null) {
-              final alertId = accident['signalement_id'];
-              
-              Get.offAll(
-                () => DetailsAccident(alertId: alertId, initialTab: 1),
+          onPressed: () {
+            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 1),
                 transition: Transition.leftToRight
-              );
-            } else {
-              Get.off(const HomeScreen(), transition: Transition.leftToRight);
-            }
+            );
           },
-          onClose: () async {
-            final db = DatabaseHelper();
-            final accident = await db.getFicheAccidentById(widget.accidentId);
-            if (accident != null) {
-              final alertId = accident['signalement_id'];
-              
-              Get.offAll(
-                () => DetailsAccident(alertId: alertId, initialTab: 1),
+          onClose: () {
+            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 1),
                 transition: Transition.leftToRight
-              );
-            } else {
-              Get.off(const HomeScreen(), transition: Transition.leftToRight);
-            }
+            );
           },
         );
       },
@@ -1284,7 +1267,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
       int result = await db.insertFicheAccidentVehicule(fiche);
 
       if (result > 0) {
-        showSuccess();
+        openDialogSuccess();
       } else {
         print("Aucune ligne n'a été modifiée.");
       }

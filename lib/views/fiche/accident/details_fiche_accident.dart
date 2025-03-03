@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
+import 'dart:io';
 
 import '../../../sqflite/database_helper.dart';
 import 'package:get/get.dart';
@@ -32,6 +33,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   DatabaseHelper db = DatabaseHelper();
   bool _isLoading = true;
   bool _imagesLoading = true;
+  bool _isProcessingImages = false;
   late bool bRespSaisi;
   late bool bRensFichAcc;
   List<Map<String, dynamic>> degatsMateriels = [];
@@ -42,8 +44,28 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
     bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
     
-    // Charger les dégâts matériels et leurs images
-    _loadDegatsMateriels();
+    // Vérifier si le traitement des images est en cours
+    _checkImageProcessing();
+  }
+
+  Future<void> _checkImageProcessing() async {
+    setState(() {
+      _isProcessingImages = true;
+    });
+
+    try {
+      // Attendre que le traitement des images soit terminé dans saveData
+      await AuthService.waitForImageProcessing();
+      
+      // Une fois le traitement terminé, charger les dégâts matériels
+      await _loadDegatsMateriels();
+    } catch (e) {
+      print('Erreur lors de la vérification du traitement des images: $e');
+    } finally {
+      setState(() {
+        _isProcessingImages = false;
+      });
+    }
   }
 
   Future<void> _loadDegatsMateriels() async {
@@ -238,9 +260,22 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   }
 
   Widget _buildDegatsMaterielsSection() {
-    if (_imagesLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+    if (_isProcessingImages || _imagesLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Traitement des images en cours...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -275,16 +310,51 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                       if (degat['photos'] != null && degat['photos'].toString().isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: Image.network(
-                            'https://cetud.saytu.pro/storage/${degat['photos']}',
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Text('Erreur de chargement de l\'image');
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
+                          child: FutureBuilder<bool>(
+                            future: _checkImageExists(degat['photos']),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
+
+                              if (snapshot.data == true) {
+                                // L'image existe localement
+                                return Image.file(
+                                  File(degat['photos']),
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print('Erreur de chargement de l\'image locale: $error');
+                                    // Essayer de charger depuis l'URL distante si l'image locale échoue
+                                    return Image.network(
+                                      'https://cetud.saytu.pro/storage/${degat['photos']}',
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Text('Erreur de chargement de l\'image');
+                                      },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(),
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              } else {
+                                // L'image n'existe pas localement, essayer l'URL distante
+                                return Image.network(
+                                  'https://cetud.saytu.pro/storage/${degat['photos']}',
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Text('Erreur de chargement de l\'image');
+                                  },
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                );
+                              }
                             },
                           ),
                         ),
@@ -297,6 +367,18 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
         ),
       ],
     );
+  }
+
+  Future<bool> _checkImageExists(String path) async {
+    if (path.startsWith('http')) return false;
+    
+    try {
+      final file = File(path);
+      return await file.exists();
+    } catch (e) {
+      print('Erreur lors de la vérification du fichier: $e');
+      return false;
+    }
   }
 
   void showError(String message) {
@@ -313,7 +395,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
 
-    if (_isLoading || _imagesLoading) {
+    if (_isLoading || _imagesLoading || _isProcessingImages) {
       return const Center(
         child: CircularProgressIndicator(),
       );

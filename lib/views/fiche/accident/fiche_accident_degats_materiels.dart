@@ -5,14 +5,60 @@ import 'package:brt_mobile/core/utils/app_colors.dart';
 import '../../../sqflite/database_helper.dart';
 import '../../collect/accident/collect_accident_degats_materiels_screen.dart';
 import '../../collect/incident/collect_incident_degats_materiels_screen.dart';
+import '../../../services/auth_service.dart';
 
-class DetailsFicheDegatsMateriels extends StatelessWidget {
+class DetailsFicheDegatsMateriels extends StatefulWidget {
   final List<Map<String, dynamic>> degatDetails;
   final int accidentID;
+  final int alertId;
 
-  DetailsFicheDegatsMateriels({super.key, required this.degatDetails, required this.accidentID});
+  const DetailsFicheDegatsMateriels({
+    Key? key,
+    required this.degatDetails,
+    required this.accidentID, required this.alertId,
+  }) : super(key: key);
 
+  @override
+  State<DetailsFicheDegatsMateriels> createState() => _DetailsFicheDegatsMaterielsState();
+}
+
+class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriels> {
   DatabaseHelper db = DatabaseHelper();
+  bool _isProcessingImages = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkImageProcessing();
+  }
+
+  Future<void> _checkImageProcessing() async {
+    setState(() {
+      _isProcessingImages = true;
+    });
+
+    try {
+      await AuthService.waitForImageProcessing();
+    } catch (e) {
+      print('Erreur lors de la vérification du traitement des images: $e');
+    } finally {
+      setState(() {
+        _isProcessingImages = false;
+      });
+    }
+  }
+
+  Future<bool> _checkImageExists(String path) async {
+    if (path.startsWith('http')) return false;
+    
+    try {
+      final file = File(path);
+      return await file.exists();
+    } catch (e) {
+      print('Erreur lors de la vérification du fichier: $e');
+      return false;
+    }
+  }
 
   String formatDate(String? isoDate) {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
@@ -53,14 +99,50 @@ class DetailsFicheDegatsMateriels extends StatelessWidget {
                   ],
                 ),
                 const Divider(height: 24),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    File(imagePath),
-                    fit: BoxFit.cover,
-                    height: 300,
-                    width: double.infinity,
-                  ),
+                FutureBuilder<bool>(
+                  future: _checkImageExists(imagePath),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (snapshot.data == true) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(imagePath),
+                          fit: BoxFit.cover,
+                          height: 300,
+                          width: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.network(
+                              'https://cetud.saytu.pro/storage/$imagePath',
+                              fit: BoxFit.cover,
+                              height: 300,
+                              width: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Text('Erreur de chargement de l\'image'),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    } else {
+                      return Image.network(
+                        'https://cetud.saytu.pro/storage/$imagePath',
+                        fit: BoxFit.cover,
+                        height: 300,
+                        width: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Text('Erreur de chargement de l\'image'),
+                          );
+                        },
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -83,18 +165,65 @@ class DetailsFicheDegatsMateriels extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: degat['photos'] != null
-                ? Image.file(
-              File(degat['photos']),
-              height: 50,
-              width: 50,
-              fit: BoxFit.cover,
-            )
+                ? FutureBuilder<bool>(
+                    future: _checkImageExists(degat['photos']),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container(
+                          height: 50,
+                          width: 50,
+                          color: Colors.grey[300],
+                          child: const Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (snapshot.data == true) {
+                        return Image.file(
+                          File(degat['photos']),
+                          height: 50,
+                          width: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.network(
+                              'https://cetud.saytu.pro/storage/${degat['photos']}',
+                              height: 50,
+                              width: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 50,
+                                  width: 50,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.error),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      } else {
+                        return Image.network(
+                          'https://cetud.saytu.pro/storage/${degat['photos']}',
+                          height: 50,
+                          width: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 50,
+                              width: 50,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.error),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  )
                 : Container(
-              height: 50,
-              width: 50,
-              color: Colors.grey[300],
-              child: const Icon(Icons.image, size: 30, color: Colors.grey),
-            ),
+                    height: 50,
+                    width: 50,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.image, size: 30, color: Colors.grey),
+                  ),
           ),
           const SizedBox(width: 21),
           Expanded(
@@ -149,44 +278,71 @@ class DetailsFicheDegatsMateriels extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
-    print(degatDetails);
+
+    if (_isProcessingImages) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text(
+                'Chargement des images...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Container(
         height: screenHeight - 280,
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
-        child: degatDetails.isNotEmpty
+        child: widget.degatDetails.isNotEmpty
             ? ListView.builder(
-          itemCount: degatDetails.length,
-          itemBuilder: (context, index) {
-            final degat = degatDetails[index];
-            return _buildInfoTile(
-              title: "Dégât matériel",
-              degat: degat,
-              context: context,
-            );
-          },
-        )
+                itemCount: widget.degatDetails.length,
+                itemBuilder: (context, index) {
+                  final degat = widget.degatDetails[index];
+                  return _buildInfoTile(
+                    title: "Dégât matériel",
+                    degat: degat,
+                    context: context,
+                  );
+                },
+              )
             : const Center(
-          child: Text(
-            "Aucun dégât matériel enregistré",
-            style: TextStyle(fontSize: 21),
-          ),
-        ),
+                child: Text(
+                  "Aucun dégât matériel enregistré",
+                  style: TextStyle(fontSize: 21),
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if(accidentID!=-1){
-            Get.to(
-              CollectAccidentDegatMaterielsScreen(accidentId: accidentID),
+        onPressed: () async {
+          if(widget.accidentID != -1){
+            final result = await Get.to(
+              CollectAccidentDegatMaterielsScreen(
+                accidentId: widget.accidentID,
+                alertId: widget.alertId,
+              ),
               transition: Transition.rightToLeft,
             );
+            if (result == true) {
+              // Rafraîchir la page
+              Get.forceAppUpdate();
+            }
           }else{
             Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche accident");
           }
-
         },
         backgroundColor: AppColors.appColor,
-        child: const Icon(Icons.add, color: Colors.white, size: 27),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

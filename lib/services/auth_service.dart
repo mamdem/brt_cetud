@@ -21,6 +21,32 @@ class AuthService {
 
   static final db = DatabaseHelper();
 
+  static bool _isProcessingImages = false;
+  static Completer<void>? _imageProcessingCompleter;
+
+  static void startImageProcessing() {
+    _isProcessingImages = true;
+    _imageProcessingCompleter = Completer<void>();
+  }
+
+  static void finishImageProcessing() {
+    _isProcessingImages = false;
+    if (_imageProcessingCompleter != null && !_imageProcessingCompleter!.isCompleted) {
+      _imageProcessingCompleter!.complete();
+    }
+    _imageProcessingCompleter = null;
+  }
+
+  static Future<void> waitForImageProcessing() async {
+    if (!_isProcessingImages) {
+      return;
+    }
+    
+    if (_imageProcessingCompleter != null) {
+      await _imageProcessingCompleter!.future;
+    }
+  }
+
   static Future<void> fetchAndSaveData() async {
     final url =
         "${global.baseUrl}/getDataAccident?mp=${global.user['mp']}&device_info=${global.phoneIdentifier}";
@@ -37,357 +63,353 @@ class AuthService {
   }
 
   static Future<void> saveData(Map<String, dynamic> jsonData) async {
-    final dbase = await DatabaseHelper().database;
-    await DatabaseHelper().deleteAllTableSynced();
-    final alerts = jsonData['data']['ACCIDENT'] ?? [];
-    final alertsIncident = jsonData['data']['INCIDENT'];
-    final responsableSaisis = jsonData['data']['responsable_saisi'];
+    try {
+      startImageProcessing();  // Indiquer le début du traitement des images
+      
+      final dbase = await DatabaseHelper().database;
+      await DatabaseHelper().deleteAllTableSynced();
+      final alerts = jsonData['data']['ACCIDENT'] ?? [];
+      final alertsIncident = jsonData['data']['INCIDENT'];
+      final responsableSaisis = jsonData['data']['responsable_saisi'];
 
-    // Liste pour stocker les informations de téléchargement des images
-    List<Map<String, dynamic>> imageDownloadQueue = [];
+      // Liste pour stocker les informations de téléchargement des images
+      List<Map<String, dynamic>> imageDownloadQueue = [];
 
-    for (var alert in alerts) {
-      final idFicheAlert = alert['idfiche_alert'];
-      final codeAlert = alert['code_alert'];
+      for (var alert in alerts) {
+        final idFicheAlert = alert['idfiche_alert'];
+        final codeAlert = alert['code_alert'];
 
-      final existingAlert = await dbase.query(
-        'alerte',
-        where: 'code_alert = ?',
-        whereArgs: [codeAlert],
-      );
-
-      if (existingAlert.isEmpty) {
-        await dbase.insert('alerte', {
-          'idfiche_alert': idFicheAlert,
-          'code_alert': alert['code_alert'],
-          'type_alert': alert['type_alert'],
-          'autres_alert': alert['autres_alert'],
-          'date_alert': alert['date_alert'],
-          'alerte_niveau_id': alert['alerte_niveau_id'],
-          'position_lat': alert['position_lat'],
-          'position_long': alert['position_long'],
-          'bus_operateur_implique': alert['bus_oparateur_implique'],
-          'matricule_bus': alert['matricule_bus'],
-          'voie': alert['voie'],
-          'user_alert': alert['user_alert'],
-          'fiche_alertecol': alert['fiche_alertecol'],
-          'user_saisie': alert['user_saisie'],
-          'user_update': alert['user_update'],
-          'user_delete': alert['user_delete'],
-          'created_at': alert['created_at'],
-          'updated_at': alert['updated_at'],
-          'deleted_at': alert['deleted_at'],
-          'existence_victime': alert['existence_victime'],
-          'nb_victime': alert['nb_victime'],
-          'victime_cons': alert['victime_cons'],
-          'victime_incons': alert['victime_incons'],
-          'id_server': idFicheAlert,
-        });
-      }
-
-      // Gérer les données d'accident
-      if (alert['accident'] != null) {
-        final accident = alert['accident'];
-        final idFicheAccident = accident['idfiche_accident'];
-
-        final existingAccident = await dbase.query(
-          'fiche_accident',
-          where: 'idfiche_accident = ?',
-          whereArgs: [idFicheAccident],
+        final existingAlert = await dbase.query(
+          'alerte',
+          where: 'code_alert = ?',
+          whereArgs: [codeAlert],
         );
 
-        if (existingAccident.isEmpty) {
-          await dbase.insert('fiche_accident', {
-            'idfiche_accident': idFicheAccident,
-            'signalement_id': idFicheAlert,
-            'date_heure': accident['date_heure'],
-            'position_lat': accident['position_lat'],
-            'position_long': accident['position_long'],
-            'corridor_hor_co': accident['corridor_hor_co'],
-            'section_id': accident['section_id'],
-            'bus_operateur_impli_oui_non': accident['bus_operateur_impli_oui_non'],
-            'collision_entre': accident['collision_entre'],
-            'point_reference_lat': accident['point_reference_lat'],
-            'point_reference_long': accident['point_reference_long'],
-            'blesse_oui_non': accident['blesse_oui_non'],
-            'nb_blesse': accident['nb_blesse'],
-            'nb_vehicule_implique': accident['nb_vehicule_implique'],
-            'condition_atmospherique': accident['condi_atmospherique'],
-            'type_jour': accident['type_jour'],
-            'user_saisie': accident['user_saisie'],
-            'user_update': accident['user_update'],
-            'user_delete': accident['user_delete'],
-            'created_at': accident['created_at'],
-            'updated_at': accident['updated_at'],
-            'deleted_at': accident['deleted_at'],
-            'condition_atmostpherique': accident['conditon_atmostpherique'],
-            'visibilite': accident['visibilite'],
-            'chaussee': accident['chaussee'],
-            'largeur_eclairage_voie': accident['largeur_eclairage_voie'],
-            'id_server': idFicheAccident,
-            'signalement_id_server': idFicheAlert,
-            'trace_freinage': accident['trace_freinage'],
-            'trace_freinage_photo': null, // Sera mis à jour avec le chemin local
-            'trace_sang': accident['trace_sang'],
-            'trace_sang_photo': null, // Sera mis à jour avec le chemin local
-            'trace_pneue': accident['trace_pneue'],
-            'trace_pneue_photo': null, // Sera mis à jour avec le chemin local
+        if (existingAlert.isEmpty) {
+          await dbase.insert('alerte', {
+            'idfiche_alert': idFicheAlert,
+            'code_alert': alert['code_alert'],
+            'type_alert': alert['type_alert'],
+            'autres_alert': alert['autres_alert'],
+            'date_alert': alert['date_alert'],
+            'alerte_niveau_id': alert['alerte_niveau_id'],
+            'position_lat': alert['position_lat'],
+            'position_long': alert['position_long'],
+            'bus_operateur_implique': alert['bus_oparateur_implique'],
+            'matricule_bus': alert['matricule_bus'],
+            'voie': alert['voie'],
+            'user_alert': alert['user_alert'],
+            'fiche_alertecol': alert['fiche_alertecol'],
+            'user_saisie': alert['user_saisie'],
+            'user_update': alert['user_update'],
+            'user_delete': alert['user_delete'],
+            'created_at': alert['created_at'],
+            'updated_at': alert['updated_at'],
+            'deleted_at': alert['deleted_at'],
+            'existence_victime': alert['existence_victime'],
+            'nb_victime': alert['nb_victime'],
+            'victime_cons': alert['victime_cons'],
+            'victime_incons': alert['victime_incons'],
+            'id_server': idFicheAlert,
           });
         }
 
-        // Gérer les véhicules associés
-        final vehicules = alert['fiche_acident_vehicucle'] ?? [];
+        // Gérer les données d'accident
+        if (alert['accident'] != null) {
+          final accident = alert['accident'];
+          final idFicheAccident = accident['idfiche_accident'];
 
-        for (var vehicule in vehicules) {
-          print("GET DATA ACCIDENT");
-          print(vehicule);
-          final idVehicule = vehicule['idfiche_acident_vehucle'];
-
-          final existingVehicule = await dbase.query(
-            'fiche_accident_vehicule',
-            where: 'id_server = ?',
-            whereArgs: [idVehicule],
+          final existingAccident = await dbase.query(
+            'fiche_accident',
+            where: 'idfiche_accident = ?',
+            whereArgs: [idFicheAccident],
           );
 
-          if (existingVehicule.isEmpty) {
-            await dbase.insert('fiche_accident_vehicule', {
-              'idfiche_accident_vehicule': idVehicule,
-              'id_server': idVehicule,
-              'accident_id': idFicheAccident,
-              'matricule': vehicule['matricule'],
-              'num_carte_grise': vehicule['num_carte_grise'],
-              'categorie_vehicule': vehicule['categorie_vehicule'],
-              'autre_vehicule': vehicule['autre_vehicule'],
-              'autre_information_add': vehicule['autre_information_add'],
-              'prenom_chauffeur': vehicule['prenom_chauffeur'],
-              'nom_chauffeur': vehicule['nom_chauffeur'],
-              'age': vehicule['age'],
-              'sexe': vehicule['sexe'],
-              'tel_chauffeur': vehicule['tel_chauffeur'],
-              'profession_conducteur': vehicule['profession_conducteur'],
-              'filiation_prenom_pere': vehicule['filiation_prenom_pere'],
-              'filiation_prenom_nom_mere': vehicule['filiation_prenom_nom_mere'],
-              'domicile_conducteur': vehicule['domicile_conducteur'],
-              'numero_permis': vehicule['numero_permis'],
-              'date_delivrance_permis': vehicule['date_delivrance_permis'],
-              'categorie_permis': vehicule['categorie_permis'],
-              'date_immatriculation_vehicule': vehicule['date_imatriculation_vehicule'],
-              'comportement_conducteur': vehicule['comportement_conducteur'],
-              'autres_comportement': vehicule['autres_comportement'],
-              'prenom_nom_proprietaire': vehicule['prenom_nom_proprietaire'],
-              'numero_assurance': vehicule['numero_assurance'],
-              'assureur': vehicule['assureur'],
-              'puissance_vehicule': vehicule['puissance_vehicule'],
-              'date_expiration_assurance': vehicule['date_expiration_assurance'],
-              'largeur_veh': vehicule['largeur_veh'],
-              'hauteur_veh': vehicule['hauteur_veh'],
-              'longueur_veh': vehicule['longeur_veh'],
-              'date_derniere_visite': vehicule['date_derniere_visite'],
-              'date_mise_circulation': vehicule['date_mise_criculation'],
-              'date_expiration_visite': vehicule['date_expiration_visite'],
-              'kilometrage': vehicule['kilometrage'],
-              'etat_generale': vehicule['etat_generale'],
-              'created_at': vehicule['created_at'],
-              'updated_at': vehicule['updated_at'],
-              'deleted_at': vehicule['deleted_at'],
-              'eclairage': vehicule['eclairage'],
-              'avertisseur': vehicule['avertisseur'],
-              'indicateur_direction': vehicule['indicateur_direction'],
-              'indicateur_vitesse': vehicule['indicateur_vitesse'],
-              'essuie_glace': vehicule['essuie_glace'],
-              'retroviseur': vehicule['retroviseur'],
-              'etat_pneue_avant': vehicule['etat_pneue_avant'],
-              'etat_pneue_arriere': vehicule['etat_pneue_arriere'],
-              'etat_parebrise': vehicule['etat_parebrise'],
-              'position_levier_vitesse': vehicule['position_levier_vitesse'],
-              'presence_poste_radio': vehicule['presence_poste_radio'],
-              'position_volume': vehicule['position_volume'],
+          if (existingAccident.isEmpty) {
+            await dbase.insert('fiche_accident', {
+              'idfiche_accident': idFicheAccident,
+              'signalement_id': idFicheAlert,
+              'date_heure': accident['date_heure'],
+              'position_lat': accident['position_lat'],
+              'position_long': accident['position_long'],
+              'corridor_hor_co': accident['corridor_hor_co'],
+              'section_id': accident['section_id'],
+              'bus_operateur_impli_oui_non': accident['bus_operateur_impli_oui_non'],
+              'collision_entre': accident['collision_entre'],
+              'point_reference_lat': accident['point_reference_lat'],
+              'point_reference_long': accident['point_reference_long'],
+              'blesse_oui_non': accident['blesse_oui_non'],
+              'nb_blesse': accident['nb_blesse'],
+              'nb_vehicule_implique': accident['nb_vehicule_implique'],
+              'condition_atmospherique': accident['condi_atmospherique'],
+              'type_jour': accident['type_jour'],
+              'user_saisie': accident['user_saisie'],
+              'user_update': accident['user_update'],
+              'user_delete': accident['user_delete'],
+              'created_at': accident['created_at'],
+              'updated_at': accident['updated_at'],
+              'deleted_at': accident['deleted_at'],
+              'condition_atmostpherique': accident['conditon_atmostpherique'],
+              'visibilite': accident['visibilite'],
+              'chaussee': accident['chaussee'],
+              'largeur_eclairage_voie': accident['largeur_eclairage_voie'],
+              'id_server': idFicheAccident,
+              'signalement_id_server': idFicheAlert,
+              'trace_freinage': accident['trace_freinage'],
+              'trace_freinage_photo': null, // Sera mis à jour avec le chemin local
+              'trace_sang': accident['trace_sang'],
+              'trace_sang_photo': null, // Sera mis à jour avec le chemin local
+              'trace_pneue': accident['trace_pneue'],
+              'trace_pneue_photo': null, // Sera mis à jour avec le chemin local
             });
           }
-        }
 
-        // Gérer les victimes associées
-        final victimes = alert['fiche_accident_victimes'] ?? [];
-        for (var victime in victimes) {
-          final idVictime = victime['idfiche_accident_victime'];
+          // Gérer les véhicules associés
+          final vehicules = alert['fiche_acident_vehicucle'] ?? [];
 
-          final existingVictime = await dbase.query(
-            'fiche_accident_victime',
-            where: 'id_server = ?',
-            whereArgs: [idVictime],
-          );
+          for (var vehicule in vehicules) {
+            print("GET DATA ACCIDENT");
+            print(vehicule);
+            final idVehicule = vehicule['idfiche_acident_vehucle'];
 
-          if (existingVictime.isEmpty) {
-            await dbase.insert('fiche_accident_victime', {
-              'idfiche_accident_victime': idVictime,
-              'id_server': idVictime,
-              'accident_id': idFicheAccident,
-              'vehicle_id': victime['vehicule_id'],
-              'prenom': victime['prenom'],
-              'nom': victime['nom'],
-              'age': victime['age'],
-              'tel': victime['tel'],
-              'etat_victime': victime['etat_victime'],
-              'structure_sanitaire_evac': victime['structure_sanitaire_evac'],
-              'statut_guerison': victime['statut_guerison'],
-              'date_guerison': victime['date_guerison'],
-              'num_pv': victime['num_pv'],
-              'user_saisie': victime['user_saisie'],
-              'user_update': victime['user_update'],
-              'user_delete': victime['user_delete'],
-              'created_at': victime['created_at'],
-              'updated_at': victime['updated_at'],
-              'deleted_at': victime['deleted_at'],
-              'nature_blessure': victime['nature_blesseure'],
-              'conscient_inconscient': victime['conscient_inconscient'],
-              'position_victime': victime['position_victime'],
-              'filiation_prenom_pere': victime['filiation_prenom_pere'],
-              'filiation_prenom_nom_mere': victime['filiation_prenom_nom_mere'],
-              'accompagnant_prenom': victime['accompagnant_prenom'],
-              'accompagnant_nom': victime['accompagnant_nom'],
-              'accompagnant_tel': victime['accompagnant_tel'],
-            });
+            final existingVehicule = await dbase.query(
+              'fiche_accident_vehicule',
+              where: 'id_server = ?',
+              whereArgs: [idVehicule],
+            );
+
+            if (existingVehicule.isEmpty) {
+              await dbase.insert('fiche_accident_vehicule', {
+                'idfiche_accident_vehicule': idVehicule,
+                'id_server': idVehicule,
+                'accident_id': idFicheAccident,
+                'matricule': vehicule['matricule'],
+                'num_carte_grise': vehicule['num_carte_grise'],
+                'categorie_vehicule': vehicule['categorie_vehicule'],
+                'autre_vehicule': vehicule['autre_vehicule'],
+                'autre_information_add': vehicule['autre_information_add'],
+                'prenom_chauffeur': vehicule['prenom_chauffeur'],
+                'nom_chauffeur': vehicule['nom_chauffeur'],
+                'age': vehicule['age'],
+                'sexe': vehicule['sexe'],
+                'tel_chauffeur': vehicule['tel_chauffeur'],
+                'profession_conducteur': vehicule['profession_conducteur'],
+                'filiation_prenom_pere': vehicule['filiation_prenom_pere'],
+                'filiation_prenom_nom_mere': vehicule['filiation_prenom_nom_mere'],
+                'domicile_conducteur': vehicule['domicile_conducteur'],
+                'numero_permis': vehicule['numero_permis'],
+                'date_delivrance_permis': vehicule['date_delivrance_permis'],
+                'categorie_permis': vehicule['categorie_permis'],
+                'date_immatriculation_vehicule': vehicule['date_imatriculation_vehicule'],
+                'comportement_conducteur': vehicule['comportement_conducteur'],
+                'autres_comportement': vehicule['autres_comportement'],
+                'prenom_nom_proprietaire': vehicule['prenom_nom_proprietaire'],
+                'numero_assurance': vehicule['numero_assurance'],
+                'assureur': vehicule['assureur'],
+                'puissance_vehicule': vehicule['puissance_vehicule'],
+                'date_expiration_assurance': vehicule['date_expiration_assurance'],
+                'largeur_veh': vehicule['largeur_veh'],
+                'hauteur_veh': vehicule['hauteur_veh'],
+                'longueur_veh': vehicule['longeur_veh'],
+                'date_derniere_visite': vehicule['date_derniere_visite'],
+                'date_mise_circulation': vehicule['date_mise_criculation'],
+                'date_expiration_visite': vehicule['date_expiration_visite'],
+                'kilometrage': vehicule['kilometrage'],
+                'etat_generale': vehicule['etat_generale'],
+                'created_at': vehicule['created_at'],
+                'updated_at': vehicule['updated_at'],
+                'deleted_at': vehicule['deleted_at'],
+                'eclairage': vehicule['eclairage'],
+                'avertisseur': vehicule['avertisseur'],
+                'indicateur_direction': vehicule['indicateur_direction'],
+                'indicateur_vitesse': vehicule['indicateur_vitesse'],
+                'essuie_glace': vehicule['essuie_glace'],
+                'retroviseur': vehicule['retroviseur'],
+                'etat_pneue_avant': vehicule['etat_pneue_avant'],
+                'etat_pneue_arriere': vehicule['etat_pneue_arriere'],
+                'etat_parebrise': vehicule['etat_parebrise'],
+                'position_levier_vitesse': vehicule['position_levier_vitesse'],
+                'presence_poste_radio': vehicule['presence_poste_radio'],
+                'position_volume': vehicule['position_volume'],
+              });
+            }
           }
-        }
 
-        // Gérer les dégâts matériels
-        final incidentDegats = alert['accident_degats_materiels'] ?? [];
-        for (var degat in incidentDegats) {
-          final idDegat = degat['idaccident_degats_materiels'];
+          // Gérer les victimes associées
+          final victimes = alert['fiche_accident_victimes'] ?? [];
+          for (var victime in victimes) {
+            final idVictime = victime['idfiche_accident_victime'];
 
-          final existingDegat = await dbase.query(
-            'accident_degats_materiels',
-            where: 'idaccident_degats_materiels = ?',
-            whereArgs: [idDegat],
-          );
+            final existingVictime = await dbase.query(
+              'fiche_accident_victime',
+              where: 'id_server = ?',
+              whereArgs: [idVictime],
+            );
 
-          // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
-          if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-            final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+            if (existingVictime.isEmpty) {
+              await dbase.insert('fiche_accident_victime', {
+                'idfiche_accident_victime': idVictime,
+                'id_server': idVictime,
+                'accident_id': idFicheAccident,
+                'vehicle_id': victime['vehicule_id'],
+                'prenom': victime['prenom'],
+                'nom': victime['nom'],
+                'age': victime['age'],
+                'tel': victime['tel'],
+                'etat_victime': victime['etat_victime'],
+                'structure_sanitaire_evac': victime['structure_sanitaire_evac'],
+                'statut_guerison': victime['statut_guerison'],
+                'date_guerison': victime['date_guerison'],
+                'num_pv': victime['num_pv'],
+                'user_saisie': victime['user_saisie'],
+                'user_update': victime['user_update'],
+                'user_delete': victime['user_delete'],
+                'created_at': victime['created_at'],
+                'updated_at': victime['updated_at'],
+                'deleted_at': victime['deleted_at'],
+                'nature_blessure': victime['nature_blesseure'],
+                'conscient_inconscient': victime['conscient_inconscient'],
+                'position_victime': victime['position_victime'],
+                'filiation_prenom_pere': victime['filiation_prenom_pere'],
+                'filiation_prenom_nom_mere': victime['filiation_prenom_nom_mere'],
+                'accompagnant_prenom': victime['accompagnant_prenom'],
+                'accompagnant_nom': victime['accompagnant_nom'],
+                'accompagnant_tel': victime['accompagnant_tel'],
+              });
+            }
+          }
 
-            // Ajouter à la file d'attente de téléchargement
+          // Gérer les dégâts matériels
+          final incidentDegats = alert['accident_degats_materiels'] ?? [];
+          for (var degat in incidentDegats) {
+            final idDegat = degat['idaccident_degats_materiels'];
+
+            final existingDegat = await dbase.query(
+              'accident_degats_materiels',
+              where: 'idaccident_degats_materiels = ?',
+              whereArgs: [idDegat],
+            );
+
+            // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
+            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+
+              // Ajouter à la file d'attente de téléchargement
+              imageDownloadQueue.add({
+                'url': photoUrl,
+                'fileName': "degat_$idDegat.png",
+                'type': 'accident_degats_materiels',
+                'id': idDegat
+              });
+            }
+
+            if (existingDegat.isEmpty) {
+              // Insérer sans attendre la photo, avec l'URL originale
+              await dbase.insert('accident_degats_materiels', {
+                "idaccident_degats_materiels": idDegat,
+                "id_server": idDegat,
+                "libelle_materiels": degat['libelle_materiels'],
+                "photos": degat['photos'], // URL originale, sera mise à jour plus tard
+                "accident_id": degat['accident_id'],
+                "user_saisie": degat['user_saisie'],
+                "user_update": degat['user_update'],
+                "user_delete": degat['user_delete'],
+                "created_at": degat['created_at'],
+                "updated_at": degat['updated_at'],
+                "deleted_at": degat['deleted_at']
+              });
+            } else {
+              print("⚠️ Le dégât idaccident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+            }
+          }
+
+          // Ajouter les images de traces aux téléchargements
+          // Trace de freinage
+          if (accident['trace_freinage_photo'] != null && accident['trace_freinage_photo'].toString().isNotEmpty) {
+            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_freinage_photo']}';
+            String fileName = 'trace_freinage_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
             imageDownloadQueue.add({
               'url': photoUrl,
-              'fileName': "degat_$idDegat.png",
-              'type': 'accident_degats_materiels',
-              'id': idDegat
+              'fileName': fileName,
+              'id': idFicheAccident,
+              'type': 'fiche_accident_trace_freinage'
             });
           }
 
-          if (existingDegat.isEmpty) {
-            // Insérer sans attendre la photo, avec l'URL originale
-            await dbase.insert('accident_degats_materiels', {
-              "idaccident_degats_materiels": idDegat,
-              "id_server": idDegat,
-              "libelle_materiels": degat['libelle_materiels'],
-              "photos": degat['photos'], // URL originale, sera mise à jour plus tard
-              "accident_id": degat['accident_id'],
-              "user_saisie": degat['user_saisie'],
-              "user_update": degat['user_update'],
-              "user_delete": degat['user_delete'],
-              "created_at": degat['created_at'],
-              "updated_at": degat['updated_at'],
-              "deleted_at": degat['deleted_at']
+          // Trace de sang
+          if (accident['trace_sang_photo'] != null && accident['trace_sang_photo'].toString().isNotEmpty) {
+            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_sang_photo']}';
+            String fileName = 'trace_sang_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+            imageDownloadQueue.add({
+              'url': photoUrl,
+              'fileName': fileName,
+              'id': idFicheAccident,
+              'type': 'fiche_accident_trace_sang'
             });
-          } else {
-            print("⚠️ Le dégât idaccident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
           }
-        }
 
-        // Ajouter les images de traces aux téléchargements
-        // Trace de freinage
-        if (accident['trace_freinage_photo'] != null && accident['trace_freinage_photo'].toString().isNotEmpty) {
-          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_freinage_photo']}';
-          String fileName = 'trace_freinage_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          imageDownloadQueue.add({
-            'url': photoUrl,
-            'fileName': fileName,
-            'id': idFicheAccident,
-            'type': 'fiche_accident_trace_freinage'
-          });
-        }
-
-        // Trace de sang
-        if (accident['trace_sang_photo'] != null && accident['trace_sang_photo'].toString().isNotEmpty) {
-          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_sang_photo']}';
-          String fileName = 'trace_sang_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          imageDownloadQueue.add({
-            'url': photoUrl,
-            'fileName': fileName,
-            'id': idFicheAccident,
-            'type': 'fiche_accident_trace_sang'
-          });
-        }
-
-        // Trace de pneu
-        if (accident['trace_pneue_photo'] != null && accident['trace_pneue_photo'].toString().isNotEmpty) {
-          String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_pneue_photo']}';
-          String fileName = 'trace_pneue_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          imageDownloadQueue.add({
-            'url': photoUrl,
-            'fileName': fileName,
-            'id': idFicheAccident,
-            'type': 'fiche_accident_trace_pneue'
-          });
+          // Trace de pneu
+          if (accident['trace_pneue_photo'] != null && accident['trace_pneue_photo'].toString().isNotEmpty) {
+            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_pneue_photo']}';
+            String fileName = 'trace_pneue_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+            imageDownloadQueue.add({
+              'url': photoUrl,
+              'fileName': fileName,
+              'id': idFicheAccident,
+              'type': 'fiche_accident_trace_pneue'
+            });
+          }
         }
       }
 
-    }
+      for (var alert in alertsIncident) {
+        final idFicheAlert = alert['idfiche_alert'];
 
-    for (var alert in alertsIncident) {
-      final idFicheAlert = alert['idfiche_alert'];
+        // Gérer les données d'accident
+        if (alert['incident'] != null) {
+          final incident = alert['incident'];
+          final idFicheIncident = incident['idfiche_incident'];
 
-      // Gérer les données d'accident
-      if (alert['incident'] != null) {
-        final incident = alert['incident'];
-        final idFicheIncident = incident['idfiche_incident'];
+          final existingIncident = await dbase.query(
+            'fiche_incident',
+            where: 'idfiche_incident = ?',
+            whereArgs: [idFicheIncident],
+          );
 
-        final existingIncident = await dbase.query(
-          'fiche_incident',
-          where: 'idfiche_incident = ?',
-          whereArgs: [idFicheIncident],
-        );
+          if (existingIncident.isEmpty) {
+            FicheIncident ficheIncident = FicheIncident.fromMapSansDateConvert(incident);
+            await dbase.insert('fiche_incident',{
+              "idfiche_incident": ficheIncident.idficheIncident,
+              "id_server": ficheIncident.idficheIncident,
+              "libelle": ficheIncident.libelle,
+              "type_incident_id": ficheIncident.typeIncidentId,
+              "user_id": ficheIncident.userId,
+              "signalement_id": idFicheAlert,
+              "position_lat": ficheIncident.positionLat,
+              "position_long": ficheIncident.positionLong,
+              "voie_corridor_oui_non": ficheIncident.voieCorridorOuiNon,
+              "lieu_corridor": ficheIncident.lieuCorridor,
+              "section_id": ficheIncident.sectionId,
+              "date_heure": incident['date_heure'],
+              "interruption_service": ficheIncident.interruptionService,
+              "date_reprise": incident['date_reprise'],
+              "bus_operateur_implique": ficheIncident.busOperateurImplique,
+              "matricule_bus": ficheIncident.matriculeBus,
+              "autres_vehicule_oui_non": ficheIncident.autresVehiculeOuiNon,
+              "mortel": ficheIncident.mortel,
+              "nb_mort": ficheIncident.nbMort,
+              "blesse": ficheIncident.blesse,
+              "nb_blesse": ficheIncident.nbBlesse,
+              "type_jour": ficheIncident.typeJour,
+              "user_saisie": ficheIncident.userSaisie,
+              "user_update": ficheIncident.userUpdate,
+              "user_delete": ficheIncident.userDelete,
+              "created_at": incident['created_at'],
+              "updated_at": incident['updated_at'],
+              "deleted_at": incident['deleted_at']
 
-        if (existingIncident.isEmpty) {
-          FicheIncident ficheIncident = FicheIncident.fromMapSansDateConvert(incident);
-          await dbase.insert('fiche_incident',{
-            "idfiche_incident": ficheIncident.idficheIncident,
-            "id_server": ficheIncident.idficheIncident,
-            "libelle": ficheIncident.libelle,
-            "type_incident_id": ficheIncident.typeIncidentId,
-            "user_id": ficheIncident.userId,
-            "signalement_id": idFicheAlert,
-            "position_lat": ficheIncident.positionLat,
-            "position_long": ficheIncident.positionLong,
-            "voie_corridor_oui_non": ficheIncident.voieCorridorOuiNon,
-            "lieu_corridor": ficheIncident.lieuCorridor,
-            "section_id": ficheIncident.sectionId,
-            "date_heure": incident['date_heure'],
-            "interruption_service": ficheIncident.interruptionService,
-            "date_reprise": incident['date_reprise'],
-            "bus_operateur_implique": ficheIncident.busOperateurImplique,
-            "matricule_bus": ficheIncident.matriculeBus,
-            "autres_vehicule_oui_non": ficheIncident.autresVehiculeOuiNon,
-            "mortel": ficheIncident.mortel,
-            "nb_mort": ficheIncident.nbMort,
-            "blesse": ficheIncident.blesse,
-            "nb_blesse": ficheIncident.nbBlesse,
-            "type_jour": ficheIncident.typeJour,
-            "user_saisie": ficheIncident.userSaisie,
-            "user_update": ficheIncident.userUpdate,
-            "user_delete": ficheIncident.userDelete,
-            "created_at": incident['created_at'],
-            "updated_at": incident['updated_at'],
-            "deleted_at": incident['deleted_at']
-
-          });
-        }
-
-        // Gérer les victimes associées
-        final victimes = alert['incident_victime'] ?? [];
-        for (var victime in victimes) {
-          final idVictime = victime['idincident_victime'];
-
+            });
+          }
 
           // Gérer les victimes associées
           final victimes = alert['incident_victime'] ?? [];
@@ -435,81 +457,85 @@ class AuthService {
             }
           }
 
-        }
+          // Gérer les dégâts matériels
+          final incidentDegats = alert['incident_degats_materiels'] ?? [];
+          for (var degat in incidentDegats) {
+            final idDegat = degat['idincident_degats_materiels'];
 
-        // Gérer les dégâts matériels
-        final incidentDegats = alert['incident_degats_materiels'] ?? [];
-        for (var degat in incidentDegats) {
-          final idDegat = degat['idincident_degats_materiels'];
+            // Vérifier si l'ID existe déjà dans la base de données
+            final existingDegat = await dbase.query(
+              'incident_degats_materiels',
+              where: 'idincident_degats_materiels = ?',
+              whereArgs: [idDegat],
+            );
 
-          // Vérifier si l'ID existe déjà dans la base de données
-          final existingDegat = await dbase.query(
-            'incident_degats_materiels',
-            where: 'idincident_degats_materiels = ?',
-            whereArgs: [idDegat],
-          );
+            // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
+            if (degat['photos'] != null && degat['photos'].isNotEmpty) {
+              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
 
-          // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
-          if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-            final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+              // Ajouter à la file d'attente de téléchargement
+              imageDownloadQueue.add({
+                'url': photoUrl,
+                'fileName': "degat_$idDegat.png",
+                'type': 'incident_degats_materiels',
+                'id': idDegat
+              });
+            }
 
-            // Ajouter à la file d'attente de téléchargement
-            imageDownloadQueue.add({
-              'url': photoUrl,
-              'fileName': "degat_$idDegat.png",
-              'type': 'incident_degats_materiels',
-              'id': idDegat
-            });
-          }
-
-          if (existingDegat.isEmpty) {
-            // Insérer sans attendre la photo, avec l'URL originale
-            await dbase.insert('incident_degats_materiels', {
-              "idincident_degats_materiels": idDegat,
-              "id_server": idDegat,
-              "libelle_materiels": degat['libelle_materiels'],
-              "photos": degat['photos'], // URL originale, sera mise à jour plus tard
-              "incident_id": degat['incident_id'],
-              "user_saisie": degat['user_saisie'],
-              "user_update": degat['user_update'],
-              "user_delete": degat['user_delete'],
-              "created_at": degat['created_at'],
-              "updated_at": degat['updated_at'],
-              "deleted_at": degat['deleted_at']
-            });
-          } else {
-            print("⚠️ Le dégât idincident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+            if (existingDegat.isEmpty) {
+              // Insérer sans attendre la photo, avec l'URL originale
+              await dbase.insert('incident_degats_materiels', {
+                "idincident_degats_materiels": idDegat,
+                "id_server": idDegat,
+                "libelle_materiels": degat['libelle_materiels'],
+                "photos": degat['photos'], // URL originale, sera mise à jour plus tard
+                "incident_id": degat['incident_id'],
+                "user_saisie": degat['user_saisie'],
+                "user_update": degat['user_update'],
+                "user_delete": degat['user_delete'],
+                "created_at": degat['created_at'],
+                "updated_at": degat['updated_at'],
+                "deleted_at": degat['deleted_at']
+              });
+            } else {
+              print("⚠️ Le dégât idincident_degats_materiels = $idDegat existe déjà, mise à jour ignorée.");
+            }
           }
         }
       }
-    }
 
-    for(var resp in responsableSaisis){
-      final respSaisiId = resp['id'];
-      final existingRespSaisi = await dbase.query(
-        'responsable_saisi',
-        where: 'id = ? OR id_server = ?',
-        whereArgs: [respSaisiId, respSaisiId],
-      );
+      for(var resp in responsableSaisis){
+        final respSaisiId = resp['id'];
+        final existingRespSaisi = await dbase.query(
+          'responsable_saisi',
+          where: 'id = ? OR id_server = ?',
+          whereArgs: [respSaisiId, respSaisiId],
+        );
 
-
-      if(existingRespSaisi.isEmpty){
-        await dbase.insert('responsable_saisi', {
-          'id': resp['id'],
-          'id_server': resp['id'],
-          'code_alert': resp['code_alert'],
-          'responsable_saisie': resp['responsable_saisie'],
-          'prenom_nom': '${resp["prenom_user"]} ${resp["nom_user"]}',
-          'created_at': resp['created_at']
-        });
+        if(existingRespSaisi.isEmpty){
+          await dbase.insert('responsable_saisi', {
+            'id': resp['id'],
+            'id_server': resp['id'],
+            'code_alert': resp['code_alert'],
+            'responsable_saisie': resp['responsable_saisie'],
+            'prenom_nom': '${resp["prenom_user"]} ${resp["nom_user"]}',
+            'created_at': resp['created_at']
+          });
+        }
       }
+
+      // Démarrer le téléchargement des images en arrière-plan
+      _processImagesInBackground(imageDownloadQueue);
+
+      // La fonction se termine ici sans attendre le téléchargement des images
+      print("Données textuelles chargées. Téléchargement des images en cours en arrière-plan.");
+      
+      // À la fin du traitement des images
+      finishImageProcessing();
+    } catch (e) {
+      finishImageProcessing();  // S'assurer de terminer même en cas d'erreur
+      throw e;
     }
-
-    // Démarrer le téléchargement des images en arrière-plan
-    _processImagesInBackground(imageDownloadQueue);
-
-    // La fonction se termine ici sans attendre le téléchargement des images
-    print("Données textuelles chargées. Téléchargement des images en cours en arrière-plan.");
   }
 
   // Formater les bytes en unités lisibles (KB, MB)

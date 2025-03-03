@@ -9,10 +9,12 @@ import '../../../sqflite/database_helper.dart';
 import '../../home/home.dart';
 import '../../../widgets/success_alert.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
+import 'package:brt_mobile/views/fiche/accident/fiche_accident.dart';
 
 class CollectAccidentDegatMaterielsScreen extends StatefulWidget {
   final int accidentId;
-  const CollectAccidentDegatMaterielsScreen({Key? key, required this.accidentId}) : super(key: key);
+  final int alertId;
+  const CollectAccidentDegatMaterielsScreen({Key? key, required this.accidentId, required this.alertId}) : super(key: key);
 
   @override
   _CollectAccidentDegatMaterielsScreenState createState() =>
@@ -34,10 +36,12 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
         return BeautifulSuccessAlert(
           message: "Dégâts matériels enregistrés avec succès !",
           onPressed: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
           onClose: () {
-            Get.off(const HomeScreen(), transition: Transition.leftToRight);
+            Get.back();
+            Get.back(result: true);
           },
         );
       },

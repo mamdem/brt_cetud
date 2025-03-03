@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import '../../../models/responsable_saisi.dart';
 import 'fiche_accident_degats_materiels.dart';
 import 'fiche_accident_victime.dart';
+import 'package:brt_mobile/views/home/home.dart';
 
 class DetailsAccident extends StatefulWidget {
   final int alertId;
@@ -157,184 +158,199 @@ class _DetailsAccidentState extends State<DetailsAccident> {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Détails de l'accident",
+    return WillPopScope(
+      onWillPop: () async {
+        Get.back();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Détails de l'accident",
+          ),
+          backgroundColor: AppColors.appColor,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // Rediriger vers home.dart en utilisant Get.offAll()
+              Get.offAll(() => const HomeScreen());
+            },
+          ),
         ),
-        backgroundColor: AppColors.appColor,
-      ),
-      body: FutureBuilder<bool>(
-        future: _loadAllDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 20),
-                  Text(
-                    "Chargement des données...",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError || (snapshot.hasData && !snapshot.data!)) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  SizedBox(height: 20),
-                  Text(
-                    "Erreur lors du chargement des données",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _loadAllDataFuture = _loadAllData();
-                      });
-                    },
-                    child: Text("Réessayer"),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          // Les données sont chargées, afficher l'interface
-          return DefaultTabController(
-            length: 4,
-            initialIndex: initialTabIndex,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Accident",
-                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        body: FutureBuilder<bool>(
+          future: _loadAllDataFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text(
+                      "Chargement des données...",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _alertDetails != null &&
-                              _alertDetails!['blesse_oui_non'] == 1
-                              ? Colors.redAccent.withOpacity(0.2)
-                              : Colors.greenAccent.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
+                    ),
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError || (snapshot.hasData && !snapshot.data!)) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 60, color: Colors.red),
+                    SizedBox(height: 20),
+                    Text(
+                      "Erreur lors du chargement des données",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _loadAllDataFuture = _loadAllData();
+                        });
+                      },
+                      child: Text("Réessayer"),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            // Les données sont chargées, afficher l'interface
+            return DefaultTabController(
+              length: 4,
+              initialIndex: initialTabIndex,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Accident",
+                          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                         ),
-                        child: Text(
-                          _alertDetails != null && _alertDetails!["prenom_nom"] != null
-                              ? 'Responsable: ${_alertDetails!["prenom_nom"]}'
-                              : 'Non affecté',
-                          style: TextStyle(
-                            color: _alertDetails != null && _alertDetails!["prenom_nom"] != null
-                                ? Colors.green
-                                : Colors.red,
-                            fontWeight: FontWeight.w500,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _alertDetails != null &&
+                                _alertDetails!['blesse_oui_non'] == 1
+                                ? Colors.redAccent.withOpacity(0.2)
+                                : Colors.greenAccent.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                                ? 'Responsable: ${_alertDetails!["prenom_nom"]}'
+                                : 'Non affecté',
+                            style: TextStyle(
+                              color: _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                                  ? Colors.green
+                                  : Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                  child: TabBar(
-                    physics: const BouncingScrollPhysics(),
-                    isScrollable: true,
-                    unselectedLabelColor: AppColors.appColor,
-                    labelColor: AppColors.white,
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: AppColors.appColor.withOpacity(0.8),
+                      ],
                     ),
-                    tabs: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: const Tab(
-                          icon: Icon(Icons.warning_amber),
-                          text: "Accident",
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: const Tab(
-                          icon: Icon(Icons.directions_car),
-                          text: "Véhicule",
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: const Tab(
-                          icon: Icon(Icons.people),
-                          text: "Victime",
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: const Tab(
-                          icon: Icon(Icons.dangerous),
-                          text: "Dégats",
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Divider(thickness: 1),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      (_alertDetails != null)
-                          ? DetailsFicheAccident(
-                        alertDetails: _alertDetails!,
-                        ficheAccidentDetails: _ficheAccidentDetails,
-                        haveDraft: currentStepAcc != 1,
-                      )
-                          : const Center(
-                        child: Text("Données d'alerte non disponibles"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                    child: TabBar(
+                      physics: const BouncingScrollPhysics(),
+                      isScrollable: true,
+                      unselectedLabelColor: AppColors.appColor,
+                      labelColor: AppColors.white,
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.appColor.withOpacity(0.8),
                       ),
-                      DetailsFicheVehicule(
-                        vehiculeDetails: _ficheVehiculeDetails,
-                        accidentID: _ficheAccidentDetails != null
-                            ? _ficheAccidentDetails!["idfiche_accident"]
-                            : -1,
-                      ),
-                      DetailsFicheAccidentVictime(
-                        victimeDetails: _ficheVictimeDetails,
-                        accidentID: _ficheAccidentDetails != null
-                            ? _ficheAccidentDetails!["idfiche_accident"]
-                            : -1,
-                      ),
-                      DetailsFicheDegatsMateriels(
-                        degatDetails: _ficheDegatsDetails,
-                        accidentID: _ficheAccidentDetails != null
-                            ? _ficheAccidentDetails!["idfiche_accident"]
-                            : -1,
-                      )
-                    ],
+                      tabs: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                          child: const Tab(
+                            icon: Icon(Icons.warning_amber),
+                            text: "Accident",
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                          child: const Tab(
+                            icon: Icon(Icons.directions_car),
+                            text: "Véhicule",
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                          child: const Tab(
+                            icon: Icon(Icons.people),
+                            text: "Victime",
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
+                          child: const Tab(
+                            icon: Icon(Icons.dangerous),
+                            text: "Dégats",
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  const Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Divider(thickness: 1),
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        (_alertDetails != null)
+                            ? DetailsFicheAccident(
+                          alertDetails: _alertDetails!,
+                          ficheAccidentDetails: _ficheAccidentDetails,
+                          haveDraft: currentStepAcc != 1,
+                        )
+                            : const Center(
+                          child: Text("Données d'alerte non disponibles"),
+                        ),
+                        DetailsFicheVehicule(
+                          vehiculeDetails: _ficheVehiculeDetails,
+                          accidentID: _ficheAccidentDetails != null
+                              ? _ficheAccidentDetails!["idfiche_accident"]
+                              : -1, alertId: widget.alertId,
+                        ),
+                        DetailsFicheAccidentVictime(
+                          victimeDetails: _ficheVictimeDetails,
+                          alertId: widget.alertId,
+                          accidentID: _ficheAccidentDetails != null
+                              ? _ficheAccidentDetails!["idfiche_accident"]
+                              : -1,
+                        ),
+                        DetailsFicheDegatsMateriels(
+                          degatDetails: _ficheDegatsDetails,
+                          alertId: widget.alertId,
+                          accidentID: _ficheAccidentDetails != null
+                              ? _ficheAccidentDetails!["idfiche_accident"]
+                              : -1,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
