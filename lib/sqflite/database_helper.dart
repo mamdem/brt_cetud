@@ -268,6 +268,8 @@ CREATE TABLE fiche_accident (
       age INTEGER,
       sexe CHAR(1),
       tel VARCHAR(45),
+      position_victime INTEGER,
+      conscient_inconscient INTEGER,
       etat_victime VARCHAR(45),
       incident_id INTEGER,
       structure_evacuation VARCHAR(45),

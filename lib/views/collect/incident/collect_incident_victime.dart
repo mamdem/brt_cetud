@@ -160,6 +160,8 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
       userSaisie: global.user['idusers'],
       createdAt: DateTime.now(),
       traumatisme: _traumatismeController.text,
+      positionVictime: _selectedPosVictime,
+      conscientInconscient: _conscient
     );
 
     final db = DatabaseHelper();

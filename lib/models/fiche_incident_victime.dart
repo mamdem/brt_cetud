@@ -7,6 +7,8 @@ class FicheIncidentVictime {
   String? sexe;
   String? tel;
   String? etatVictime;
+  int? positionVictime;
+  int? conscientInconscient;
   int? incidentId;
   String? structureEvacuation;
   String? traumatisme;
@@ -21,8 +23,10 @@ class FicheIncidentVictime {
   FicheIncidentVictime({
     this.idIncidentVictime,
     this.idServer,
+    this.positionVictime,
     this.prenom,
     this.nom,
+    this.conscientInconscient,
     this.age,
     this.sexe,
     this.tel,
@@ -44,11 +48,13 @@ class FicheIncidentVictime {
       'idincident_victime': idIncidentVictime,
       'id_server': idServer,
       'prenom': prenom,
+      'position_victime': positionVictime,
       'nom': nom,
       'age': age,
       'sexe': sexe,
       'tel': tel,
       'etat_victime': etatVictime,
+      'conscient_inconscient': conscientInconscient,
       'incident_id': incidentId,
       'structure_evacuation': structureEvacuation,
       'traumatisme': traumatisme,
@@ -71,6 +77,8 @@ class FicheIncidentVictime {
       age: map['age'],
       sexe: map['sexe'],
       tel: map['tel'],
+      conscientInconscient:map['conscient_inconscient'],
+      positionVictime: map['position_victime'],
       etatVictime: map['etat_victime'],
       incidentId: map['incident_id'],
       structureEvacuation: map['structure_evacuation'],
