@@ -438,8 +438,38 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     const SizedBox(height: 16),
                     const Text('Date mise circulation :', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
-                    _buildDatePickerField(
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
                       controller: _dateMiseCirculationController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! :DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! :  DateTime(2100),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          final DateTime pickedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                          );
+
+                          String formattedDateTime = pickedDateTime.toIso8601String();
+
+                          _dateMiseCirculationController.text = formattedDateTime;
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
                     const Text('Date d\'expiration visite :', style: TextStyle(fontSize: 14, color: Colors.grey)),
@@ -459,8 +489,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         final DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
-                          firstDate: DateTime(1900),
-                          lastDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
+                          firstDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! : DateTime(1900),
+                          lastDate: DateTime(2100),
                           locale: const Locale('fr'),
                         );
 
@@ -570,7 +600,39 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
                     ),
                     SizedBox(height: 5,),
-                    _buildDatePickerField(controller: _dateImmatriculationVehiculeController, ),
+                    TextField(
+                      cursorColor: AppColors.appColor,
+                      readOnly: true,
+                      controller: _dateImmatriculationVehiculeController,
+                      decoration: InputDecoration(
+                        hintText: 'jj/mm/aaaa --:--',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      onTap: () async {
+                        final DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
+                          firstDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! : DateTime(1900),
+                          lastDate: DateTime(2100),
+                          locale: const Locale('fr'),
+                        );
+
+                        if (pickedDate != null) {
+                          final DateTime pickedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                          );
+
+                          String formattedDateTime = pickedDateTime.toIso8601String();
+
+                          _dateImmatriculationVehiculeController.text = formattedDateTime;
+                        }
+                      },
+                    ),
                     SizedBox(height: 15,),
                     Text(
                       "Numéro de carte grise :",
