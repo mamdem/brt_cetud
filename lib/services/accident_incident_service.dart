@@ -22,13 +22,13 @@ class AccIncService {
   // Méthode globale de synchronisation qui orchestre toutes les autres
   static Future<void> syncAll() async {
     try {
-      // Étape 1: Synchroniser les alertes
+      // Synchroniser les alertes
       await syncAllAlert();
 
-      // Étape 2: Synchroniser les responsables de saisie
+      // Synchroniser les responsables de saisie
       await saveRespSaisi();
 
-      // Étape 3: Synchroniser les fiches d'accidents et d'incidents
+      // Synchroniser les fiches d'accidents et d'incidents
       await syncAllFicheAccidents();
 
       SyncLogger.addLog(
