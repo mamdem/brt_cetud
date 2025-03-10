@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 import '../../../core/dialog/accident/victime_details_dialog.dart';
 import '../../../sqflite/database_helper.dart';
+import '../../../widgets/update_evacuation_dialog.dart';
 import '../../collect/incident/collect_incident_victime.dart';
 
 class DetailsFicheIncidentVictime extends StatelessWidget {
@@ -14,7 +15,11 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
   final int accidentID;
   final int alertId;
 
-  DetailsFicheIncidentVictime({super.key, required this.victimeDetails, required this.accidentID, required this.alertId});
+  DetailsFicheIncidentVictime(
+      {super.key,
+      required this.victimeDetails,
+      required this.accidentID,
+      required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -34,8 +39,8 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
     return data?['libelle'] ?? 'Non défini';
   }
 
-
-  void showVictimDetails(BuildContext context, Map<String, dynamic> victimInfo) {
+  void showVictimDetails(
+      BuildContext context, Map<String, dynamic> victimInfo) {
     showDialog(
       context: context,
       builder: (context) => VictimDetailsDialog(
@@ -45,67 +50,173 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
     );
   }
 
+  // Méthode pour ouvrir le dialogue de modification du lieu d'évacuation
+  Future<void> _showUpdateEvacuationDialog(
+      BuildContext context, Map<String, dynamic> victim) async {
+    // Récupérer les informations actuelles
+    final victimeId = victim['idincident_victime'];
+    final String nomComplet = "${victim['prenom']} ${victim['nom']}";
+    final String currentLocation =
+        victim['structure_evacuation'] ?? 'Non spécifié';
 
-  Widget _buildInfoTile({
-    required IconData icon,
-    required String title,
-    required Map<String, dynamic> victim,
-    required BuildContext context
-  }) {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return UpdateEvacuationDialog(
+          currentLocation: currentLocation,
+          victimeId: victimeId,
+          victimeName: nomComplet,
+        );
+      },
+    );
+
+    // Si un résultat est retourné, on peut gérer la mise à jour ici
+    // Mais comme demandé, vous gérerez la partie envoi plus tard
+    if (result != null) {
+      // Afficher juste un toast pour confirmer
+      Get.snackbar(
+        "Information",
+        "Lieu d'évacuation mis à jour pour $nomComplet",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[800],
+        duration: const Duration(seconds: 3),
+      );
+
+      // Vous pouvez ajouter votre logique de mise à jour ici plus tard
+    }
+  }
+
+  Widget _buildInfoTile(
+      {required IconData icon,
+      required String title,
+      required Map<String, dynamic> victim,
+      required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppColors.appColor, size: 35),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black54,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.appColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: AppColors.appColor, size: 30),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${victim['prenom']} ${victim['nom']}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Âge: ${victim['age'] ?? 'Non défini'} ans",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.local_hospital,
+                              size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              "Lieu d'évacuation: ${victim['structure_evacuation'] ?? 'Non spécifié'}",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text("${victim['prenom']} ${victim['nom']}"),
               ],
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => IncidentVictimeDetailsDialog(
-                  victimInfo: victim,
-                  getLibelleFromDb: getLibelleFromDb,
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _showUpdateEvacuationDialog(context, victim);
+                  },
+                  icon: const Icon(Icons.edit_location_alt, size: 18),
+                  label: const Text("Modifier lieu"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.appColor,
+                    side: BorderSide(color: AppColors.appColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Colors.white,
-              onPrimary: AppColors.appColor,
-              side: BorderSide(color: AppColors.appColor, width: 1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => IncidentVictimeDetailsDialog(
+                        victimInfo: victim,
+                        getLibelleFromDb: getLibelleFromDb,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.appColor,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: const Text("Voir détails"),
+                ),
+              ],
             ),
-            child: const Text(
-              "Détails",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -118,27 +229,26 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
         child: victimeDetails.isNotEmpty
             ? ListView.builder(
-          itemCount: victimeDetails.length,
-          itemBuilder: (context, index) {
-            final vehicule = victimeDetails[index];
-            return _buildInfoTile(
-                icon: Icons.personal_injury ,
-                title: "Nom complet",
-                victim: vehicule,
-                context: context
-            );
-          },
-        )
+                itemCount: victimeDetails.length,
+                itemBuilder: (context, index) {
+                  final vehicule = victimeDetails[index];
+                  return _buildInfoTile(
+                      icon: Icons.personal_injury,
+                      title: "Nom complet",
+                      victim: vehicule,
+                      context: context);
+                },
+              )
             : const Center(
-          child: Text(
-            "Aucune donnée enregistrée",
-            style: TextStyle(fontSize: 18),
-          ),
-        ),
+                child: Text(
+                  "Aucune donnée enregistrée",
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if(accidentID!=-1){
+          if (accidentID != -1) {
             final result = await Get.to(
               CollectIncidentVictimeScreen(
                 incidentId: accidentID,
@@ -150,8 +260,9 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
               // Rafraîchir la page
               Get.forceAppUpdate();
             }
-          }else{
-            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche incident");
+          } else {
+            Get.snackbar("Impossible",
+                "Vous devez d'abord renseigner la fiche incident");
           }
         },
         backgroundColor: AppColors.appColor,

@@ -140,7 +140,14 @@ class IncidentCard extends StatelessWidget {
                       size: 16.0,
                     ),
                     SizedBox(width: 4.0),
-                    Text(location),
+                    Expanded(
+                      child: Text(
+                        location,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: 15.0),

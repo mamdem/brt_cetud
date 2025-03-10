@@ -706,6 +706,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       onChanged: (value) {
                         setState(() {
                           _selectedPosVictime = value;
+                          _selectedPosVictime = value;
                         });
                       },
                     ),
@@ -740,7 +741,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                   children: [
                     Icon(Icons.document_scanner, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
-                    Text('Numéro PV et filiations',
+                    Text('Filiations',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),

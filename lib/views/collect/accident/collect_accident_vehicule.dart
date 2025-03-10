@@ -757,7 +757,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Largeur (en m)',
+                    const Text('Largeur (en cm)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -768,7 +768,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
-                          hintText: "Largeur (en m)",
+                          hintText: "Largeur (en cm)",
                           border: const OutlineInputBorder(),
                           errorText: _puissanceErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -776,8 +776,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
-                              if (width == null || width < 1 || width > 4) {
-                                _puissanceErrorText = "La largeur doit être entre 1 et 4 mètres";
+                              if (width == null || width < 100 || width > 400) {
+                                _puissanceErrorText = "La largeur doit être entre 100 et 400 cm";
                               } else {
                                 _puissanceErrorText = null; // Pas d'erreur si la largeur est valide
                               }
@@ -789,7 +789,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       ),
                     ),
                     SizedBox(height: 8,),
-                    const Text('Hauteur (en m)',
+                    const Text('Hauteur (en cm)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -800,7 +800,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                         ],
                         decoration: InputDecoration(
-                          hintText: "Hauteur (en m)",
+                          hintText: "Hauteur (en cm)",
                           border: const OutlineInputBorder(),
                           errorText: _heightErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -808,8 +808,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
-                              if (width == null || width < 1 || width > 6) {
-                                _heightErrorText = "La hauteur doit être entre 1 et 6 mètres";
+                              if (width == null || width < 100 || width > 600) {
+                                _heightErrorText = "La hauteur doit être entre 100 et 600 cm";
                               } else {
                                 _heightErrorText = null; // Pas d'erreur si la largeur est valide
                               }
@@ -832,7 +832,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
-                          hintText: "Longueur (en m)",
+                          hintText: "Longueur (en cm)",
                           border: const OutlineInputBorder(),
                           errorText: _longErrorText, // Affiche le message d'erreur si nécessaire
                         ),
@@ -840,8 +840,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
-                              if (width == null || width < 1 || width > 25) {
-                                _longErrorText = "La longueur doit être entre 1 et 25 mètres";
+                              if (width == null || width < 100 || width > 2500) {
+                                _longErrorText = "La longueur doit être entre 100 et 2500 cm";
                               } else {
                                 _longErrorText = null; // Pas d'erreur si la largeur est valide
                               }
@@ -1422,22 +1422,22 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         if (_largeurController.text.isEmpty || double.tryParse(_largeurController.text) == null) {
           showError("Veuillez entrer une largeur valide.");
           return false;
-        } else if ((double.parse(_largeurController.text)) < 1 || (double.parse(_largeurController.text)) > 4) {
-          showError("La largeur doit etre entre 1 et 4 m.");
+        } else if ((double.parse(_largeurController.text)) < 100 || (double.parse(_largeurController.text)) > 400) {
+          showError("La largeur doit etre entre 100 et 400 cm.");
           return false;
         }
         if (_hauteurController.text.isEmpty || double.tryParse(_hauteurController.text) == null) {
           showError("Veuillez entrer une hauteur valide.");
           return false;
-        }else if((double.parse(_hauteurController.text)) < 1 || (double.parse(_hauteurController.text)) > 6){
-          showError("La hauteur doit etre entre 1 et 6m.");
+        }else if((double.parse(_hauteurController.text)) < 100 || (double.parse(_hauteurController.text)) > 600){
+          showError("La hauteur doit etre entre 100 et 600 cm.");
           return false;
         }
         if (_longueurController.text.isEmpty || double.tryParse(_longueurController.text) == null) {
           showError("Veuillez entrer une longueur valide.");
           return false;
-        } else if ((double.parse(_longueurController.text)) < 1 || (double.parse(_longueurController.text)) > 25) {
-          showError("La longueur doit être entre 1 et 25m.");
+        } else if ((double.parse(_longueurController.text)) < 100 || (double.parse(_longueurController.text)) > 2500) {
+          showError("La longueur doit être entre 100 et 2500 cm.");
           return false;
         }
         if (_kilometrageController.text.isEmpty || int.tryParse(_kilometrageController.text) == null) {

@@ -119,12 +119,10 @@ class VictimDetailsDialog extends StatelessWidget {
 
                       const SizedBox(height: 16),
                       _buildSectionTitle("Conscient/Inconscient"),
-                      FutureBuilder<String>(
-                        future: getLibelleFromDb("conscient_incoscient", victimInfo['conscient_inconscient']),
-                        builder: (context, snapshot) {
-                          return _buildInfoRow("Conscient ?", snapshot.data);
-                        },
-                      ),
+                      if(victimInfo['conscient_inconscient']==null)
+                        _buildInfoRow("Conscient ?", "Non défini")
+                      else
+                        _buildInfoRow("Conscient ?", victimInfo['conscient_inconscient']==35 ? "Oui":"Non"),
 
                       const SizedBox(height: 16),
                       _buildSectionTitle("Accompagnant"),

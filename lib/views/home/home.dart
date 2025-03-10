@@ -74,39 +74,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initialize() async {
-    bool? result = await global.isConnected();
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (!(result != null && (result == true))) {
-      Get.offAll(const StartupScreen());
+    try {
+      // Vérifier la connexion
+      bool? result = await global.isConnected();
+      if (!(result != null && (result == true))) {
+        Get.offAll(const StartupScreen());
+        return;
+      }
+
+      // Vérifier la connectivité avant de charger les données
+      ConnectivityResult connectivityResult =
+          await _connectivity.checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        showInfo("Impossible de récupérer les données en mode hors ligne");
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Chargement des données utilisateur
+      await fetchUser();
+
+      // Chargement des données du serveur
+      await AuthService.fetchAndSaveData();
+
+      // Chargement des incidents et alertes de la base de données locale
+      await _fetchFirstIncidents();
+      await _fetchTotalAlerts();
+    } catch (e) {
+      print("Erreur lors de l'initialisation: $e");
+      // Afficher un message d'erreur à l'utilisateur si nécessaire
+    } finally {
+      // Toujours mettre à jour l'état, même en cas d'erreur
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-
-    Future.delayed(const Duration(seconds: 3), () async {
-      if (_connectionStatus == ConnectivityResult.wifi ||
-          _connectionStatus == ConnectivityResult.mobile) {
-        await fetchUser();
-        await AuthService.fetchAndSaveData().then((value) {
-          _fetchFirstIncidents();
-          _fetchTotalAlerts();
-        });
-      } else {
-        showInfo("Impossible de recupérer les données en mode hors ligne");
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    });
-
-    Timer.periodic(const Duration(seconds: 1500000), (timer) async {
-      if (_connectionStatus == ConnectivityResult.wifi ||
-          _connectionStatus == ConnectivityResult.mobile) {
-        print("Recupération données...");
-        //await fetchUser();
-        await AuthService.fetchAndSaveData().then((value) {
-          _fetchFirstIncidents();
-          _fetchTotalAlerts();
-        });
-      }
-    });
   }
 
   Future<Map<String, dynamic>> _fetchStructureData() async {
@@ -140,15 +150,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _initialize();
-    //DatabaseHelper().clearTables();
-    _fetchFirstIncidents();
-    _fetchTotalAlerts();
 
+    // Configuration de la connectivité
     _connectionStatus = ConnectivityResult.none;
     _connectivityStream = _connectivity.onConnectivityChanged;
-
     _initConnectivity();
+
+    // Un seul appel pour initialiser les données
+    _initialize();
   }
 
   Future<void> _initConnectivity() async {
@@ -1223,12 +1232,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
 
                         _isLoading
-                            ? const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 40),
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 60),
                                 child: Center(
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.appColor),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.appColor),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Text(
+                                        "Chargement des données...",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               )

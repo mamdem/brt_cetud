@@ -570,5 +570,4 @@ class _CollectIncidentVictimeScreenState extends State<CollectIncidentVictimeScr
       ),
     );
   }
-
 }

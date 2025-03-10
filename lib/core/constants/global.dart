@@ -56,28 +56,33 @@ String generateAlertCode() {
 }
 
 
-
-
 Future<String> getAddressFromLatLong(double latitude, double longitude, int n) async {
-  try{
+  try {
     List<geocodingLocation.Placemark> placemarks = await geocodingLocation.placemarkFromCoordinates(latitude, longitude);
-    String address = "";
+
     if (placemarks.isNotEmpty) {
       geocodingLocation.Placemark place = placemarks[0];
+      List<String> addressParts = [];
 
-      if (n==1) {
-        address = "${place.subLocality}";
-      } else {
-        address = "${place.subLocality}, ${place.locality}";
+      if (place.thoroughfare != null && place.thoroughfare!.isNotEmpty) {
+        addressParts.add(place.thoroughfare!);
       }
-      print("##########ADRESS#############$address");
-      return address;
+      if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+        addressParts.add(place.subLocality!);
+      }
+      if (place.locality != null && place.locality!.isNotEmpty) {
+        addressParts.add(place.locality!);
+      }
+      if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+        addressParts.add(place.administrativeArea!);
+      }
+
+      return addressParts.length >= 3 ? addressParts.join(", ") : "No full address available";
     }
 
     return "No address available";
-  }catch(e){
-    print("##########ADRESS#############$e");
+  } catch (e) {
+    print("########## ADDRESS ERROR ########## $e");
     return "No address";
   }
-
 }
