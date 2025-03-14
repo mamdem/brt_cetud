@@ -1,14 +1,19 @@
+import 'package:brt_mobile/models/victime_update.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 
+import '../sqflite/database_helper.dart';
+
 class UpdateEvacuationDialog extends StatefulWidget {
+  final String code;
   final String currentLocation;
   final int victimeId;
   final String victimeName;
 
   const UpdateEvacuationDialog({
     Key? key,
+    required this.code,
     required this.currentLocation,
     required this.victimeId,
     required this.victimeName,
@@ -33,6 +38,66 @@ class _UpdateEvacuationDialogState extends State<UpdateEvacuationDialog> {
   void dispose() {
     _locationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveEvacuationUpdate() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final db = DatabaseHelper();
+
+        // 1. Mettre à jour la table victime_update (fonctionnalité existante)
+        final victimeUpdate = VictimeUpdate(
+          id: widget.victimeId,
+          code: widget.code,
+          structureEvacuation: _locationController.text,
+        );
+        await db.updateVictimeUpdate(victimeUpdate);
+
+        if (widget.code == "incident_victime") {
+          await db.updateIncidentVictimeEvacuation(
+              widget.victimeId, _locationController.text);
+        } else if (widget.code == "victime") {
+          await db.updateAccidentVictimeEvacuation(
+              widget.victimeId, _locationController.text);
+        }
+
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        // Retourner le résultat
+        if (mounted) {
+          Navigator.pop(
+            context,
+            {
+              'newLocation': _locationController.text,
+              'victimeId': widget.victimeId,
+              'code': widget.code,
+              'success': true,
+            },
+          );
+        }
+      } catch (e) {
+        print("Erreur lors de la mise à jour: $e");
+        // Afficher un message d'erreur
+        Get.snackbar(
+          "Erreur",
+          "Impossible de mettre à jour le lieu d'évacuation: $e",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[800],
+        );
+      } finally {
+        // S'assurer que _isLoading est remis à false si le widget est toujours monté
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -152,7 +217,7 @@ class _UpdateEvacuationDialogState extends State<UpdateEvacuationDialog> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _isLoading ? null : () => Navigator.pop(context),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey[700],
                     padding: const EdgeInsets.symmetric(
@@ -165,20 +230,7 @@ class _UpdateEvacuationDialogState extends State<UpdateEvacuationDialog> {
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            // Retourner le nouveau lieu et l'ID de la victime
-                            Navigator.pop(
-                              context,
-                              {
-                                'newLocation': _locationController.text,
-                                'victimeId': widget.victimeId,
-                              },
-                            );
-                          }
-                        },
+                  onPressed: _isLoading ? null : _saveEvacuationUpdate,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.appColor,
                     foregroundColor: Colors.white,

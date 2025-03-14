@@ -174,6 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.only(top: 15),
                       child: TextField(
+                        obscureText: true,
                         controller: passwordController,
                         decoration: InputDecoration(
                           hintText: "Mot de passe...",

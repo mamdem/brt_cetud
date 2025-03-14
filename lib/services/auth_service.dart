@@ -62,6 +62,8 @@ class AuthService {
     }
   }
 
+
+
   static Future<void> saveData(Map<String, dynamic> jsonData) async {
     try {
       startImageProcessing();  // Indiquer le début du traitement des images

@@ -14,7 +14,11 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
   final int accidentID;
   final int alertId;
 
-  DetailsFicheAccidentVictime({super.key, required this.victimeDetails, required this.accidentID, required this.alertId});
+  DetailsFicheAccidentVictime(
+      {super.key,
+      required this.victimeDetails,
+      required this.accidentID,
+      required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -34,7 +38,8 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
     return data?['libelle'] ?? 'Non défini';
   }
 
-  void showVictimDetails(BuildContext context, Map<String, dynamic> victimInfo) {
+  void showVictimDetails(
+      BuildContext context, Map<String, dynamic> victimInfo) {
     showDialog(
       context: context,
       builder: (context) => VictimDetailsDialog(
@@ -48,15 +53,16 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
   Future<void> _showUpdateEvacuationDialog(
       BuildContext context, Map<String, dynamic> victim) async {
     // Récupérer les informations actuelles
-    final victimeId = victim['idincident_victime'];
+    final victimeId = victim['idfiche_accident_victime'];
     final String nomComplet = "${victim['prenom']} ${victim['nom']}";
     final String currentLocation =
-        victim['structure_evacuation'] ?? 'Non spécifié';
+        victim['structure_sanitaire_evac'] ?? 'Non spécifié';
 
     final result = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return UpdateEvacuationDialog(
+          code: "victime",
           currentLocation: currentLocation,
           victimeId: victimeId,
           victimeName: nomComplet,
@@ -83,9 +89,9 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
 
   Widget _buildInfoTile(
       {required IconData icon,
-        required String title,
-        required Map<String, dynamic> victim,
-        required BuildContext context}) {
+      required String title,
+      required Map<String, dynamic> victim,
+      required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Container(
@@ -144,7 +150,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              "Lieu d'évacuation: ${victim['structure_evacuation'] ?? 'Non spécifié'}",
+                              "Lieu d'évacuation: ${victim['structure_sanitaire_evac'] ?? 'Non spécifié'}",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -179,7 +185,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 ),
                 ElevatedButton(
@@ -200,7 +206,7 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   child: const Text("Voir détails"),
                 ),
@@ -212,8 +218,6 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -224,27 +228,26 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
         child: victimeDetails.isNotEmpty
             ? ListView.builder(
-          itemCount: victimeDetails.length,
-          itemBuilder: (context, index) {
-            final vehicule = victimeDetails[index];
-            return _buildInfoTile(
-                icon: Icons.personal_injury ,
-                title: "Nom complet",
-                victim: vehicule,
-                context: context
-            );
-          },
-        )
+                itemCount: victimeDetails.length,
+                itemBuilder: (context, index) {
+                  final vehicule = victimeDetails[index];
+                  return _buildInfoTile(
+                      icon: Icons.personal_injury,
+                      title: "Nom complet",
+                      victim: vehicule,
+                      context: context);
+                },
+              )
             : const Center(
-          child: Text(
-            "Aucune donnée enregistrée",
-            style: TextStyle(fontSize: 18),
-          ),
-        ),
+                child: Text(
+                  "Aucune donnée enregistrée",
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if(accidentID!=-1){
+          if (accidentID != -1) {
             final result = await Get.to(
               CollectAccidentVictimeScreen(
                 accidentId: accidentID,
@@ -256,8 +259,9 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
               // Rafraîchir la page
               Get.forceAppUpdate();
             }
-          }else{
-            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche accident");
+          } else {
+            Get.snackbar("Impossible",
+                "Vous devez d'abord renseigner la fiche accident");
           }
         },
         backgroundColor: AppColors.appColor,

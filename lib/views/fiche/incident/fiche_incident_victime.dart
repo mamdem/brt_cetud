@@ -63,6 +63,7 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return UpdateEvacuationDialog(
+          code: "incident_victime",
           currentLocation: currentLocation,
           victimeId: victimeId,
           victimeName: nomComplet,

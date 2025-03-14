@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 import 'package:brt_mobile/models/incident_degats_materiels.dart';
+import 'package:brt_mobile/models/victime_update.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import '../error/sync_logger.dart';
@@ -31,6 +32,9 @@ class AccIncService {
       // Synchroniser les fiches d'accidents et d'incidents
       await syncAllFicheAccidents();
 
+      // Synchronisation des victimes updated
+      await saveAllVictimeUpdate();
+
       SyncLogger.addLog(
         "Synchronisation complète terminée avec succès.",
         status: "success",
@@ -43,6 +47,54 @@ class AccIncService {
       // Propager l'erreur pour permettre à l'appelant de la gérer
       throw e;
     }
+  }
+
+  static saveAllVictimeUpdate() async{
+    final victimesUpdated = await DatabaseHelper().getAllVictimesUpdate();
+    for(VictimeUpdate victime in victimesUpdated){
+      await saveVictimeUpdate(victime);
+    }
+  }
+
+  static saveVictimeUpdate(VictimeUpdate victimeUpdate) async{
+    final Map<String, dynamic> params = {
+      'code': victimeUpdate.code,
+      'mp': global.user['mp'],
+      'device_info' : global.phoneIdentifier,
+      victimeUpdate.code == 'victime'? 'idfiche_accident_victime':'idincident_victime': victimeUpdate.id,
+      victimeUpdate.code == 'victime'? 'structure_sanitaire_evac':'structure_evacuation': victimeUpdate.structureEvacuation
+    };
+    final Uri uri = Uri.parse("${global.baseUrl}/saveDataAccident").replace(
+      queryParameters:
+      params.map((key, value) => MapEntry(key, value?.toString())),
+    );
+
+    final response = await http.post(uri);
+
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['succes'] == true) {
+
+        DatabaseHelper().deleteVictime(victimeUpdate.code, victimeUpdate.id);
+
+        SyncLogger.addLog(
+          "Mise à jour de update réussie pour victime ID: ${victimeUpdate.id}.",
+          status: "success",
+        );
+      } else {
+        SyncLogger.addLog(
+          "Mise à jour de update réussie pour victime ID: ${victimeUpdate.id}.",
+          status: "error",
+        );
+      }
+    } else {
+      SyncLogger.addLog(
+        "Erreur HTTP lors de la synchronisation de la victime Update ID: ${victimeUpdate.id} - Code: ${response.statusCode}, Réponse: ${response.body}.",
+        status: "error",
+      );
+    }
+
   }
 
   static Future<Map<String, int>> saveRespSaisi() async {
@@ -155,11 +207,6 @@ class AccIncService {
       if (fichesAccident.isNotEmpty) {
         for (FicheAccident fiche in fichesAccident) {
           Map<String, int> accidentStats = await saveFicheAccident(fiche);
-
-          // Fusionner les statistiques
-          for (var entry in accidentStats.entries) {
-            syncStats[entry.key] = (syncStats[entry.key] ?? 0) + entry.value;
-          }
         }
       }
 
@@ -265,7 +312,7 @@ class AccIncService {
       incidentsCount = 1; // Un nouvel incident à synchroniser
 
       final Map<String, dynamic> params = {
-        'signalement_id': ficheIncident.signalementId,
+        'signalement_id': ficheIncident.signalemenIdServer ?? ficheIncident.signalementId,
         'device_info': global.phoneIdentifier,
         'code': 'incident',
         'mp': global.user['mp'],
@@ -396,7 +443,7 @@ class AccIncService {
   }
 
   static Future<Map<String, int>> saveFicheAccident(
-      FicheAccident ficheAccident) async {
+    FicheAccident ficheAccident) async {
     Map<String, int> stats = {};
     int accidentsCount = 0;
 
@@ -477,6 +524,7 @@ class AccIncService {
           int idServer = jsonResponse['data']['idfiche_accident'];
           int signalementIdServer =
               int.parse(jsonResponse['data']['signalemen_id']);
+
           final int idficheAccident = ficheAccident.idficheAccident!;
 
           // Mise à jour de la colonne id_server dans la table accident
@@ -736,6 +784,8 @@ class AccIncService {
         final vehicule =
             await DatabaseHelper().getVehiculeByIdLocal(victime.vehicleId!);
 
+        print("SAVE / / / / 'accident_id':$accidentIdServer" );
+
         if (victime.idServer == null) {
           final Map<String, dynamic> params = {
             'code': 'victime',
@@ -747,7 +797,7 @@ class AccIncService {
             'nom': victime.nom,
             'age': victime.age,
             'tel': victime.tel,
-            'sexe': 'M',
+            'sexe': victime.sexe,
             'etat_victime': victime.etatVictime,
             'structure_sanitaire_evac': victime.structureSanitaireEvac ?? '',
             'statut_guerison': victime.statutGuerison,

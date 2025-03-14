@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 class FicheIncident {
     int? idficheIncident;
     int? idServer;
+    int? signalemenIdServer;
     String? libelle;
     int? typeIncidentId;
     int? userId;
@@ -34,6 +35,7 @@ class FicheIncident {
     FicheIncident({
       this.idficheIncident,
       this.idServer,
+      this. signalemenIdServer,
       this.libelle,
       this.typeIncidentId,
       this.userId,
@@ -66,6 +68,7 @@ class FicheIncident {
       return {
         'idfiche_incident': idficheIncident,
         'id_server': idServer,
+        'signalement_id_server': signalemenIdServer,
         'libelle': libelle,
         'type_incident_id': typeIncidentId,
         'user_id': userId,
@@ -99,6 +102,7 @@ class FicheIncident {
       return FicheIncident(
         idficheIncident: map['idfiche_incident'],
         idServer: map['id_server'],
+        signalemenIdServer: map['signalement_id_server'],
         libelle: map['libelle'],
         typeIncidentId: map['type_incident_id'],
         userId: map['user_id'],
@@ -132,6 +136,7 @@ class FicheIncident {
       return FicheIncident(
         idficheIncident: map['idfiche_incident'],
         idServer: map['id_server'],
+        signalemenIdServer: map['signalement_id_server'],
         libelle: map['libelle'],
         typeIncidentId: map['type_incident_id'],
         userId: map['user_id'],

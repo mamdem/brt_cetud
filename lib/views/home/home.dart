@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import 'package:brt_mobile/error/sync_log_page.dart';
+import 'package:brt_mobile/models/victime_update.dart';
 import 'package:brt_mobile/services/accident_incident_service.dart';
 import 'package:brt_mobile/services/auth_service.dart';
 import 'package:brt_mobile/views/auth/login_screen.dart';
@@ -35,6 +36,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _firstIncidents = [];
+  List<VictimeUpdate> victimesUpdates = [];
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   late ConnectivityResult _connectionStatus;
@@ -74,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initialize() async {
+    //DatabaseHelper().clearTables();
     setState(() {
       _isLoading = true;
     });
@@ -184,9 +187,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchFirstIncidents() async {
     final db = DatabaseHelper();
     final incidents = await db.get2firstsFiches();
+    final victimesUpdates = await db.getAllVictimesUpdate();
+    for (var victimeUpdate in victimesUpdates) {
+      print("victimeUpdate: ${victimeUpdate.toMap()}");
+    }
     setState(() {
-      _firstIncidents = [];
-      _firstIncidents = incidents;
+      this._firstIncidents = [];
+      this.victimesUpdates = [];
+      this._firstIncidents = incidents;
+      this.victimesUpdates = victimesUpdates;
     });
   }
 
@@ -1083,22 +1092,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                         if (snapshot.connectionState ==
                                             ConnectionState.waiting) {
                                           return const Center(
-                                              child: SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                                strokeWidth: 2),
-                                          ));
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
+                                            ),
+                                          );
                                         } else if (snapshot.hasError) {
                                           return const Center(
-                                              child:
-                                                  Text('Erreur de chargement'));
+                                            child: Text('Erreur de chargement'),
+                                          );
                                         } else if (!snapshot.hasData ||
                                             snapshot.data == null) {
                                           return const Center(
-                                              child: Text(
-                                                  'Aucune structure disponible'));
+                                            child: Text(
+                                                'Aucune structure disponible'),
+                                          );
                                         }
+
                                         // Données récupérées
                                         final structureData = snapshot.data!;
                                         final String structureName =
@@ -1107,47 +1119,60 @@ class _HomeScreenState extends State<HomeScreen> {
                                         final String? logoPath =
                                             structureData['logo'];
 
-                                        return Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            if (logoPath != null &&
-                                                File(logoPath).existsSync())
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    bottom: 4),
-                                                child: SizedBox(
-                                                  width: 75,
-                                                  height: 65,
-                                                  child: Center(
-                                                    child: Image.file(
-                                                      File(logoPath),
-                                                      fit: BoxFit.contain,
+                                        return SingleChildScrollView(
+                                          // Permet d'éviter le débordement vertical
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize
+                                                .min, // Empêche le Column de prendre tout l'espace vertical
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              if (logoPath != null &&
+                                                  File(logoPath).existsSync())
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 4),
+                                                  child: SizedBox(
+                                                    width: 75,
+                                                    height: 65,
+                                                    child: Center(
+                                                      child: Image.file(
+                                                        File(logoPath),
+                                                        fit: BoxFit.contain,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              )
-                                            else
-                                              const Padding(
-                                                padding:
-                                                    EdgeInsets.only(bottom: 4),
-                                                child: Icon(
+                                                )
+                                              else
+                                                const Padding(
+                                                  padding: EdgeInsets.only(
+                                                      bottom: 2),
+                                                  child: Icon(
                                                     Icons.image_not_supported,
                                                     color: Colors.grey,
-                                                    size: 60),
+                                                    size: 60,
+                                                  ),
+                                                ),
+                                              Padding(
+                                                // Ajout de padding pour éviter l'overflow
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8),
+                                                child: Text(
+                                                  structureName,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
                                               ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              structureName,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         );
                                       },
                                     ),
