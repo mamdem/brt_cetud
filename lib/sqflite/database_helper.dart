@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:brt_mobile/core/constants/global.dart' as global;
 import 'package:brt_mobile/models/fiche_accident.dart';
 import 'package:brt_mobile/models/fiche_incident.dart';
 import 'package:brt_mobile/models/victime_update.dart';
@@ -998,17 +998,20 @@ CREATE TABLE fiche_accident (
   static Future<void> savePermissions(Map<String, dynamic> permissions) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Parcourir chaque catégorie (incident, accident, etc.)
-    permissions.forEach((category, subPermissions) {
-      if (subPermissions is Map<String, dynamic>) {
-        subPermissions.forEach((key, value) async {
-          if (value is bool) {
-            await prefs.setBool("$category.$key", value);
-          }
-        });
-      }
-    });
+    //Incident
+    await prefs.setBool("add_incident", permissions["incident"]["add_incident"]);
+    await prefs.setBool("view_incident", permissions["incident"]["view_incident"]);
+    await prefs.setBool("view_victime_incident", permissions["incident"]["view_victime"]);
+    await prefs.setBool("edit_victime_incident", permissions["incident"]["edit_victime"]);
+
+    //Accident
+    await prefs.setBool("add_accident", permissions["accident"]["add_accident"]);
+    await prefs.setBool("view_accident", permissions["accident"]["view_accident"]);
+    await prefs.setBool("view_victime_accident", permissions["accident"]["view_victime"]);
+    await prefs.setBool("edit_victime_accident", permissions["accident"]["edit_victime"]);
   }
+
+
 
   Future<void> saveJsonData(Map<String, dynamic> jsonData) async {
     final db = await database;
@@ -1023,12 +1026,14 @@ CREATE TABLE fiche_accident (
     Map<String, dynamic> user = jsonData['data']['user'];
     Map<String, dynamic> permissions = jsonData['data']['user_permission'];
 
-    // Téléchargez et sauvegardez l'image de l'utilisateur localement
-    final String photoUrl = 'https://cetud.saytu.pro/storage/${user['photo']}';
-    String? localPhotoPath =
-        await _downloadAndSaveImage(photoUrl, user['prenom'] + ".png");
-    if (localPhotoPath != null) {
-      user['photo'] = localPhotoPath;
+    // Téléchargez et sauvegardez l'image de l'utilisateur localement si elle existe
+    if (user['photo'] != null) {
+      final String photoUrl = '${global.baseUrlImage}/storage/${user['photo']}';
+      String? localPhotoPath =
+          await _downloadAndSaveImage(photoUrl, user['prenom'] + ".png");
+      if (localPhotoPath != null) {
+        user['photo'] = localPhotoPath;
+      }
     }
 
     // Création dynamique de la table "user"
@@ -1064,7 +1069,7 @@ CREATE TABLE fiche_accident (
         // Insértion des données dans la table "structure"
         for (var structure in structures) {
           final String imageUrl =
-              'https://cetud.saytu.pro/storage/${structure['logo']}';
+              '${global.baseUrlImage}/storage/${structure['logo']}';
           String? localImagePath = await _downloadAndSaveImage(
               imageUrl, structure['nom_structure'] + ".png");
           if (localImagePath != null) {

@@ -4,12 +4,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geocoding/geocoding.dart' as geocodingLocation;
 import 'package:brt_mobile/core/constants/global.dart' as global;
 
+
 const String baseUrl = "https://cetud.saytu.pro/api";
+const String baseUrlImage = "https://cetud.saytu.pro";
 //const String baseUrl = "http://sicacetud.groupesoterco.com/api";
+//const String baseUrlImage = "http://sicacetud.groupesoterco.com";
 
 late String phoneIdentifier;
 
 late String token;
+
+late bool viewIncident, addIncident, editVictimeIncident, viewVictimeIncident,
+    viewAccident, addAccident, editVictimeAccident, viewVictimeAccident;
 
 Map<String, dynamic> user={};
 
@@ -21,6 +27,18 @@ Future<void> saveIsConnected(bool value) async {
 Future<void> savePassword(String pwd) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString("pwd", pwd);
+}
+
+Future<void> getPermissions() async{
+  final prefs = await SharedPreferences.getInstance();
+  global.viewIncident = await prefs.getBool("view_incident")??false;
+  global.viewAccident = await prefs.getBool("view_accident")??false;
+  global.addIncident = await prefs.getBool("add_incident")??false;
+  global.addAccident = await prefs.getBool("add_accident")??false;
+  global.editVictimeIncident = await prefs.getBool("edit_victime_incident")??false;
+  global.editVictimeAccident = await prefs.getBool("edit_victime_accident")??false;
+  global.viewVictimeIncident = await prefs.getBool("view_victime_incident")??false;
+  global.viewVictimeAccident = await prefs.getBool("view_victime_accident")??false;
 }
 
 Future<void> saveIsFirstConnection(bool value) async {

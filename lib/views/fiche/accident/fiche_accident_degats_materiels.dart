@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:brt_mobile/core/constants/global.dart' as global;
 import 'dart:io';
 import 'package:brt_mobile/core/utils/app_colors.dart';
 import '../../../sqflite/database_helper.dart';
@@ -116,7 +117,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
                           width: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
                             return Image.network(
-                              'https://cetud.saytu.pro/storage/$imagePath',
+                              '${global.baseUrlImage}/storage/$imagePath',
                               fit: BoxFit.cover,
                               height: 300,
                               width: double.infinity,
@@ -131,7 +132,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
                       );
                     } else {
                       return Image.network(
-                        'https://cetud.saytu.pro/storage/$imagePath',
+                        '${global.baseUrlImage}/storage/$imagePath',
                         fit: BoxFit.cover,
                         height: 300,
                         width: double.infinity,
@@ -185,7 +186,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Image.network(
-                              'https://cetud.saytu.pro/storage/${degat['photos']}',
+                              '${global.baseUrlImage}/storage/${degat['photos']}',
                               height: 50,
                               width: 50,
                               fit: BoxFit.cover,
@@ -202,7 +203,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
                         );
                       } else {
                         return Image.network(
-                          'https://cetud.saytu.pro/storage/${degat['photos']}',
+                          '${global.baseUrlImage}/storage/${degat['photos']}',
                           height: 50,
                           width: 50,
                           fit: BoxFit.cover,
@@ -323,7 +324,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
                 ),
               ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: global.addAccident ? FloatingActionButton(
         onPressed: () async {
           if(widget.accidentID != -1){
             final result = await Get.to(
@@ -343,7 +344,7 @@ class _DetailsFicheDegatsMaterielsState extends State<DetailsFicheDegatsMateriel
         },
         backgroundColor: AppColors.appColor,
         child: const Icon(Icons.add, color: Colors.white),
-      ),
+      ):null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

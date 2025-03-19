@@ -6,6 +6,7 @@ import '../../../sqflite/database_helper.dart';
 import '../../collect/accident/collect_accident_degats_materiels_screen.dart';
 import '../../collect/incident/collect_incident_degats_materiels_screen.dart';
 import '../../../services/auth_service.dart';
+import 'package:brt_mobile/core/constants/global.dart' as global;
 
 class DetailsFicheIncidentDegatsMateriels extends StatefulWidget {
   final List<Map<String, dynamic>> degatDetails;
@@ -116,7 +117,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                           width: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
                             return Image.network(
-                              'https://cetud.saytu.pro/storage/$imagePath',
+                              '${global.baseUrlImage}/storage/$imagePath',
                               fit: BoxFit.cover,
                               height: 300,
                               width: double.infinity,
@@ -131,7 +132,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                       );
                     } else {
                       return Image.network(
-                        'https://cetud.saytu.pro/storage/$imagePath',
+                        '${global.baseUrlImage}/storage/$imagePath',
                         fit: BoxFit.cover,
                         height: 300,
                         width: double.infinity,
@@ -185,7 +186,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Image.network(
-                              'https://cetud.saytu.pro/storage/${degat['photos']}',
+                              '${global.baseUrlImage}/storage/${degat['photos']}',
                               height: 50,
                               width: 50,
                               fit: BoxFit.cover,
@@ -202,7 +203,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                         );
                       } else {
                         return Image.network(
-                          'https://cetud.saytu.pro/storage/${degat['photos']}',
+                          '${global.baseUrlImage}/storage/${degat['photos']}',
                           height: 50,
                           width: 50,
                           fit: BoxFit.cover,
@@ -323,7 +324,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                 ),
               ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: global.addIncident ? FloatingActionButton(
         onPressed: () async {
           if(widget.accidentID != -1){
             final result = await Get.to(
@@ -343,7 +344,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
         },
         backgroundColor: AppColors.appColor,
         child: const Icon(Icons.add, color: Colors.white),
-      ),
+      ):null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

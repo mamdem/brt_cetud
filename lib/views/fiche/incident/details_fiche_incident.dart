@@ -57,7 +57,6 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
     Get.snackbar(
       "Validation",
       message,
-      //backgroundColor: Colors.grey.shade100,
       colorText: Colors.red,
       snackPosition: SnackPosition.TOP,
     );
@@ -315,7 +314,7 @@ class _DetailsFicheIncidentState extends State<DetailsFicheIncident> {
             _buildConditionsSection(),
             const SizedBox(height: 20),
           ],
-          if(bRespSaisi)...[
+          if(bRespSaisi && global.addIncident)...[
             ElevatedButton.icon(
               onPressed: () async {
                 final Map<String, dynamic> dataFichResp = {

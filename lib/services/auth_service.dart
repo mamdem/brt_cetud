@@ -294,7 +294,7 @@ class AuthService {
 
             // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
             if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+              final String photoUrl = '${global.baseUrlImage}/storage/${degat['photos']}';
 
               // Ajouter à la file d'attente de téléchargement
               imageDownloadQueue.add({
@@ -328,7 +328,7 @@ class AuthService {
           // Ajouter les images de traces aux téléchargements
           // Trace de freinage
           if (accident['trace_freinage_photo'] != null && accident['trace_freinage_photo'].toString().isNotEmpty) {
-            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_freinage_photo']}';
+            String photoUrl = '${global.baseUrlImage}/storage/${accident['trace_freinage_photo']}';
             String fileName = 'trace_freinage_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
             imageDownloadQueue.add({
               'url': photoUrl,
@@ -340,7 +340,7 @@ class AuthService {
 
           // Trace de sang
           if (accident['trace_sang_photo'] != null && accident['trace_sang_photo'].toString().isNotEmpty) {
-            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_sang_photo']}';
+            String photoUrl = '${global.baseUrlImage}/storage/${accident['trace_sang_photo']}';
             String fileName = 'trace_sang_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
             imageDownloadQueue.add({
               'url': photoUrl,
@@ -352,7 +352,7 @@ class AuthService {
 
           // Trace de pneu
           if (accident['trace_pneue_photo'] != null && accident['trace_pneue_photo'].toString().isNotEmpty) {
-            String photoUrl = 'https://cetud.saytu.pro/storage/${accident['trace_pneue_photo']}';
+            String photoUrl = '${global.baseUrlImage}/storage/${accident['trace_pneue_photo']}';
             String fileName = 'trace_pneue_${idFicheAccident}_${DateTime.now().millisecondsSinceEpoch}.jpg';
             imageDownloadQueue.add({
               'url': photoUrl,
@@ -473,7 +473,7 @@ class AuthService {
 
             // Au lieu de déclencher le téléchargement immédiatement, nous enregistrons les informations
             if (degat['photos'] != null && degat['photos'].isNotEmpty) {
-              final String photoUrl = 'https://cetud.saytu.pro/storage/${degat['photos']}';
+              final String photoUrl = '${global.baseUrlImage}/storage/${degat['photos']}';
 
               // Ajouter à la file d'attente de téléchargement
               imageDownloadQueue.add({

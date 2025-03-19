@@ -328,12 +328,41 @@ class _DetailsAccidentState extends State<DetailsAccident> {
                               ? _ficheAccidentDetails!["idfiche_accident"]
                               : -1, alertId: widget.alertId,
                         ),
-                        DetailsFicheAccidentVictime(
+                        global.viewVictimeAccident ? DetailsFicheAccidentVictime(
                           victimeDetails: _ficheVictimeDetails,
                           alertId: widget.alertId,
                           accidentID: _ficheAccidentDetails != null
                               ? _ficheAccidentDetails!["idfiche_accident"]
                               : -1,
+                        ):Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.no_accounts,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "Accès non autorisé",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Vous n'avez pas la permission de\nvoir les victimes",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[500],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                         DetailsFicheDegatsMateriels(
                           degatDetails: _ficheDegatsDetails,

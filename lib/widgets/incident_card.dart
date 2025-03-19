@@ -1,7 +1,7 @@
 import 'package:brt_mobile/views/fiche/incident/fiche_incident.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:brt_mobile/core/constants/global.dart' as global;
 import '../views/fiche/accident/fiche_accident.dart';
 
 class IncidentCard extends StatelessWidget {
@@ -27,10 +27,40 @@ class IncidentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if(isIncident){
-          Get.to(DetailsIncident(alertId: idficheAlert,), transition: Transition.rightToLeft);
-        }else{
-          Get.to(DetailsAccident(alertId: idficheAlert,), transition: Transition.rightToLeft);
+        if (isIncident) {
+          if (global.viewIncident) {
+            Get.to(
+                DetailsIncident(
+                  alertId: idficheAlert,
+                ),
+                transition: Transition.rightToLeft);
+          } else {
+            Get.snackbar(
+              "Accès refusé",
+              "Vous n'avez pas la permission de voir les fiches d'incident",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red[100],
+              colorText: Colors.red[900],
+              duration: const Duration(seconds: 3),
+            );
+          }
+        } else {
+          if (global.viewAccident) {
+            Get.to(
+                DetailsAccident(
+                  alertId: idficheAlert,
+                ),
+                transition: Transition.rightToLeft);
+          } else {
+            Get.snackbar(
+              "Accès refusé",
+              "Vous n'avez pas la permission de voir les fiches d'accident",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red[100],
+              colorText: Colors.red[900],
+              duration: const Duration(seconds: 3),
+            );
+          }
         }
       },
       child: Card(
@@ -64,11 +94,13 @@ class IncidentCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if(!isSynced)
+                    if (!isSynced)
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 2, vertical: 4),
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.red.shade50,
                             borderRadius: BorderRadius.only(
@@ -97,11 +129,13 @@ class IncidentCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if(isSynced)
+                    if (isSynced)
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 2, vertical: 4),
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.green.shade50,
                             borderRadius: BorderRadius.only(
@@ -154,18 +188,19 @@ class IncidentCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                        (userAffected != null) ? Text(
-                          'Resp: $userAffected',
+                    (userAffected != null)
+                        ? Text(
+                            'Resp: $userAffected',
                             style: TextStyle(
                               color: Colors.green,
                             ),
                           )
                         : const Text(
-                      'Non affecté',
-                      style: TextStyle(
-                        color: Colors.orange,
-                      ),
-                    ),
+                            'Non affecté',
+                            style: TextStyle(
+                              color: Colors.orange,
+                            ),
+                          ),
                     Row(
                       children: [
                         Text(

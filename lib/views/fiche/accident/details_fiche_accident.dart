@@ -327,7 +327,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                                     print('Erreur de chargement de l\'image locale: $error');
                                     // Essayer de charger depuis l'URL distante si l'image locale échoue
                                     return Image.network(
-                                      'https://cetud.saytu.pro/storage/${degat['photos']}',
+                                      '${global.baseUrlImage}/storage/${degat['photos']}',
                                       errorBuilder: (context, error, stackTrace) {
                                         return const Text('Erreur de chargement de l\'image');
                                       },
@@ -343,7 +343,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                               } else {
                                 // L'image n'existe pas localement, essayer l'URL distante
                                 return Image.network(
-                                  'https://cetud.saytu.pro/storage/${degat['photos']}',
+                                  '${global.baseUrlImage}/storage/${degat['photos']}',
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Text('Erreur de chargement de l\'image');
                                   },
@@ -477,7 +477,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
             _buildDegatsMaterielsSection(),
             const SizedBox(height: 20),
           ],
-          if(bRespSaisi)...[
+          if(bRespSaisi && global.addAccident)...[
             ElevatedButton.icon(
               onPressed: () async {
                 final Map<String, dynamic> dataFichResp = {

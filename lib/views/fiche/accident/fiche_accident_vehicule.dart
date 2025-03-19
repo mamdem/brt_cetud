@@ -250,7 +250,7 @@ class DetailsFicheVehicule extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: global.addAccident ? FloatingActionButton(
         onPressed: () {
           if(accidentID!=-1){
             Get.to(
@@ -267,7 +267,7 @@ class DetailsFicheVehicule extends StatelessWidget {
         },
         backgroundColor: AppColors.appColor,
         child: const Icon(Icons.add, color: Colors.white, size: 27),
-      ),
+      ):null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

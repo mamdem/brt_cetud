@@ -109,11 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
       // Chargement des incidents et alertes de la base de données locale
       await _fetchFirstIncidents();
       await _fetchTotalAlerts();
+
+      // Chargement des permissions
+      await global.getPermissions();
     } catch (e) {
       print("Erreur lors de l'initialisation: $e");
-      // Afficher un message d'erreur à l'utilisateur si nécessaire
     } finally {
-      // Toujours mettre à jour l'état, même en cas d'erreur
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         global.user = user;
         nomComplet = "${user['prenom_user']} ${user['nom_user']}";
-        imagePath = user['photo'];
+        imagePath = user['photo']??"";
       });
     } else {
       print('Aucun utilisateur trouvé avec cet email.');
@@ -791,7 +792,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: 20),
                     Center(
                       child: Text(
-                        "Version : V01.00.04",
+                        "Version : V01.00.05",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w400,
