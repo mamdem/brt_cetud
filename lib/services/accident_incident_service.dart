@@ -781,8 +781,7 @@ class AccIncService {
       for (Map<String, dynamic> victimeData in victimes) {
         FicheAccidentVictime victime =
             FicheAccidentVictime.fromMap(victimeData);
-        final vehicule =
-            await DatabaseHelper().getVehiculeByIdLocal(victime.vehicleId!);
+
 
         print("SAVE / / / / 'accident_id':$accidentIdServer" );
 
@@ -792,7 +791,7 @@ class AccIncService {
             'mp': global.user['mp'],
             'device_info': global.phoneIdentifier,
             'accident_id': accidentIdServer,
-            'vehicule_id': victime.vehicleId,
+            'vehicule_id': victime.vehicleId??null,
             'prenom': victime.prenom,
             'nom': victime.nom,
             'age': victime.age,

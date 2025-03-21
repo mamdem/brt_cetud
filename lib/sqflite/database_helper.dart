@@ -999,19 +999,25 @@ CREATE TABLE fiche_accident (
     final prefs = await SharedPreferences.getInstance();
 
     //Incident
-    await prefs.setBool("add_incident", permissions["incident"]["add_incident"]);
-    await prefs.setBool("view_incident", permissions["incident"]["view_incident"]);
-    await prefs.setBool("view_victime_incident", permissions["incident"]["view_victime"]);
-    await prefs.setBool("edit_victime_incident", permissions["incident"]["edit_victime"]);
+    await prefs.setBool(
+        "add_incident", permissions["incident"]["add_incident"]);
+    await prefs.setBool(
+        "view_incident", permissions["incident"]["view_incident"]);
+    await prefs.setBool(
+        "view_victime_incident", permissions["incident"]["view_victime"]);
+    await prefs.setBool(
+        "edit_victime_incident", permissions["incident"]["edit_victime"]);
 
     //Accident
-    await prefs.setBool("add_accident", permissions["accident"]["add_accident"]);
-    await prefs.setBool("view_accident", permissions["accident"]["view_accident"]);
-    await prefs.setBool("view_victime_accident", permissions["accident"]["view_victime"]);
-    await prefs.setBool("edit_victime_accident", permissions["accident"]["edit_victime"]);
+    await prefs.setBool(
+        "add_accident", permissions["accident"]["add_accident"]);
+    await prefs.setBool(
+        "view_accident", permissions["accident"]["view_accident"]);
+    await prefs.setBool(
+        "view_victime_accident", permissions["accident"]["view_victime"]);
+    await prefs.setBool(
+        "edit_victime_accident", permissions["accident"]["edit_victime"]);
   }
-
-
 
   Future<void> saveJsonData(Map<String, dynamic> jsonData) async {
     final db = await database;
@@ -1664,7 +1670,7 @@ CREATE TABLE fiche_accident (
 
   // Mettre à jour le lieu d'évacuation d'une victime d'incident
   Future<int> updateIncidentVictimeEvacuation(
-    int victimeId, String newLocation) async {
+      int victimeId, String newLocation) async {
     final db = await database;
     return await db.update(
       'fiche_incident_victime',
@@ -1687,5 +1693,17 @@ CREATE TABLE fiche_accident (
       where: 'idfiche_accident_victime = ?',
       whereArgs: [victimeId],
     );
+  }
+
+  Future<String?> getUpdatedEvacuationLocation(int victimeId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'victime_update',
+      where: 'id = ?',
+      whereArgs: [victimeId],
+      columns: ['structure_evacuation'],
+    );
+
+    return result.isNotEmpty ? result.first['structure_evacuation'] : null;
   }
 }

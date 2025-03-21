@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:brt_mobile/core/constants/global.dart' as global;
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:location/location.dart' as deviceLocation;
-
 import '../../../core/utils/google_fonts.dart';
 import '../../../models/fiche_accident_vehicule.dart';
 import '../../../sqflite/database_helper.dart';
@@ -16,23 +15,26 @@ import '../../fiche/accident/fiche_accident.dart';
 class CollectAccidentVehiculeScreen extends StatefulWidget {
   final int accidentId;
   final int alertId;
-  const CollectAccidentVehiculeScreen({Key? key, required this.accidentId, required this.alertId}) : super(key: key);
+  const CollectAccidentVehiculeScreen(
+      {Key? key, required this.accidentId, required this.alertId})
+      : super(key: key);
 
   @override
-  _CollectAccidentVehiculeScreenState createState() => _CollectAccidentVehiculeScreenState();
+  _CollectAccidentVehiculeScreenState createState() =>
+      _CollectAccidentVehiculeScreenState();
 }
 
-class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeScreen> {
+class _CollectAccidentVehiculeScreenState
+    extends State<CollectAccidentVehiculeScreen> {
   int currentStep = 1;
   final int nbStep = 8;
 
-  bool isValidNumber=false;
+  bool isValidNumber = false;
   String? _ageErrorText;
   String? _widthErrorText;
   String? _heightErrorText;
   String? _longErrorText;
   String? _puissanceErrorText;
-
 
   List<Map<String, dynamic>> catVehicules = [];
   List<Map<String, dynamic>> foncNonfonc = [];
@@ -59,33 +61,51 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   final _largeurController = TextEditingController();
   final _longueurController = TextEditingController();
   final _hauteurController = TextEditingController();
-  String ? _selectedSexe;
-
+  String? _selectedSexe;
 
   final TextEditingController _numeroPermisController = TextEditingController();
-  final TextEditingController _dateDelivrancePermisController = TextEditingController();
+  final TextEditingController _dateDelivrancePermisController =
+      TextEditingController();
   int? _selectedCategoriePermisId;
-  final TextEditingController _numeroAssuranceController = TextEditingController();
+  final TextEditingController _numeroAssuranceController =
+      TextEditingController();
   final TextEditingController _assureurController = TextEditingController();
-  final TextEditingController _dateExpirationAssuranceController = TextEditingController();
+  final TextEditingController _dateExpirationAssuranceController =
+      TextEditingController();
   final TextEditingController _etatGeneraleController = TextEditingController();
-  final TextEditingController _dateMiseCirculationController = TextEditingController();
-  final TextEditingController _dateDerniereVisiteController = TextEditingController();
-  final TextEditingController _dateExpirationVisiteController = TextEditingController();
-  final TextEditingController _professionConducteurController = TextEditingController();
-  final TextEditingController _filiationPrenomNomMereController = TextEditingController();
-  final TextEditingController _filiationPrenomPereController = TextEditingController();
-  final TextEditingController _domicileConducteurController = TextEditingController();
-  final TextEditingController _dateImmatriculationVehiculeController = TextEditingController();
-  final TextEditingController _prenomNomProprietaireController = TextEditingController();
-  final TextEditingController _autresComportementController = TextEditingController();
-  final TextEditingController _etatParebriseController = TextEditingController();
-  final TextEditingController _etatPneueAvantController = TextEditingController();
-  final TextEditingController _etatPneueArriereController = TextEditingController();
-  final TextEditingController _puissanceVehiculeController = TextEditingController();
-  final TextEditingController _positionLevierVitessController = TextEditingController();
+  final TextEditingController _dateMiseCirculationController =
+      TextEditingController();
+  final TextEditingController _dateDerniereVisiteController =
+      TextEditingController();
+  final TextEditingController _dateExpirationVisiteController =
+      TextEditingController();
+  final TextEditingController _professionConducteurController =
+      TextEditingController();
+  final TextEditingController _filiationPrenomNomMereController =
+      TextEditingController();
+  final TextEditingController _filiationPrenomPereController =
+      TextEditingController();
+  final TextEditingController _domicileConducteurController =
+      TextEditingController();
+  final TextEditingController _dateImmatriculationVehiculeController =
+      TextEditingController();
+  final TextEditingController _prenomNomProprietaireController =
+      TextEditingController();
+  final TextEditingController _autresComportementController =
+      TextEditingController();
+  final TextEditingController _etatParebriseController =
+      TextEditingController();
+  final TextEditingController _etatPneueAvantController =
+      TextEditingController();
+  final TextEditingController _etatPneueArriereController =
+      TextEditingController();
+  final TextEditingController _puissanceVehiculeController =
+      TextEditingController();
+  final TextEditingController _positionLevierVitessController =
+      TextEditingController();
   final TextEditingController _kilometrageController = TextEditingController();
-  final TextEditingController _positionVolumeController = TextEditingController();
+  final TextEditingController _positionVolumeController =
+      TextEditingController();
 
   // Dropdown variables
   int? _selectedPresencePosteRadio;
@@ -104,7 +124,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     final dataCatVehicule = await db.fetchTableDatas("categorie_vehicule");
     final dataFoncNonFOnc = await db.fetchTableDatas("etat_equipment");
     final datasexes = await db.fetchTableDatas("GENRE");
-    final dataComportements = await db.fetchTableDatas("comportement_conducteur");
+    final dataComportements =
+        await db.fetchTableDatas("comportement_conducteur");
     final dataOuinons = await db.fetchTableDatas("OUI_NON");
 
     setState(() {
@@ -124,14 +145,14 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         return BeautifulSuccessAlert(
           message: "Véhicule enregistré avec succès !",
           onPressed: () {
-            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 1),
-                transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsAccident(alertId: widget.alertId, initialTab: 1),
+                transition: Transition.leftToRight);
           },
           onClose: () {
-            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 1),
-                transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsAccident(alertId: widget.alertId, initialTab: 1),
+                transition: Transition.leftToRight);
           },
         );
       },
@@ -190,7 +211,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.person, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Conducteur',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -201,50 +223,73 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Text(
                       "Prénom :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    _buildTextField(title: 'Prénom', controller: _prenomController),
+                    _buildTextField(
+                        title: 'Prénom', controller: _prenomController),
                     Text(
                       "Nom :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(title: 'Nom', controller: _nomController),
                     Text(
                       "Age :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        labelText: "Âge",
-                        border: const OutlineInputBorder(),
-                        errorText: _ageErrorText, // Affiche le message d'erreur si nécessaire
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          if (value.isNotEmpty) {
-                            final age = int.tryParse(value);
-                            if (age == null || age < 1 || age > 120) {
-                              _ageErrorText = "L'âge doit être entre 1 et 120";
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        decoration: InputDecoration(
+                          labelText: "Âge",
+                          border: const OutlineInputBorder(),
+                          errorText:
+                              _ageErrorText, // Affiche le message d'erreur si nécessaire
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isNotEmpty) {
+                              final age = int.tryParse(value);
+                              if (age == null || age < 1 || age > 120) {
+                                _ageErrorText =
+                                    "L'âge doit être entre 1 et 120";
+                              } else {
+                                _ageErrorText =
+                                    null; // Pas d'erreur si l'âge est valide
+                              }
                             } else {
-                              _ageErrorText = null; // Pas d'erreur si l'âge est valide
+                              _ageErrorText =
+                                  "L'âge est obligatoire"; // Gestion si vide
                             }
-                          } else {
-                            _ageErrorText = "L'âge est obligatoire"; // Gestion si vide
-                          }
-                        });
-                      },
+                          });
+                        },
+                      ),
                     ),
+                    const SizedBox(
+                      height: 8,
                     ),
-                    const SizedBox(height: 8,),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     Text(
                       "Sexe :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     DropdownButtonFormField<String>(
                       value: _selectedSexe,
@@ -265,13 +310,22 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         });
                       },
                     ),
-                    const SizedBox(height: 12,),
-                    SizedBox(height: 8,),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    SizedBox(
+                      height: 8,
+                    ),
                     Text(
                       "Téléphone :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     IntlPhoneField(
                       controller: _telController,
                       style: safeGoogleFont(
@@ -280,26 +334,31 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       ),
                       dropdownTextStyle: safeGoogleFont(
                         'Poppins',
-                        color: AppColors.black,  // Change la couleur des textes des pays
+                        color: AppColors
+                            .black, // Change la couleur des textes des pays
                         fontSize: 16,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Téléphone',
-                        prefixIcon: const Icon(Icons.phone_android, color: AppColors.appColor),
+                        prefixIcon: const Icon(Icons.phone_android,
+                            color: AppColors.appColor),
                         hintStyle: TextStyle(color: Colors.blue.shade300),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+                          borderSide: BorderSide(
+                              color: Colors.blue.shade900, width: 2.0),
                         ),
                       ),
                       initialCountryCode: 'SN',
@@ -308,7 +367,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         isValidNumber = phone.isValidNumber();
                       },
                     ),
-
                   ],
                 ),
               ),
@@ -341,7 +399,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.person, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Conducteur',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -352,29 +411,40 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Text(
                       "Domicile du conducteur :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(
-                        title: 'Domicile du conducteur', controller: _domicileConducteurController),
-
+                        title: 'Domicile du conducteur',
+                        controller: _domicileConducteurController),
                     Text(
                       "Profession du conducteur :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(
-                        title: 'Profession du conducteur', controller: _professionConducteurController),
-
+                        title: 'Profession du conducteur',
+                        controller: _professionConducteurController),
                     Text(
                       "Filiation (Prénom et nom du père) :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom du père)',
                         controller: _filiationPrenomPereController),
-
                     Text(
                       "Filiation (Prénom et nom de la mère) :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom de la mère)',
@@ -408,10 +478,12 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.card_membership, color: Colors.deepOrange, size: 24),
+                    Icon(Icons.card_membership,
+                        color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Informations sur le permis',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -422,21 +494,33 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Text(
                       "Numéro du permis :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    _buildTextField(title: 'Numéro du permis :', controller: _numeroPermisController),
+                    _buildTextField(
+                        title: 'Numéro du permis :',
+                        controller: _numeroPermisController),
                     const Text(
                       "Date délivrance permis:",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    _buildDatePickerField(controller: _dateDelivrancePermisController, ),
+                    _buildDatePickerField(
+                      controller: _dateDelivrancePermisController,
+                    ),
                     const SizedBox(height: 16),
-                    const Text('Date dernière visite :', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date dernière visite :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     _buildDatePickerField(
                       controller: _dateDerniereVisiteController,
                     ),
                     const SizedBox(height: 16),
-                    const Text('Date mise circulation :', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date mise circulation :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -452,9 +536,17 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onTap: () async {
                         final DateTime? pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! :DateTime.now(),
+                          initialDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime.now(),
                           firstDate: DateTime(1900),
-                          lastDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! :  DateTime(2100),
+                          lastDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime(2100),
                           locale: const Locale('fr'),
                         );
 
@@ -465,14 +557,17 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                             pickedDate.day,
                           );
 
-                          String formattedDateTime = pickedDateTime.toIso8601String();
+                          String formattedDateTime =
+                              pickedDateTime.toIso8601String();
 
-                          _dateMiseCirculationController.text = formattedDateTime;
+                          _dateMiseCirculationController.text =
+                              formattedDateTime;
                         }
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Text('Date d\'expiration visite :', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Date d\'expiration visite :',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -488,8 +583,16 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onTap: () async {
                         final DateTime? pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
-                          firstDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! : DateTime(1900),
+                          initialDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime.now(),
+                          firstDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime(1900),
                           lastDate: DateTime(2100),
                           locale: const Locale('fr'),
                         );
@@ -501,20 +604,28 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                             pickedDate.day,
                           );
 
-                          String formattedDateTime = pickedDateTime.toIso8601String();
+                          String formattedDateTime =
+                              pickedDateTime.toIso8601String();
 
-                          _dateExpirationVisiteController.text = formattedDateTime;
+                          _dateExpirationVisiteController.text =
+                              formattedDateTime;
                         }
                       },
                     ),
                     const SizedBox(height: 16),
-
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     const Text(
                       "Catégorie permis:",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     DropdownButtonFormField<String>(
                       value: _selectedCategorie,
                       decoration: InputDecoration(
@@ -528,7 +639,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         ),
                       ),
                       hint: const Text('Sélectionnez la catégorie'),
-                      items: catVehicules.map<DropdownMenuItem<String>>((Map<String, dynamic> item) {
+                      items: catVehicules.map<DropdownMenuItem<String>>(
+                          (Map<String, dynamic> item) {
                         return DropdownMenuItem<String>(
                           value: item['libelle'], // Libellé affiché
                           child: Text(item['libelle']),
@@ -537,8 +649,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedCategorie = newValue;
-                          _selectedCategorieId = catVehicules
-                              .firstWhere((item) => item['libelle'] == newValue)['id'];
+                          _selectedCategorieId = catVehicules.firstWhere(
+                              (item) => item['libelle'] == newValue)['id'];
                         });
                       },
                     ),
@@ -574,7 +686,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.car_repair, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Informations sur le véhicule',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -585,21 +698,33 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     Text(
                       "Prénom et nom du propriétaire :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
                     _buildTextField(
                         title: 'Prénom et nom du propriétaire',
                         controller: _prenomNomProprietaireController),
                     Text(
                       "Matricule :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    _buildTextField(title: 'Matricule', controller: _matriculeController),
+                    _buildTextField(
+                        title: 'Matricule', controller: _matriculeController),
                     const Text(
                       "Date d'immatriculation :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     TextField(
                       cursorColor: AppColors.appColor,
                       readOnly: true,
@@ -614,9 +739,17 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onTap: () async {
                         final DateTime? pickedDate = await showDatePicker(
                           context: context,
-                          initialDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)!:DateTime.now(),
-                          firstDate: _dateDerniereVisiteController.text.isNotEmpty?DateTime.tryParse(_dateDerniereVisiteController.text)! : DateTime(1900),
-                          lastDate: DateTime(2100),
+                          initialDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate:
+                              _dateDerniereVisiteController.text.isNotEmpty
+                                  ? DateTime.tryParse(
+                                      _dateDerniereVisiteController.text)!
+                                  : DateTime(2100),
                           locale: const Locale('fr'),
                         );
 
@@ -627,23 +760,37 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                             pickedDate.day,
                           );
 
-                          String formattedDateTime = pickedDateTime.toIso8601String();
+                          String formattedDateTime =
+                              pickedDateTime.toIso8601String();
 
-                          _dateImmatriculationVehiculeController.text = formattedDateTime;
+                          _dateImmatriculationVehiculeController.text =
+                              formattedDateTime;
                         }
                       },
                     ),
-                    SizedBox(height: 15,),
+                    SizedBox(
+                      height: 15,
+                    ),
                     Text(
                       "Numéro de carte grise :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    _buildTextField(title: 'Numéro de carte grise', controller: _carteGriseController),
+                    _buildTextField(
+                        title: 'Numéro de carte grise',
+                        controller: _carteGriseController),
                     Text(
                       "Catégorie :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    SizedBox(height: 12,),
+                    SizedBox(
+                      height: 12,
+                    ),
                     DropdownButtonFormField<String>(
                       value: _selectedCategorie,
                       decoration: InputDecoration(
@@ -657,7 +804,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         ),
                       ),
                       hint: const Text('Sélectionnez la catégorie'),
-                      items: catVehicules.map<DropdownMenuItem<String>>((Map<String, dynamic> item) {
+                      items: catVehicules.map<DropdownMenuItem<String>>(
+                          (Map<String, dynamic> item) {
                         return DropdownMenuItem<String>(
                           value: item['libelle'], // Libellé affiché
                           child: Text(item['libelle']),
@@ -666,23 +814,31 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedCategorie = newValue;
-                          _selectedCategorieId = catVehicules
-                              .firstWhere((item) => item['libelle'] == newValue)['id'];
+                          _selectedCategorieId = catVehicules.firstWhere(
+                              (item) => item['libelle'] == newValue)['id'];
                         });
                       },
                     ),
-                    SizedBox(height: 12,),
+                    SizedBox(
+                      height: 12,
+                    ),
                     const Text('Assureur :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Assureur', controller: _assureurController),
+                    _buildTextField(
+                        title: 'Assureur', controller: _assureurController),
                     const Text('Numéro d\'assurance : ',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Numéro d\'assurance', controller: _numeroAssuranceController),
-                    SizedBox(height: 8,),
-
+                    _buildTextField(
+                        title: 'Numéro d\'assurance',
+                        controller: _numeroAssuranceController),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Date expiration assurance :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    SizedBox(height: 5,),
+                    SizedBox(
+                      height: 5,
+                    ),
                     TextField(
                       cursorColor: AppColors.appColor,
                       readOnly: true,
@@ -710,9 +866,11 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                             pickedDate.day,
                           );
 
-                          String formattedDateTime = pickedDateTime.toIso8601String();
+                          String formattedDateTime =
+                              pickedDateTime.toIso8601String();
 
-                          _dateExpirationAssuranceController.text = formattedDateTime;
+                          _dateExpirationAssuranceController.text =
+                              formattedDateTime;
                         }
                       },
                     )
@@ -748,7 +906,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.straighten, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Dimensions du véhicule',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -765,30 +924,37 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         controller: _largeurController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
+                          FilteringTextInputFormatter.allow(RegExp(
+                              r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
                           hintText: "Largeur (en cm)",
                           border: const OutlineInputBorder(),
-                          errorText: _puissanceErrorText, // Affiche le message d'erreur si nécessaire
+                          errorText:
+                              _puissanceErrorText, // Affiche le message d'erreur si nécessaire
                         ),
                         onChanged: (value) {
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
                               if (width == null || width < 100 || width > 400) {
-                                _puissanceErrorText = "La largeur doit être entre 100 et 400 cm";
+                                _puissanceErrorText =
+                                    "La largeur doit être entre 100 et 400 cm";
                               } else {
-                                _puissanceErrorText = null; // Pas d'erreur si la largeur est valide
+                                _puissanceErrorText =
+                                    null; // Pas d'erreur si la largeur est valide
                               }
                             } else {
-                              _puissanceErrorText = "La largeur est obligatoire"; // Gestion si vide
+                              _puissanceErrorText =
+                                  "La largeur est obligatoire"; // Gestion si vide
                             }
                           });
                         },
                       ),
                     ),
-                    SizedBox(height: 8,),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Hauteur (en cm)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
@@ -797,30 +963,37 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         controller: _hauteurController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,2}')),
                         ],
                         decoration: InputDecoration(
                           hintText: "Hauteur (en cm)",
                           border: const OutlineInputBorder(),
-                          errorText: _heightErrorText, // Affiche le message d'erreur si nécessaire
+                          errorText:
+                              _heightErrorText, // Affiche le message d'erreur si nécessaire
                         ),
                         onChanged: (value) {
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
                               if (width == null || width < 100 || width > 600) {
-                                _heightErrorText = "La hauteur doit être entre 100 et 600 cm";
+                                _heightErrorText =
+                                    "La hauteur doit être entre 100 et 600 cm";
                               } else {
-                                _heightErrorText = null; // Pas d'erreur si la largeur est valide
+                                _heightErrorText =
+                                    null; // Pas d'erreur si la largeur est valide
                               }
                             } else {
-                              _heightErrorText = "La heuteur est obligatoire"; // Gestion si vide
+                              _heightErrorText =
+                                  "La heuteur est obligatoire"; // Gestion si vide
                             }
                           });
                         },
                       ),
                     ),
-                    SizedBox(height: 8,),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Longueur (en m)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
@@ -829,34 +1002,47 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         controller: _longueurController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
+                          FilteringTextInputFormatter.allow(RegExp(
+                              r'^\d*\.?\d{0,2}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
                           hintText: "Longueur (en cm)",
                           border: const OutlineInputBorder(),
-                          errorText: _longErrorText, // Affiche le message d'erreur si nécessaire
+                          errorText:
+                              _longErrorText, // Affiche le message d'erreur si nécessaire
                         ),
                         onChanged: (value) {
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
-                              if (width == null || width < 100 || width > 2500) {
-                                _longErrorText = "La longueur doit être entre 100 et 2500 cm";
+                              if (width == null ||
+                                  width < 100 ||
+                                  width > 2500) {
+                                _longErrorText =
+                                    "La longueur doit être entre 100 et 2500 cm";
                               } else {
-                                _longErrorText = null; // Pas d'erreur si la largeur est valide
+                                _longErrorText =
+                                    null; // Pas d'erreur si la largeur est valide
                               }
                             } else {
-                              _longErrorText = "La longueur est obligatoire"; // Gestion si vide
+                              _longErrorText =
+                                  "La longueur est obligatoire"; // Gestion si vide
                             }
                           });
                         },
                       ),
                     ),
-                    SizedBox(height: 8,),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Kilométrage (en km)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildNumberField(title: 'Kilométrage (en km)', controller: _kilometrageController),
-                    SizedBox(height: 8,),
+                    _buildNumberField(
+                        title: 'Kilométrage (en km)',
+                        controller: _kilometrageController),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Puissance (en Ch)',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     Padding(
@@ -865,24 +1051,28 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         controller: _puissanceVehiculeController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')), // Autorise jusqu'à deux décimales
+                          FilteringTextInputFormatter.allow(RegExp(
+                              r'^\d*\.?\d{0,4}')), // Autorise jusqu'à deux décimales
                         ],
                         decoration: InputDecoration(
                           labelText: "Puissance (en Ch)",
                           border: const OutlineInputBorder(),
-                          errorText: _widthErrorText, // Affiche le message d'erreur si nécessaire
+                          errorText:
+                              _widthErrorText, // Affiche le message d'erreur si nécessaire
                         ),
                         onChanged: (value) {
                           setState(() {
                             if (value.isNotEmpty) {
                               final width = double.tryParse(value);
                               if (width == null || width < 1 || width > 1000) {
-                                _widthErrorText = "La puissance doit être entre 1 et 1000 Ch";
+                                _widthErrorText =
+                                    "La puissance doit être entre 1 et 1000 Ch";
                               } else {
                                 _widthErrorText = null;
                               }
                             } else {
-                              _widthErrorText = "La puissance est obligatoire"; // Gestion si vide
+                              _widthErrorText =
+                                  "La puissance est obligatoire"; // Gestion si vide
                             }
                           });
                         },
@@ -920,7 +1110,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.car_repair, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Situations',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -931,21 +1122,27 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                   children: [
                     const Text('État des pneus avant :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'État des pneus avant', controller: _etatPneueAvantController),
-
+                    _buildTextField(
+                        title: 'État des pneus avant',
+                        controller: _etatPneueAvantController),
                     const Text('État des pneus arrière :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'État des pneus arrière', controller: _etatPneueArriereController),
-
+                    _buildTextField(
+                        title: 'État des pneus arrière',
+                        controller: _etatPneueArriereController),
                     const Text('État du pare-brise :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'État du pare-brise', controller: _etatParebriseController),
-
+                    _buildTextField(
+                        title: 'État du pare-brise',
+                        controller: _etatParebriseController),
                     const Text('Position levier de vitesse :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildNumberField(title: 'Position levier de vitesse', controller: _positionLevierVitessController),
-                    SizedBox(height: 8,),
-
+                    _buildNumberField(
+                        title: 'Position levier de vitesse',
+                        controller: _positionLevierVitessController),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text('Présence Poste Radio :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
                     DropdownButtonFormField<int>(
@@ -959,9 +1156,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       hint: const Text('Sélectionnez une option'),
                       items: ouinons
                           .map((item) => DropdownMenuItem<int>(
-                        value: item['id'],
-                        child: Text(item['libelle']),
-                      ))
+                                value: item['id'],
+                                child: Text(item['libelle']),
+                              ))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -969,14 +1166,18 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         });
                       },
                     ),
-
-                    SizedBox(height: 15,),
-                    if(_selectedPresencePosteRadio==43)
-                    _buildNumberField(title: 'Position volume', controller: _positionVolumeController),
-
+                    SizedBox(
+                      height: 15,
+                    ),
+                    if (_selectedPresencePosteRadio == 43)
+                      _buildNumberField(
+                          title: 'Position volume',
+                          controller: _positionVolumeController),
                     const Text('État général :',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'État général', controller: _etatGeneraleController),
+                    _buildTextField(
+                        title: 'État général',
+                        controller: _etatGeneraleController),
                   ],
                 ),
               ),
@@ -1009,7 +1210,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.settings, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Fonctionnalités',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -1076,13 +1278,11 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   Widget _buildAdditionalInfoStep() {
     return Column(
       children: [
-
         Card(
           elevation: 2,
           margin: const EdgeInsets.all(16),
           child: Column(
             children: [
-
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -1097,7 +1297,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                     Icon(Icons.info, color: Colors.blue, size: 24),
                     SizedBox(width: 8),
                     Text('Comportements',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -1122,7 +1323,8 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                         ),
                       ),
                       hint: const Text('Sélectionnez un comportement'),
-                      items: comportements.map<DropdownMenuItem<String>>((Map<String, dynamic> item) {
+                      items: comportements.map<DropdownMenuItem<String>>(
+                          (Map<String, dynamic> item) {
                         return DropdownMenuItem<String>(
                           value: item['libelle'], // Libellé affiché
                           child: Text(item['libelle']),
@@ -1131,19 +1333,28 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedComportement = newValue;
-                          _selectedComportementId = catVehicules
-                              .firstWhere((item) => item['libelle'] == newValue)['id']; // Enregistre l'ID correspondant
+                          _selectedComportementId = catVehicules.firstWhere(
+                                  (item) => item['libelle'] == newValue)[
+                              'id']; // Enregistre l'ID correspondant
                         });
                       },
                     ),
-                    SizedBox(height: 16,),
+                    SizedBox(
+                      height: 16,
+                    ),
                     const Text('Autres comportement',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Autres comportements', controller: _autresComportementController),
-                    SizedBox(height: 16,),
+                    _buildTextField(
+                        title: 'Autres comportements',
+                        controller: _autresComportementController),
+                    SizedBox(
+                      height: 16,
+                    ),
                     const Text('Autres informations',
                         style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    _buildTextField(title: 'Autres informations', controller: _autreInfoController),
+                    _buildTextField(
+                        title: 'Autres informations',
+                        controller: _autreInfoController),
                   ],
                 ),
               ),
@@ -1154,25 +1365,28 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     );
   }
 
-  Widget _buildTextField({required String title, required TextEditingController controller}) {
+  Widget _buildTextField(
+      {required String title, required TextEditingController controller}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelText: title,
-              border: const OutlineInputBorder(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: title,
+                border: const OutlineInputBorder(),
+              ),
             ),
-          ),
-          SizedBox(height: 10,)
-        ],
-      )
-    );
+            SizedBox(
+              height: 10,
+            )
+          ],
+        ));
   }
 
-  Widget _buildNumberField({required String title, required TextEditingController controller}) {
+  Widget _buildNumberField(
+      {required String title, required TextEditingController controller}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
@@ -1187,7 +1401,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
     );
   }
 
-  Widget _buildDatePickerField({required TextEditingController controller, bool useCurrentDateAsLast = true}) {
+  Widget _buildDatePickerField(
+      {required TextEditingController controller,
+      bool useCurrentDateAsLast = true}) {
     return TextField(
       cursorColor: AppColors.appColor,
       readOnly: true,
@@ -1204,7 +1420,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           context: context,
           initialDate: DateTime.now(),
           firstDate: useCurrentDateAsLast ? DateTime(1900) : DateTime.now(),
-          lastDate: useCurrentDateAsLast ? DateTime.now():DateTime(2900),
+          lastDate: useCurrentDateAsLast ? DateTime.now() : DateTime(2900),
           locale: const Locale('fr'),
         );
 
@@ -1244,9 +1460,9 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           hint: const Text('Sélectionnez une option'),
           items: foncNonfonc
               .map((item) => DropdownMenuItem<int>(
-            value: item['id'],
-            child: Text(item['libelle']),
-          ))
+                    value: item['id'],
+                    child: Text(item['libelle']),
+                  ))
               .toList(),
           onChanged: onChanged,
         ),
@@ -1256,84 +1472,94 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
   }
 
   Future<void> _saveFicheAccidentVehicule() async {
-      final fiche = FicheAccidentVehicule(
-        accidentId: widget.accidentId,
-        matricule: _matriculeController.text,
-        numCarteGrise: _carteGriseController.text.isEmpty ? null : _carteGriseController.text,
-        categorieVehicule: _selectedCategorieId ?? 0,
-        autreVehicule: _autreInfoController.text.isEmpty ? null : _autreInfoController.text,
-        autreInformationAdd: _autreInfoController.text,
+    final fiche = FicheAccidentVehicule(
+      accidentId: widget.accidentId,
+      matricule: _matriculeController.text,
+      numCarteGrise: _carteGriseController.text.isEmpty
+          ? null
+          : _carteGriseController.text,
+      categorieVehicule: _selectedCategorieId ?? 0,
+      autreVehicule:
+          _autreInfoController.text.isEmpty ? null : _autreInfoController.text,
+      autreInformationAdd: _autreInfoController.text,
 
-        prenomChauffeur: _prenomController.text,
-        nomChauffeur: _nomController.text,
-        age: _ageController.text.isEmpty ? 0 : int.parse(_ageController.text),
-        sexe: _selectedSexe??'M',
-        telChauffeur: _telController.text,
-        etatParebrise: _etatParebriseController.text,
-        numeroPermis: _numeroPermisController.text.isEmpty ? null : _numeroPermisController.text,
-        dateDelivrancePermis: _dateDelivrancePermisController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateDelivrancePermisController.text),
-        categoriePermis: _selectedCategoriePermisId,
-        numeroAssurance: _numeroAssuranceController.text.isEmpty ? null : _numeroAssuranceController.text,
-        assureur: _assureurController.text.isEmpty ? null : _assureurController.text,
-        dateExpirationAssurance: _dateExpirationAssuranceController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateExpirationAssuranceController.text),
-        etatGenerale: _etatGeneraleController.text,
-        kilometrage: _kilometrageController.text!=""? int.parse(_kilometrageController.text):0,
-        hauteurVeh: int.parse(_hauteurController.text),
-        longueurVeh: int.parse(_longueurController.text),
-        largeurVeh: int.parse(_largeurController.text),
-        dateMiseCirculation: _dateMiseCirculationController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateMiseCirculationController.text),
-        dateDerniereVisite: _dateDerniereVisiteController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateDerniereVisiteController.text),
-        dateExpirationVisite: _dateExpirationVisiteController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateExpirationVisiteController.text),
-        eclairage: _selectedEclairage.toString(),
-        avertisseur: _selectedAvertisseur.toString(),
-        indicateurDirection: _selectedIndicateurDirection.toString(),
-        indicateurVitesse: _selectedIndicateurVitesse.toString(),
-        essuieGlace: _selectedEssuieGlace.toString(),
-        retroviseur: _selectedRetroviseur.toString(),
-        etatPneueAvant: _etatPneueAvantController.text,
-        etatPneueArriere: _etatPneueArriereController.text,
-        positionLevierVitesse: _positionLevierVitessController.text,
-        presencePosteRadio: _selectedPresencePosteRadio??44,
-        positionVolume: (_positionVolumeController.text.isNotEmpty)
-            ? int.tryParse(_positionVolumeController.text)
-            : null,
+      prenomChauffeur: _prenomController.text,
+      nomChauffeur: _nomController.text,
+      age: _ageController.text.isEmpty ? 0 : int.parse(_ageController.text),
+      sexe: _selectedSexe ?? 'M',
+      telChauffeur: _telController.text,
+      etatParebrise: _etatParebriseController.text,
+      numeroPermis: _numeroPermisController.text.isEmpty
+          ? null
+          : _numeroPermisController.text,
+      dateDelivrancePermis: _dateDelivrancePermisController.text.isEmpty
+          ? null
+          : DateTime.tryParse(_dateDelivrancePermisController.text),
+      categoriePermis: _selectedCategoriePermisId,
+      numeroAssurance: _numeroAssuranceController.text.isEmpty
+          ? null
+          : _numeroAssuranceController.text,
+      assureur:
+          _assureurController.text.isEmpty ? null : _assureurController.text,
+      dateExpirationAssurance: _dateExpirationAssuranceController.text.isEmpty
+          ? null
+          : DateTime.tryParse(_dateExpirationAssuranceController.text),
+      etatGenerale: _etatGeneraleController.text,
+      kilometrage: _kilometrageController.text != ""
+          ? int.parse(_kilometrageController.text)
+          : 0,
+      hauteurVeh: int.parse(_hauteurController.text),
+      longueurVeh: int.parse(_longueurController.text),
+      largeurVeh: int.parse(_largeurController.text),
+      dateMiseCirculation: _dateMiseCirculationController.text.isEmpty
+          ? null
+          : DateTime.tryParse(_dateMiseCirculationController.text),
+      dateDerniereVisite: _dateDerniereVisiteController.text.isEmpty
+          ? null
+          : DateTime.tryParse(_dateDerniereVisiteController.text),
+      dateExpirationVisite: _dateExpirationVisiteController.text.isEmpty
+          ? null
+          : DateTime.tryParse(_dateExpirationVisiteController.text),
+      eclairage: _selectedEclairage.toString(),
+      avertisseur: _selectedAvertisseur.toString(),
+      indicateurDirection: _selectedIndicateurDirection.toString(),
+      indicateurVitesse: _selectedIndicateurVitesse.toString(),
+      essuieGlace: _selectedEssuieGlace.toString(),
+      retroviseur: _selectedRetroviseur.toString(),
+      etatPneueAvant: _etatPneueAvantController.text,
+      etatPneueArriere: _etatPneueArriereController.text,
+      positionLevierVitesse: _positionLevierVitessController.text,
+      presencePosteRadio: _selectedPresencePosteRadio ?? 44,
+      positionVolume: (_positionVolumeController.text.isNotEmpty)
+          ? int.tryParse(_positionVolumeController.text)
+          : null,
 
-        // Champs supplémentaires
-        professionConducteur: _professionConducteurController.text,
-        filiationPrenomNomMere: _filiationPrenomNomMereController.text,
-        filiationPrenomPere: _filiationPrenomPereController.text,
-        domicileConducteur: _domicileConducteurController.text,
-        dateImmatriculationVehicule: _dateImmatriculationVehiculeController.text.isEmpty
-            ? null
-            : DateTime.tryParse(_dateImmatriculationVehiculeController.text),
-        comportementConducteur: _selectedComportement.toString(),
-        prenomNomProprietaire: _prenomNomProprietaireController.text,
-        puissanceVehicule: _puissanceVehiculeController.text.isEmpty
-            ? 0
-            : int.parse(_puissanceVehiculeController.text),
-        autresComportement: _autresComportementController.text,
-      );
+      // Champs supplémentaires
+      professionConducteur: _professionConducteurController.text,
+      filiationPrenomNomMere: _filiationPrenomNomMereController.text,
+      filiationPrenomPere: _filiationPrenomPereController.text,
+      domicileConducteur: _domicileConducteurController.text,
+      dateImmatriculationVehicule:
+          _dateImmatriculationVehiculeController.text.isEmpty
+              ? null
+              : DateTime.tryParse(_dateImmatriculationVehiculeController.text),
+      comportementConducteur: _selectedComportement.toString(),
+      prenomNomProprietaire: _prenomNomProprietaireController.text,
+      puissanceVehicule: _puissanceVehiculeController.text.isEmpty
+          ? 0
+          : int.parse(_puissanceVehiculeController.text),
+      autresComportement: _autresComportementController.text,
+    );
 
-      // Sauvegarder dans la base de données
-      final db = DatabaseHelper();
-      int result = await db.insertFicheAccidentVehicule(fiche);
+    // Sauvegarder dans la base de données
+    final db = DatabaseHelper();
+    int result = await db.insertFicheAccidentVehicule(fiche);
 
-      if (result > 0) {
-        openDialogSuccess();
-      } else {
-        print("Aucune ligne n'a été modifiée.");
-      }
-
+    if (result > 0) {
+      openDialogSuccess();
+    } else {
+      print("Aucune ligne n'a été modifiée.");
+    }
   }
 
   void showError(String message) {
@@ -1357,11 +1583,12 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           showError("Veuillez entrer le nom du conducteur.");
           return false;
         }
-        if(_selectedSexe==null){
+        if (_selectedSexe == null) {
           showError("Veuillez selectionner le sexe.");
           return false;
         }
-        if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
+        if (_ageController.text.isEmpty ||
+            int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
         }
@@ -1391,7 +1618,6 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         }
         break;
 
-
       case 3: // Validation des informations sur le permis
         if (_numeroPermisController.text.isEmpty) {
           showError("Veuillez entrer le numéro de permis.");
@@ -1419,35 +1645,44 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
         break;
 
       case 6: // Validation des dimensions du véhicule
-        if (_largeurController.text.isEmpty || double.tryParse(_largeurController.text) == null) {
+        if (_largeurController.text.isEmpty ||
+            double.tryParse(_largeurController.text) == null) {
           showError("Veuillez entrer une largeur valide.");
           return false;
-        } else if ((double.parse(_largeurController.text)) < 100 || (double.parse(_largeurController.text)) > 400) {
+        } else if ((double.parse(_largeurController.text)) < 100 ||
+            (double.parse(_largeurController.text)) > 400) {
           showError("La largeur doit etre entre 100 et 400 cm.");
           return false;
         }
-        if (_hauteurController.text.isEmpty || double.tryParse(_hauteurController.text) == null) {
+        if (_hauteurController.text.isEmpty ||
+            double.tryParse(_hauteurController.text) == null) {
           showError("Veuillez entrer une hauteur valide.");
           return false;
-        }else if((double.parse(_hauteurController.text)) < 100 || (double.parse(_hauteurController.text)) > 600){
+        } else if ((double.parse(_hauteurController.text)) < 100 ||
+            (double.parse(_hauteurController.text)) > 600) {
           showError("La hauteur doit etre entre 100 et 600 cm.");
           return false;
         }
-        if (_longueurController.text.isEmpty || double.tryParse(_longueurController.text) == null) {
+        if (_longueurController.text.isEmpty ||
+            double.tryParse(_longueurController.text) == null) {
           showError("Veuillez entrer une longueur valide.");
           return false;
-        } else if ((double.parse(_longueurController.text)) < 100 || (double.parse(_longueurController.text)) > 2500) {
+        } else if ((double.parse(_longueurController.text)) < 100 ||
+            (double.parse(_longueurController.text)) > 2500) {
           showError("La longueur doit être entre 100 et 2500 cm.");
           return false;
         }
-        if (_kilometrageController.text.isEmpty || int.tryParse(_kilometrageController.text) == null) {
+        if (_kilometrageController.text.isEmpty ||
+            int.tryParse(_kilometrageController.text) == null) {
           showError("Veuillez entrer un kilométrage valide.");
           return false;
         }
-        if (_puissanceVehiculeController.text.isEmpty || int.tryParse(_puissanceVehiculeController.text) == null) {
+        if (_puissanceVehiculeController.text.isEmpty ||
+            int.tryParse(_puissanceVehiculeController.text) == null) {
           showError("Veuillez entrer une puissance valide.");
           return false;
-        }else if((double.parse(_puissanceVehiculeController.text)) < 1 || (double.parse(_puissanceVehiculeController.text)) > 1000){
+        } else if ((double.parse(_puissanceVehiculeController.text)) < 1 ||
+            (double.parse(_puissanceVehiculeController.text)) > 1000) {
           showError("La puissance doit etre entre 1 et 1000Ch.");
           return false;
         }
@@ -1466,8 +1701,10 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           showError("Veuillez indiquer l'état du pare-brise.");
           return false;
         }
-        if (_positionLevierVitessController.text.isEmpty || int.tryParse(_positionLevierVitessController.text) == null) {
-          showError("Veuillez indiquer une position valide pour le levier de vitesse.");
+        if (_positionLevierVitessController.text.isEmpty ||
+            int.tryParse(_positionLevierVitessController.text) == null) {
+          showError(
+              "Veuillez indiquer une position valide pour le levier de vitesse.");
           return false;
         }
         break;
@@ -1478,11 +1715,13 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
           return false;
         }
         if (_selectedIndicateurDirection == null) {
-          showError("Veuillez sélectionner un état pour l'indicateur de direction.");
+          showError(
+              "Veuillez sélectionner un état pour l'indicateur de direction.");
           return false;
         }
         if (_selectedIndicateurVitesse == null) {
-          showError("Veuillez sélectionner un état pour l'indicateur de vitesse.");
+          showError(
+              "Veuillez sélectionner un état pour l'indicateur de vitesse.");
           return false;
         }
         if (_selectedEssuieGlace == null) {
@@ -1545,15 +1784,21 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
             _buildProgressBar(),
             Expanded(
               child: SingleChildScrollView(
-                child: currentStep == 1 ? _buildDriverInfoStep()
-                    : currentStep == 2 ? _buildDriverFamilyInfoStep()
-                    : currentStep == 3 ? _buildLicenseInfoStep()
-                    : currentStep == 4 ? _buildAdditionalInfoStep()
-                    : currentStep == 5 ? _buildVehicleInfoStep()
-                    : currentStep == 6 ? _buildVehicleDimensionsStep()
-                    : currentStep == 7 ? _buildEquipmentStateStep()
-                    :                    _buildEquipmentFunctionalityStep()
-              ),
+                  child: currentStep == 1
+                      ? _buildDriverInfoStep()
+                      : currentStep == 2
+                          ? _buildDriverFamilyInfoStep()
+                          : currentStep == 3
+                              ? _buildLicenseInfoStep()
+                              : currentStep == 4
+                                  ? _buildAdditionalInfoStep()
+                                  : currentStep == 5
+                                      ? _buildVehicleInfoStep()
+                                      : currentStep == 6
+                                          ? _buildVehicleDimensionsStep()
+                                          : currentStep == 7
+                                              ? _buildEquipmentStateStep()
+                                              : _buildEquipmentFunctionalityStep()),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -1572,8 +1817,7 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
                             horizontal: 24,
                             vertical: 12,
                           ),
-                          backgroundColor: AppColors.appColor
-                      ),
+                          backgroundColor: AppColors.appColor),
                       child: const Text('Précédent'),
                     ),
                   const Spacer(),
@@ -1596,5 +1840,4 @@ class _CollectAccidentVehiculeScreenState extends State<CollectAccidentVehiculeS
       ),
     );
   }
-
 }

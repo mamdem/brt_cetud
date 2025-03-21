@@ -5,10 +5,11 @@ import 'package:geocoding/geocoding.dart' as geocodingLocation;
 import 'package:brt_mobile/core/constants/global.dart' as global;
 
 
-const String baseUrl = "https://cetud.saytu.pro/api";
-const String baseUrlImage = "https://cetud.saytu.pro";
-//const String baseUrl = "http://sicacetud.groupesoterco.com/api";
-//const String baseUrlImage = "http://sicacetud.groupesoterco.com";
+
+//const String baseUrl = "https://cetud.saytu.pro/api";
+//const String baseUrlImage = "https://cetud.saytu.pro";
+const String baseUrl = "http://sicacetud.groupesoterco.com/api";
+const String baseUrlImage = "http://sicacetud.groupesoterco.com";
 
 late String phoneIdentifier;
 

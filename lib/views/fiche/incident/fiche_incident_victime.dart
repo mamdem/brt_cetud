@@ -56,8 +56,11 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
     // Récupérer les informations actuelles
     final victimeId = victim['idincident_victime'];
     final String nomComplet = "${victim['prenom']} ${victim['nom']}";
+
+    // Récupérer d'abord la valeur mise à jour si elle existe
+    final updatedLocation = await db.getUpdatedEvacuationLocation(victimeId);
     final String currentLocation =
-        victim['structure_evacuation'] ?? 'Non spécifié';
+        updatedLocation ?? victim['structure_evacuation'] ?? 'Non spécifié';
 
     final result = await showDialog(
       context: context,
@@ -72,7 +75,6 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
     );
 
     // Si un résultat est retourné, on peut gérer la mise à jour ici
-    // Mais comme demandé, vous gérerez la partie envoi plus tard
     if (result != null) {
       // Afficher juste un toast pour confirmer
       Get.snackbar(
@@ -84,7 +86,8 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
         duration: const Duration(seconds: 3),
       );
 
-      // Vous pouvez ajouter votre logique de mise à jour ici plus tard
+      // Forcer un rafraîchissement de la page
+      Get.forceAppUpdate();
     }
   }
 
@@ -152,26 +155,35 @@ class DetailsFicheIncidentVictime extends StatelessWidget {
                                 ),
                                 // Afficher le lieu d'évacuation uniquement si editVictimeIncident est true
                                 if (global.editVictimeIncident)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.local_hospital,
-                                            size: 14, color: Colors.grey[600]),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            "Lieu d'évacuation: ${victim['structure_evacuation'] ?? 'Non spécifié'}",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
+                                  FutureBuilder<String?>(
+                                    future: db.getUpdatedEvacuationLocation(
+                                      victim['idincident_victime'],
                                     ),
+                                    builder: (context, snapshot) {
+                                      var updatedLocation = snapshot.data;
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.local_hospital,
+                                                size: 14,
+                                                color: Colors.grey[600]),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                "Lieu d'évacuation: ${updatedLocation ?? victim['structure_evacuation'] ?? 'Non spécifié'}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
                               ],
                             ),

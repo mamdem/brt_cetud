@@ -123,10 +123,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
           showError("Veuillez entrer une structure sanitaire.");
           return false;
         }
-        if (_vehicule == null) {
-          showError("Veuillez sélectionner un véhicule.");
-          return false;
-        }
         if (_conscient == null) {
           showError("Veuillez indiquer si la victime est consciente ou non.");
           return false;
