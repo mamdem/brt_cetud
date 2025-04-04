@@ -74,6 +74,24 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
   final dateIncidentController = TextEditingController();
   final libelleIncident = TextEditingController();
 
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Future<void> selectPhoto(String type) async {
     final picker = ImagePicker();
@@ -445,9 +463,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //Type incident
-                    const Text(
-                      "Type Incident :",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
+                    buildRequiredLabel(
+                      "Type Incident :"
                     ),
                     Column(
                       children: rowsTI.map((rowTypesIncident) {
@@ -486,9 +503,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     const SizedBox(height: 12,),
 
                     //Libellé
-                    const Text(
-                      "Libellé incident:",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    buildRequiredLabel(
+                      "Libellé incident:"
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -505,9 +521,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     const SizedBox(height: 14,),
 
                     //Date et heure
-                    const Text(
-                      "Date et heure de l'incident:",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
+                    buildRequiredLabel(
+                      "Date et heure de l'incident:"
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -622,9 +637,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //Section
-                    const Text(
-                      "Section :",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
+                    buildRequiredLabel(
+                      "Section :"
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
@@ -658,9 +672,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     const SizedBox(height: 16),
 
                     //Type jour
-                    const Text(
-                      "Type de jour :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    buildRequiredLabel(
+                      "Type de jour :"
                     ),
                     const SizedBox(height: 8),
                     Column(
@@ -745,17 +758,13 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 12,),
+                    const SizedBox(height: 15,),
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           flex: 2,
-                          child: Text(
-                            "Existence victime",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          child: buildRequiredLabel(
+                            "Existence \nvictime"
                           ),
                         ),
                         Expanded(
@@ -822,9 +831,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     ),
                     if(blesseSelection)...[
                       const SizedBox(height: 8),
-                      const Text(
-                        "Nombre de victime:",
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                      buildRequiredLabel(
+                        "Nombre de victime:"
                       ),
                       const SizedBox(height: 8),
                       TextField(
@@ -865,7 +873,7 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                         },
                       )
                     ],
-                    const SizedBox(height: 12,),
+                    const SizedBox(height: 15,),
                     const Divider(
                       color: Colors.grey, // Couleur de la ligne
                       thickness: 0.5,       // Épaisseur de la ligne
@@ -875,14 +883,10 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                     //Interruption service
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           flex: 2,
-                          child: Text(
-                            "Interruption Service",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          child: buildRequiredLabel(
+                            "Interruption Service"
                           ),
                         ),
                         Expanded(

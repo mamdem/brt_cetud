@@ -43,7 +43,9 @@ class _CollectAccidentVehiculeScreenState
   List<Map<String, dynamic>> ouinons = [];
 
   String? _selectedCategorie;
+  String? _selectedCategorieVeh;
   int? _selectedCategorieId;
+  int? _selectedCategorieIdVeh;
   String? _selectedComportement;
   int? _selectedComportementId;
 
@@ -118,6 +120,24 @@ class _CollectAccidentVehiculeScreenState
 
   // Clé pour le formulaire
   final _formKey = GlobalKey<FormState>();
+
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _fetchDatas() async {
     final db = DatabaseHelper();
@@ -221,29 +241,16 @@ class _CollectAccidentVehiculeScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Prénom :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
-                    ),
+                    buildRequiredLabel(
+                      "Prénom: "),
                     _buildTextField(
                         title: 'Prénom', controller: _prenomController),
-                    Text(
-                      "Nom :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Nom: "
                     ),
                     _buildTextField(title: 'Nom', controller: _nomController),
-                    Text(
-                      "Age :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Age: "
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -254,7 +261,7 @@ class _CollectAccidentVehiculeScreenState
                           FilteringTextInputFormatter.digitsOnly
                         ],
                         decoration: InputDecoration(
-                          labelText: "Âge",
+                          labelText: "Âge:",
                           border: const OutlineInputBorder(),
                           errorText:
                               _ageErrorText, // Affiche le message d'erreur si nécessaire
@@ -284,12 +291,8 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 5,
                     ),
-                    Text(
-                      "Sexe :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Sexe: "
                     ),
                     DropdownButtonFormField<String>(
                       value: _selectedSexe,
@@ -316,12 +319,8 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 8,
                     ),
-                    Text(
-                      "Téléphone :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Téléphone: "
                     ),
                     SizedBox(
                       height: 5,
@@ -409,42 +408,26 @@ class _CollectAccidentVehiculeScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Domicile du conducteur :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Domicile du conducteur: "
                     ),
                     _buildTextField(
                         title: 'Domicile du conducteur',
                         controller: _domicileConducteurController),
-                    Text(
-                      "Profession du conducteur :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Profession du conducteur: "
                     ),
                     _buildTextField(
                         title: 'Profession du conducteur',
                         controller: _professionConducteurController),
-                    Text(
-                      "Filiation (Prénom et nom du père) :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Filiation (Prénom et nom du père): "
                     ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom du père)',
                         controller: _filiationPrenomPereController),
-                    Text(
-                      "Filiation (Prénom et nom de la mère) :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Filiation (Prénom et nom de la mère): "
                     ),
                     _buildTextField(
                         title: 'Filiation (Prénom et nom de la mère)',
@@ -492,12 +475,8 @@ class _CollectAccidentVehiculeScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Numéro du permis :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Numéro du permis: "
                     ),
                     _buildTextField(
                         title: 'Numéro du permis :',
@@ -616,12 +595,8 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 5,
                     ),
-                    const Text(
-                      "Catégorie permis:",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Catégorie permis: "
                     ),
                     SizedBox(
                       height: 5,
@@ -639,11 +614,13 @@ class _CollectAccidentVehiculeScreenState
                         ),
                       ),
                       hint: const Text('Sélectionnez la catégorie'),
-                      items: catVehicules.map<DropdownMenuItem<String>>(
-                          (Map<String, dynamic> item) {
+                      items: catVehicules.map<DropdownMenuItem<String>>((item) {
                         return DropdownMenuItem<String>(
-                          value: item['libelle'], // Libellé affiché
-                          child: Text(item['libelle']),
+                          value: item['libelle'],
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: 200), // Largeur max
+                            child: Text(item['libelle'], overflow: TextOverflow.ellipsis),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -706,12 +683,8 @@ class _CollectAccidentVehiculeScreenState
                     _buildTextField(
                         title: 'Prénom et nom du propriétaire',
                         controller: _prenomNomProprietaireController),
-                    Text(
-                      "Matricule :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Matricule: "
                     ),
                     _buildTextField(
                         title: 'Matricule', controller: _matriculeController),
@@ -771,28 +744,20 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 15,
                     ),
-                    Text(
-                      "Numéro de carte grise :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Numéro de carte grise: "
                     ),
                     _buildTextField(
                         title: 'Numéro de carte grise',
                         controller: _carteGriseController),
-                    Text(
-                      "Catégorie :",
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.grey),
+                    buildRequiredLabel(
+                      "Catégorie véhicule:"
                     ),
                     SizedBox(
                       height: 12,
                     ),
                     DropdownButtonFormField<String>(
-                      value: _selectedCategorie,
+                      value: _selectedCategorieVeh,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -804,17 +769,19 @@ class _CollectAccidentVehiculeScreenState
                         ),
                       ),
                       hint: const Text('Sélectionnez la catégorie'),
-                      items: catVehicules.map<DropdownMenuItem<String>>(
-                          (Map<String, dynamic> item) {
+                      items: catVehicules.map<DropdownMenuItem<String>>((item) {
                         return DropdownMenuItem<String>(
-                          value: item['libelle'], // Libellé affiché
-                          child: Text(item['libelle']),
+                          value: item['libelle'],
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: 200), // Largeur max
+                            child: Text(item['libelle'], overflow: TextOverflow.ellipsis),
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
                         setState(() {
-                          _selectedCategorie = newValue;
-                          _selectedCategorieId = catVehicules.firstWhere(
+                          _selectedCategorieVeh = newValue;
+                          _selectedCategorieIdVeh = catVehicules.firstWhere(
                               (item) => item['libelle'] == newValue)['id'];
                         });
                       },
@@ -916,8 +883,7 @@ class _CollectAccidentVehiculeScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Largeur (en cm)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Largeur (en cm): '),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -955,8 +921,7 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 8,
                     ),
-                    const Text('Hauteur (en cm)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Hauteur (en cm): '),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -994,8 +959,7 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 8,
                     ),
-                    const Text('Longueur (en m)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Longueur (en m): '),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -1035,16 +999,14 @@ class _CollectAccidentVehiculeScreenState
                     SizedBox(
                       height: 8,
                     ),
-                    const Text('Kilométrage (en km)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Kilométrage (en km): '),
                     _buildNumberField(
                         title: 'Kilométrage (en km)',
                         controller: _kilometrageController),
                     SizedBox(
                       height: 8,
                     ),
-                    const Text('Puissance (en Ch)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Puissance (en Ch): '),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextField(
@@ -1120,23 +1082,19 @@ class _CollectAccidentVehiculeScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('État des pneus avant :',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('État des pneus avant: '),
                     _buildTextField(
                         title: 'État des pneus avant',
                         controller: _etatPneueAvantController),
-                    const Text('État des pneus arrière :',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('État des pneus arrière: '),
                     _buildTextField(
                         title: 'État des pneus arrière',
                         controller: _etatPneueArriereController),
-                    const Text('État du pare-brise :',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('État du pare-brise: '),
                     _buildTextField(
                         title: 'État du pare-brise',
                         controller: _etatParebriseController),
-                    const Text('Position levier de vitesse :',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Position levier de vitesse: '),
                     _buildNumberField(
                         title: 'Position levier de vitesse',
                         controller: _positionLevierVitessController),
@@ -1447,7 +1405,7 @@ class _CollectAccidentVehiculeScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        buildRequiredLabel("$title: "),
         const SizedBox(height: 8),
         DropdownButtonFormField<int>(
           value: value,
@@ -1478,11 +1436,10 @@ class _CollectAccidentVehiculeScreenState
       numCarteGrise: _carteGriseController.text.isEmpty
           ? null
           : _carteGriseController.text,
-      categorieVehicule: _selectedCategorieId ?? 0,
+      categorieVehicule: _selectedCategorieIdVeh ?? 0,
       autreVehicule:
           _autreInfoController.text.isEmpty ? null : _autreInfoController.text,
       autreInformationAdd: _autreInfoController.text,
-
       prenomChauffeur: _prenomController.text,
       nomChauffeur: _nomController.text,
       age: _ageController.text.isEmpty ? 0 : int.parse(_ageController.text),
@@ -1495,7 +1452,7 @@ class _CollectAccidentVehiculeScreenState
       dateDelivrancePermis: _dateDelivrancePermisController.text.isEmpty
           ? null
           : DateTime.tryParse(_dateDelivrancePermisController.text),
-      categoriePermis: _selectedCategoriePermisId,
+      categoriePermis: _selectedCategorieId??0,
       numeroAssurance: _numeroAssuranceController.text.isEmpty
           ? null
           : _numeroAssuranceController.text,

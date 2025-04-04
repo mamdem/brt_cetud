@@ -28,6 +28,24 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
 
   final ImagePicker _imagePicker = ImagePicker();
 
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+
   void openDialogSuccess() {
     showDialog(
       context: context,
@@ -87,8 +105,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Photo des Dégâts',
-            style: TextStyle(fontSize: 14, color: Colors.grey)),
+        buildRequiredLabel('Photo des Dégâts: '),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () {
@@ -172,8 +189,7 @@ class _CollectAccidentDegatMaterielsScreenState extends State<CollectAccidentDeg
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Libellé Matériel',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Libellé Matériel: '),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _libelleController,

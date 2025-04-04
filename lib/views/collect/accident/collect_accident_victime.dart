@@ -69,6 +69,24 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
 
   final _formKey = GlobalKey<FormState>();
 
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+
   void showError(String message) {
     Get.snackbar(
       "Validation",
@@ -294,7 +312,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Nature des blessures', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Nature des blessures'),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _natureBlessureController,
@@ -337,8 +355,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),*/
                     //const SizedBox(height: 16),
 
-                    const Text('Structure sanitaire d\'évacuation',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Structure sanitaire d\'évacuation: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _structureSanitaireController,
@@ -352,19 +369,23 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Véhicule', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Véhicule: ', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<int>(
+                    DropdownButtonFormField<int?>(
                       value: _vehicule,
-                      items: vehicules
-                          .map((vehicule) => DropdownMenuItem<int>(
-                        value: vehicule['idfiche_accident_vehicule'],
-                        child: Text(vehicule['matricule'] ?? 'Inconnu'),
-                      ))
-                          .toList(),
+                      items: [
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text('Aucun'),
+                        ),
+                        ...vehicules.map((vehicule) => DropdownMenuItem<int?>(
+                          value: vehicule['idfiche_accident_vehicule'],
+                          child: Text(vehicule['matricule'] ?? 'Inconnu'),
+                        )),
+                      ],
                       onChanged: (int? value) {
                         setState(() {
-                          _vehicule = value; // Met à jour l'ID sélectionné
+                          _vehicule = value; // Peut être null si "Aucun" est sélectionné
                         });
                       },
                       decoration: InputDecoration(
@@ -374,6 +395,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 16),
 
                     const SizedBox(height: 8),
@@ -381,7 +403,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Le victime est-il conscient ?',
+                          'Le victime est-il conscient ? *',
                           style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         const SizedBox(height: 8),
@@ -457,8 +479,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Prénom de l\'accompagnant',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Prénom de l\'accompagnant'),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _accompagnantPrenomController,
@@ -472,8 +493,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Nom de l\'accompagnant',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Nom de l\'accompagnant'),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _accompagnantNomController,
@@ -487,7 +507,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Téléphone de l\'accompagnant', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Téléphone de l\'accompagnant: '),
                     const SizedBox(height: 8),
                     IntlPhoneField(
                       controller: _accompagnantTelController,
@@ -566,7 +586,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Prénom', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Prénom: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _prenomController,
@@ -580,7 +600,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Nom', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Nom: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _nomController,
@@ -592,12 +612,12 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const SizedBox(height: 8,),
+                    const SizedBox(height: 12,),
+                    buildRequiredLabel('Sexe: '),
+                    const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: _selectedSexe,
                       decoration: InputDecoration(
-                        labelText: "Sexe",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -614,7 +634,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       },
                     ),
                     const SizedBox(height: 12,),
-                    const Text('Âge', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Âge: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _ageController,
@@ -644,7 +664,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Téléphone', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Téléphone: '),
                     const SizedBox(height: 8),
                     IntlPhoneField(
                       controller: _telController,
@@ -682,7 +702,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         isValidNumber = phone.isValidNumber();
                       },
                     ),
-                    const Text('Position victime', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Position victime: '),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
                       value: _selectedPosVictime,
@@ -747,7 +767,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Prénom du père', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Prénom du père'),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _filiationPrenomPereController,
@@ -761,7 +781,7 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Nom et prénom de la mère', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Nom et prénom de la mère: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _filiationPrenomNomMereController,

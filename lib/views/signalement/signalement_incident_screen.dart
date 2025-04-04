@@ -17,7 +17,8 @@ class SignalementIncidentScreen extends StatefulWidget {
   const SignalementIncidentScreen({Key? key}) : super(key: key);
 
   @override
-  _SignalementIncidentScreenState createState() => _SignalementIncidentScreenState();
+  _SignalementIncidentScreenState createState() =>
+      _SignalementIncidentScreenState();
 }
 
 class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
@@ -28,9 +29,9 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
 
   late double _latitude;
   late double _longitude;
-  final int nbStep=4;
+  final int nbStep = 4;
 
-  String currentAddress="";
+  String currentAddress = "";
 
   String? selectedIncidentType;
   String? _selectedAlertLevel;
@@ -44,16 +45,18 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
   late deviceLocation.LocationData _locationData;
   late deviceLocation.PermissionStatus _permissionGranted;
 
-  final TextEditingController agentAssistantController = TextEditingController();
+  final TextEditingController agentAssistantController =
+      TextEditingController();
   final TextEditingController matriculeBusController = TextEditingController();
   final TextEditingController lieuCorridorController = TextEditingController();
   final TextEditingController dateHeureController = TextEditingController();
 
-
   late bool _serviceEnabled;
 
-  final TextEditingController _consciousController = TextEditingController(text: '0');
-  final TextEditingController _unconsciousController = TextEditingController(text: '0');
+  final TextEditingController _consciousController =
+      TextEditingController(text: '0');
+  final TextEditingController _unconsciousController =
+      TextEditingController(text: '0');
   bool _hasVictime = false;
 
   int numberOfVehicles = 0;
@@ -64,6 +67,24 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     int conscious = int.tryParse(_consciousController.text) ?? 0;
     int unconscious = int.tryParse(_unconsciousController.text) ?? 0;
     return conscious + unconscious;
+  }
+
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
   }
 
   void showError(String message) {
@@ -86,17 +107,33 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
         break;
 
       case 2: // Validation du step "Localisation"
+        if (dateHeureController.text.isEmpty) {
+          showError("Veuillez sélectionner la date et heure.");
+          return false;
+        }
+        if (_selectedRoadType == null) {
+          showError("Veuillez sélectionner le type de voie.");
+          return false;
+        }
         if (!isLocationAvailable) {
           showError("Veuillez récupérer votre localisation.");
           return false;
         }
         break;
 
-
       case 4: // Validation du step "Détails du Bus"
-        if (_busImplique && matriculeBusController.text.isEmpty) {
-          showError("Veuillez renseigner le matricule du bus.");
-          return false;
+        if (_busImplique) {
+          if (matriculeBusController.text.isEmpty) {
+            showError("Veuillez renseigner le matricule du bus.");
+            return false;
+          }
+          // Vérifier le format du matricule (DK-XXXX-AA)
+          final matriculePattern = RegExp(r'^[A-Z]{2}-\d{3,4}-[A-Z]{2}$');
+          if (!matriculePattern.hasMatch(matriculeBusController.text)) {
+            showError(
+                "Le matricule doit être au format DK-XXX(X)-AA (ex: DK-9834-AA ou DK-123-AA)");
+            return false;
+          }
         }
         break;
 
@@ -113,7 +150,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     super.dispose();
   }
 
-  Future<void> getLocationData() async{
+  Future<void> getLocationData() async {
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
       _serviceEnabled = await location.requestService();
@@ -133,7 +170,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     _locationData = await location.getLocation();
   }
 
-  void openDialogSuccess(){
+  void openDialogSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -165,21 +202,22 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
         alerteNiveauId: _selectedAlertLevel == "NIVEAU_1"
             ? 1
             : _selectedAlertLevel == "NIVEAU_2"
-            ? 2
-            : 3,
-        positionLat: !_locationData.isNull?_locationData.latitude:null,
+                ? 2
+                : 3,
+        positionLat: !_locationData.isNull ? _locationData.latitude : null,
         lieuCorridor: lieuCorridorController.text,
-        positionLong: !_locationData.isNull?_locationData.longitude:null,
+        positionLong: !_locationData.isNull ? _locationData.longitude : null,
         busOperateurImplique: _busImplique ? 43 : 44,
         matriculeBus: _busImplique ? matriculeBusController.text : null,
         voie: _selectedRoadType == "Corridor" ? 1 : 0,
         existenceVictime: _hasVictime ? 43 : 44,
         nbVictime: _hasVictime ? totalVictims : 0,
-        victimeCons: _hasVictime ? int.tryParse(_consciousController.text) ?? 0 : 0,
-        victimeIncons: _hasVictime ? int.tryParse(_unconsciousController.text) ?? 0 : 0,
+        victimeCons:
+            _hasVictime ? int.tryParse(_consciousController.text) ?? 0 : 0,
+        victimeIncons:
+            _hasVictime ? int.tryParse(_unconsciousController.text) ?? 0 : 0,
         createdAt: DateTime.now(),
-        updatedAt: null
-    );
+        updatedAt: null);
 
     // Insérer l'alerte
     final alertMap = alert.toMap();
@@ -199,7 +237,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     } else if (currentValue > 0) {
       controller.text = (currentValue - 1).toString();
     }
-    setState(() {});  // Pour mettre à jour le total
+    setState(() {}); // Pour mettre à jour le total
   }
 
   Widget _buildProgressBar() {
@@ -233,7 +271,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
   }
 
   Widget _buildAlertLevelStep() {
-    return  Column(
+    return Column(
       children: [
         Card(
           elevation: 2,
@@ -253,9 +291,12 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.warning_amber, color: Colors.deepOrange, size: 24),
+                        Icon(Icons.warning_amber,
+                            color: Colors.deepOrange, size: 24),
                         SizedBox(width: 8),
-                        Text('Niveau alert', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text('Niveau alert',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -266,6 +307,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    buildRequiredLabel("Niveau: "),
                     const SizedBox(height: 16),
                     _buildAlertOption(
                       context,
@@ -300,7 +342,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
     );
   }
 
-  Widget _buildAlertOption(BuildContext context, StateSetter setState, String text, Color color, String value) {
+  Widget _buildAlertOption(BuildContext context, StateSetter setState,
+      String text, Color color, String value) {
     bool isSelected = _selectedAlertLevel == value;
 
     return InkWell(
@@ -308,7 +351,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected? Colors.blue[50]: Colors.white,
+          color: isSelected ? Colors.blue[50] : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? Colors.blue : Colors.grey[300]!,
@@ -362,7 +405,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                     Icon(Icons.location_on, color: Colors.green, size: 24),
                     SizedBox(width: 8),
                     Text('Localisation',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -371,10 +415,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Date et Heure de l'accident",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
+                    buildRequiredLabel("Date et Heure de l'accident"),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -415,7 +456,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                             );
 
                             // Formater la date et l'heure au format ISO8601
-                            String formattedDateTime = pickedDateTime.toIso8601String();
+                            String formattedDateTime =
+                                pickedDateTime.toIso8601String();
 
                             // Afficher la date et l'heure sélectionnées dans le TextField
                             dateHeureController.text = formattedDateTime;
@@ -423,7 +465,9 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                         }
                       },
                     ),
-                    SizedBox(height: 15,),
+                    SizedBox(
+                      height: 15,
+                    ),
                     const Row(
                       children: [
                         Icon(Icons.location_on_outlined,
@@ -434,14 +478,14 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Text('Type de Voie',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Type de Voie: '),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => setState(() => _selectedRoadType = 'Corridor'),
+                            onPressed: () =>
+                                setState(() => _selectedRoadType = 'Corridor'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _selectedRoadType == 'Corridor'
                                   ? Colors.blue
@@ -463,12 +507,13 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () =>
-                                setState(() => _selectedRoadType = 'Hors Corridor'),
+                            onPressed: () => setState(
+                                () => _selectedRoadType = 'Hors Corridor'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedRoadType == 'Hors Corridor'
-                                  ? Colors.blue
-                                  : Colors.white,
+                              backgroundColor:
+                                  _selectedRoadType == 'Hors Corridor'
+                                      ? Colors.blue
+                                      : Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: Colors.grey[300]!),
                               shape: RoundedRectangleBorder(
@@ -486,43 +531,43 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Text('Lieu Précis',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Lieu Précis: '),
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: _isLoading
                           ? null // Désactiver le bouton pendant le chargement
                           : () async {
-                        setState(() {
-                          _isLoading = true; // Commencer le chargement
-                        });
+                              setState(() {
+                                _isLoading = true; // Commencer le chargement
+                              });
 
-                        try {
-                          await getLocationData();
+                              try {
+                                await getLocationData();
 
-                          // Récupérer les données de localisation
-                          _latitude = _locationData.latitude!;
-                          _longitude = _locationData.longitude!;
+                                // Récupérer les données de localisation
+                                _latitude = _locationData.latitude!;
+                                _longitude = _locationData.longitude!;
 
-                          // Obtenir l'adresse
-                          currentAddress = await global.getAddressFromLatLong(
-                            _latitude,
-                            _longitude,
-                            2,
-                          );
+                                // Obtenir l'adresse
+                                currentAddress =
+                                    await global.getAddressFromLatLong(
+                                  _latitude,
+                                  _longitude,
+                                  2,
+                                );
 
-                          setState(() {
-                            lieuCorridorController.text = currentAddress;
-                            isLocationAvailable = true;
-                          });
-                        } catch (e) {
-                          print("Erreur : $e");
-                        } finally {
-                          setState(() {
-                            _isLoading = false; // Arrêter le chargement
-                          });
-                        }
-                      },
+                                setState(() {
+                                  lieuCorridorController.text = currentAddress;
+                                  isLocationAvailable = true;
+                                });
+                              } catch (e) {
+                                print("Erreur : $e");
+                              } finally {
+                                setState(() {
+                                  _isLoading = false; // Arrêter le chargement
+                                });
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -534,28 +579,34 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                       ),
                       child: _isLoading
                           ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.0,
-                          color: Colors.black87,
-                        ),
-                      )
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.0,
+                                color: Colors.black87,
+                              ),
+                            )
                           : Text(
-                        isLocationAvailable ? currentAddress : 'Cliquer pour prendre votre position',
-                        style: const TextStyle(color: Colors.black87),
-                      ),
+                              isLocationAvailable
+                                  ? currentAddress
+                                  : 'Cliquer pour prendre votre position',
+                              style: const TextStyle(color: Colors.black87),
+                            ),
                     ),
-                    if (isLocationAvailable && _latitude != null && _longitude != null)...[
+                    if (isLocationAvailable &&
+                        _latitude != null &&
+                        _longitude != null) ...[
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Text(
                           'Latitude: $_latitude\nLongitude: $_longitude',
-                          style: const TextStyle(fontSize: 16, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black87),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text('Lieu corridor', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      const Text('Lieu corridor',
+                          style: TextStyle(fontSize: 14, color: Colors.grey)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: lieuCorridorController,
@@ -584,7 +635,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
   }
 
   Widget _buildBusDetailsStep() {
-    return  Column(
+    return Column(
       children: [
         Card(
           elevation: 2,
@@ -604,9 +655,12 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.directions_bus, color: Colors.blue, size: 24),
+                        Icon(Icons.directions_bus,
+                            color: Colors.blue, size: 24),
                         SizedBox(width: 8),
-                        Text('Détails du Bus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text('Détails du Bus',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -619,61 +673,196 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.directions_bus_outlined, color: Colors.blue, size: 20),
+                        Icon(Icons.directions_bus_outlined,
+                            color: Colors.blue, size: 20),
                         SizedBox(width: 8),
-                        Text('Implication du Bus', style: TextStyle(fontSize: 16)),
+                        Text('Implication du Bus',
+                            style: TextStyle(fontSize: 16)),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text('Bus DKM Impliqué', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Bus DKM Impliqué: '),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => setState(() => _busImplique = true),
+                            onPressed: () =>
+                                setState(() => _busImplique = true),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _busImplique ? Colors.blue : Colors.white,
+                              backgroundColor:
+                                  _busImplique ? Colors.blue : Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: Colors.grey[300]!),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text('Oui', style: TextStyle(color: _busImplique ? Colors.white : Colors.black87)),
+                            child: Text('Oui',
+                                style: TextStyle(
+                                    color: _busImplique
+                                        ? Colors.white
+                                        : Colors.black87)),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => setState(() => _busImplique = false),
+                            onPressed: () =>
+                                setState(() => _busImplique = false),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: !_busImplique ? Colors.blue : Colors.white,
+                              backgroundColor:
+                                  !_busImplique ? Colors.blue : Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: Colors.grey[300]!),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text('Non', style: TextStyle(color: !_busImplique ? Colors.white : Colors.black87)),
+                            child: Text('Non',
+                                style: TextStyle(
+                                    color: !_busImplique
+                                        ? Colors.white
+                                        : Colors.black87)),
                           ),
                         ),
                       ],
                     ),
                     if (_busImplique) ...[
                       const SizedBox(height: 16),
-                      const Text('Matricule du Bus', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      buildRequiredLabel('Matricule du Bus: '),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: matriculeBusController,
-                        decoration: InputDecoration(
-                          hintText: "Numéro d'identification du bus",
-                          hintStyle: TextStyle(color: Colors.grey[400]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: "Ex. DK",
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                              ),
+                              maxLength: 2,
+                              textCapitalization: TextCapitalization.characters,
+                              onChanged: (value) {
+                                if (value.length == 2) {
+                                  FocusScope.of(context).nextFocus();
+                                }
+                                matriculeBusController.text = value +
+                                    "-" +
+                                    (matriculeBusController.text
+                                                .split("-")
+                                                .length >
+                                            1
+                                        ? matriculeBusController.text
+                                            .split("-")[1]
+                                        : "") +
+                                    "-" +
+                                    (matriculeBusController.text
+                                                .split("-")
+                                                .length >
+                                            2
+                                        ? matriculeBusController.text
+                                            .split("-")[2]
+                                        : "");
+                              },
+                            ),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: "Ex. 9834",
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                              ),
+                              maxLength: 4,
+                              keyboardType: TextInputType.number,
+                              onChanged: (value) {
+                                if (value.length == 4) {
+                                  FocusScope.of(context).nextFocus();
+                                }
+                                matriculeBusController.text =
+                                    (matriculeBusController.text
+                                                    .split("-")
+                                                    .length >
+                                                0
+                                            ? matriculeBusController.text
+                                                .split("-")[0]
+                                            : "") +
+                                        "-" +
+                                        value +
+                                        "-" +
+                                        (matriculeBusController.text
+                                                    .split("-")
+                                                    .length >
+                                                2
+                                            ? matriculeBusController.text
+                                                .split("-")[2]
+                                            : "");
+                              },
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: "Ex. AA",
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                              ),
+                              maxLength: 2,
+                              textCapitalization: TextCapitalization.characters,
+                              onChanged: (value) {
+                                matriculeBusController.text =
+                                    (matriculeBusController.text
+                                                    .split("-")
+                                                    .length >
+                                                0
+                                            ? matriculeBusController.text
+                                                .split("-")[0]
+                                            : "") +
+                                        "-" +
+                                        (matriculeBusController.text
+                                                    .split("-")
+                                                    .length >
+                                                1
+                                            ? matriculeBusController.text
+                                                .split("-")[1]
+                                            : "") +
+                                        "-" +
+                                        value;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
@@ -705,7 +894,6 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                 ),
                 child: const Row(
                   children: [
-
                     Icon(Icons.personal_injury, color: Colors.orange),
                     SizedBox(width: 8),
                     Text(
@@ -723,7 +911,7 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Y a t-il un victime ?', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    buildRequiredLabel('Y a t-il un victime ? '),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -731,34 +919,51 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                           child: ElevatedButton(
                             onPressed: () => setState(() => _hasVictime = true),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _hasVictime ? Colors.blue : Colors.white,
+                              backgroundColor:
+                                  _hasVictime ? Colors.blue : Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: Colors.grey[300]!),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text('Oui', style: TextStyle(color: _hasVictime ? Colors.white : Colors.black87)),
+                            child: Text('Oui',
+                                style: TextStyle(
+                                    color: _hasVictime
+                                        ? Colors.white
+                                        : Colors.black87)),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => setState(() => _hasVictime = false),
+                            onPressed: () =>
+                                setState(() => _hasVictime = false),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: !_hasVictime ? Colors.blue : Colors.white,
+                              backgroundColor:
+                                  !_hasVictime ? Colors.blue : Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: Colors.grey[300]!),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text('Non', style: TextStyle(color: !_hasVictime ? Colors.white : Colors.black87)),
+                            child: Text('Non',
+                                style: TextStyle(
+                                    color: !_hasVictime
+                                        ? Colors.white
+                                        : Colors.black87)),
                           ),
                         ),
                       ],
                     ),
-                    if(_hasVictime)...[
-                      const SizedBox(height: 10,),
+                    if (_hasVictime) ...[
+                      const SizedBox(
+                        height: 10,
+                      ),
                       const Divider(height: 10),
-                      _buildCounterRow('Victimes conscientes', _consciousController),
-                      _buildCounterRow('Victimes inconscientes', _unconsciousController),
+                      _buildCounterRow(
+                          'Victimes conscientes', _consciousController),
+                      _buildCounterRow(
+                          'Victimes inconscientes', _unconsciousController),
                       const Divider(height: 30),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -771,7 +976,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.blue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
@@ -809,7 +1015,10 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.remove_circle_outline, size: 30,),
+            icon: Icon(
+              Icons.remove_circle_outline,
+              size: 30,
+            ),
             onPressed: () => updateValue(controller, false),
             color: Colors.red,
           ),
@@ -841,7 +1050,10 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.add_circle_outline, size: 30,),
+            icon: Icon(
+              Icons.add_circle_outline,
+              size: 30,
+            ),
             onPressed: () => updateValue(controller, true),
             color: Colors.green,
           ),
@@ -849,8 +1061,6 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
       ),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -868,10 +1078,10 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
               child: currentStep == 1
                   ? _buildAlertLevelStep()
                   : currentStep == 2
-                  ? _buildLocationStep()
-                  : currentStep == 3
-                  ? _buildVictimeStep()
-                  : _buildBusDetailsStep(),
+                      ? _buildLocationStep()
+                      : currentStep == 3
+                          ? _buildVictimeStep()
+                          : _buildBusDetailsStep(),
             ),
           ),
           Padding(

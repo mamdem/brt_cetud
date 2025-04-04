@@ -65,6 +65,24 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
   final largeurVoieEclairage = TextEditingController();
   final nombreBlesse = TextEditingController();
 
+  // Fonction pour construire un texte avec astérisque rouge
+  Widget buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: label,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> selectPhoto(String type) async {
     final picker = ImagePicker();
 
@@ -549,10 +567,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                   children: [
 
                     const SizedBox(height: 12,),
-                    const Text(
-                      "Date et Heure de l'accident :",
-                        style: TextStyle(fontSize: 14, color: Colors.grey)
-                    ),
+                    buildRequiredLabel("Date et Heure de l'accident :"),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -722,10 +737,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                     ),
                     if(blesseSelection)...[
                       const SizedBox(height: 8),
-                      const Text(
-                        "Nombre de victime:",
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                      ),
+                      buildRequiredLabel("Nombre de victime:"),
                       const SizedBox(height: 8),
                       TextField(
                         keyboardType: TextInputType.number,
@@ -769,10 +781,7 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
 
                     //Nombre de véhicule impliqué
                     SizedBox(height: 8,),
-                    const Text(
-                      "Nombre de véhicule impliquée :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
+                    buildRequiredLabel("Nombre de véhicule impliquée :"),
                     const SizedBox(height: 8),
                     TextField(
                       keyboardType: TextInputType.number,
@@ -796,9 +805,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                       thickness: 0.5,
                     ),
                     SizedBox(height: 12,),
-                    const Text(
-                      "Type de jour :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
+                    buildRequiredLabel(
+                      "Type de jour :"
                     ),
                     const SizedBox(height: 8),
                     Column(
@@ -883,10 +891,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Section :",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
-                    ),
+                    buildRequiredLabel(
+                      "Section :"),
                     const SizedBox(height: 8),
                   DropdownButtonFormField<int>(
                     value: _selectedSection, // La valeur sélectionnée
@@ -918,10 +924,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Text(
-                    'Collision entre :',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
+                    buildRequiredLabel(
+                    'Collision entre :',),
                   const SizedBox(height: 8),
                   Wrap(
                     children: collisions_entre.map((collision) {
@@ -1006,10 +1010,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //Conditions atmosphériques
-                    const Text(
-                      "Condition Atmosphérique :",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
-                    ),
+                    buildRequiredLabel(
+                      "Condition Atmosphérique :"),
                     const SizedBox(height: 8),
                     Column(
                       children: rowsAtm
@@ -1060,10 +1062,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                     const SizedBox(height: 8),
 
                     //Visibilité
-                    const Text(
-                      "Visibilité :",
-                      style: TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w300),
-                    ),
+                    buildRequiredLabel(
+                      "Visibilité :"),
                     const SizedBox(height: 8),
                     Column(
                       children: rowsVis
@@ -1114,10 +1114,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                     SizedBox(height: 8,),
 
                     //Chaussée
-                    const Text(
-                      "Chaussée :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
+                    buildRequiredLabel(
+                      "Chaussée :"),
                     const SizedBox(height: 8),
                     Column(
                       children: rowsChau
@@ -1167,10 +1165,8 @@ class _CollectAccidentScreenState extends State<CollectAccidentScreen> {
                     const SizedBox(height: 8,),
 
                     //Largeur eclairage voie
-                    const Text (
-                      "Largeur voie éclairage :",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w300, color: Colors.grey),
-                    ),
+                    buildRequiredLabel(
+                      "Largeur voie éclairage :"),
                     const SizedBox(height: 8),
                     TextField(
                       keyboardType: TextInputType.number,
