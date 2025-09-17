@@ -16,7 +16,6 @@ class DetailsFicheAccident extends StatefulWidget {
   final Map<String, dynamic>? ficheAccidentDetails;
   final bool haveDraft;
 
-
   const DetailsFicheAccident({
     Key? key,
     required this.alertDetails,
@@ -42,8 +41,10 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   void initState() {
     super.initState();
     bRespSaisi = (widget.alertDetails["responsable_saisie"] == null);
-    bRensFichAcc = (widget.ficheAccidentDetails==null && widget.alertDetails["responsable_saisie"] != null && widget.alertDetails["responsable_saisie"] == global.user['idusers']);
-    
+    bRensFichAcc = (widget.ficheAccidentDetails == null &&
+        widget.alertDetails["responsable_saisie"] != null &&
+        widget.alertDetails["responsable_saisie"] == global.user['idusers']);
+
     // Vérifier si le traitement des images est en cours
     _checkImageProcessing();
   }
@@ -56,7 +57,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     try {
       // Attendre que le traitement des images soit terminé dans saveData
       await AuthService.waitForImageProcessing();
-      
+
       // Une fois le traitement terminé, charger les dégâts matériels
       await _loadDegatsMateriels();
     } catch (e) {
@@ -71,7 +72,8 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   Future<void> _loadDegatsMateriels() async {
     if (widget.ficheAccidentDetails != null) {
       try {
-        final degats = await DatabaseHelper.getDegatsMaterielsByAccidentId(widget.ficheAccidentDetails!['idfiche_accident']);
+        final degats = await DatabaseHelper.getDegatsMaterielsByAccidentId(
+            widget.ficheAccidentDetails!['idfiche_accident']);
         setState(() {
           degatsMateriels = degats;
           _imagesLoading = false;
@@ -96,7 +98,8 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Non défini';
     }
@@ -163,9 +166,11 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
           title: "Victimes (${widget.alertDetails['nb_victime']})",
           content: Column(
             children: [
-              _buildVictimeDetail("Conscient", widget.alertDetails['victime_cons']),
+              _buildVictimeDetail(
+                  "Conscient", widget.alertDetails['victime_cons']),
               const SizedBox(height: 8),
-              _buildVictimeDetail("Inconscient", widget.alertDetails['victime_incons']),
+              _buildVictimeDetail(
+                  "Inconscient", widget.alertDetails['victime_incons']),
             ],
           ),
         ),
@@ -174,11 +179,11 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   }
 
   Widget _buildFutureInfoTile(
-      String dbTable,
-      dynamic value,
-      IconData icon,
-      String title,
-      ) {
+    String dbTable,
+    dynamic value,
+    IconData icon,
+    String title,
+  ) {
     return FutureBuilder<String>(
       future: getLibelleFromDb(dbTable, value),
       builder: (context, snapshot) {
@@ -197,7 +202,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
   Widget _buildConditionsSection() {
     return Column(
       children: [
-        const Divider(height: 30),
+        const SizedBox(height: 20),
         if (widget.ficheAccidentDetails!['condition_atmospherique'] != null)
           _buildFutureInfoTile(
             "conditon_atmostpherique",
@@ -286,7 +291,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(height: 30),
+        const SizedBox(height: 20),
         _buildInfoTile(
           icon: Icons.broken_image,
           title: "Dégâts Matériels",
@@ -307,13 +312,15 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (degat['photos'] != null && degat['photos'].toString().isNotEmpty)
+                      if (degat['photos'] != null &&
+                          degat['photos'].toString().isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: FutureBuilder<bool>(
                             future: _checkImageExists(degat['photos']),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const Center(
                                   child: CircularProgressIndicator(),
                                 );
@@ -324,15 +331,20 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                                 return Image.file(
                                   File(degat['photos']),
                                   errorBuilder: (context, error, stackTrace) {
-                                    print('Erreur de chargement de l\'image locale: $error');
+                                    print(
+                                        'Erreur de chargement de l\'image locale: $error');
                                     // Essayer de charger depuis l'URL distante si l'image locale échoue
                                     return Image.network(
                                       '${global.baseUrlImage}/storage/${degat['photos']}',
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Text('Erreur de chargement de l\'image');
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Text(
+                                            'Erreur de chargement de l\'image');
                                       },
-                                      loadingBuilder: (context, child, loadingProgress) {
-                                        if (loadingProgress == null) return child;
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
                                         return const Center(
                                           child: CircularProgressIndicator(),
                                         );
@@ -345,9 +357,11 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                                 return Image.network(
                                   '${global.baseUrlImage}/storage/${degat['photos']}',
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Text('Erreur de chargement de l\'image');
+                                    return const Text(
+                                        'Erreur de chargement de l\'image');
                                   },
-                                  loadingBuilder: (context, child, loadingProgress) {
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
                                     return const Center(
                                       child: CircularProgressIndicator(),
@@ -371,7 +385,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
 
   Future<bool> _checkImageExists(String path) async {
     if (path.startsWith('http')) return false;
-    
+
     try {
       final file = File(path);
       return await file.exists();
@@ -401,8 +415,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
       );
     }
 
-    return Container(
-      height: screenHeight - 280,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
       child: ListView(
         children: [
@@ -418,12 +431,12 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
             icon: Icons.location_on,
             title: "Localisation",
             content: FutureBuilder<String>(
-              future: (widget. alertDetails['position_lat'] != null &&
-                  widget.alertDetails['position_long'] != null)
+              future: (widget.alertDetails['position_lat'] != null &&
+                      widget.alertDetails['position_long'] != null)
                   ? global.getAddressFromLatLong(
-                  widget.alertDetails['position_lat'],
-                  widget.alertDetails['position_long'],
-                  2)
+                      widget.alertDetails['position_lat'],
+                      widget.alertDetails['position_long'],
+                      2)
                   : Future.value("Coordonnées indisponibles"),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -450,7 +463,7 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
             icon: Icons.directions_bus,
             title: "Matricule Bus",
             content: Text(
-              widget.alertDetails['matricule_bus']??"N/A",
+              widget.alertDetails['matricule_bus'] ?? "N/A",
               style: const TextStyle(fontSize: 18),
             ),
           ),
@@ -458,11 +471,12 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
             icon: Icons.warning,
             title: "Niveau alerte",
             content: Text(
-              getAlertNiveauValueString(widget.alertDetails['alerte_niveau_id']),
+              getAlertNiveauValueString(
+                  widget.alertDetails['alerte_niveau_id']),
               style: const TextStyle(fontSize: 18),
             ),
           ),
-          if(widget.ficheAccidentDetails != null)...[
+          if (widget.ficheAccidentDetails != null) ...[
             if (widget.alertDetails['nb_victime'] > 0) _buildVictimesSection(),
             if (widget.ficheAccidentDetails!['agent_assistant'] != null)
               _buildInfoTile(
@@ -477,56 +491,61 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
             _buildDegatsMaterielsSection(),
             const SizedBox(height: 20),
           ],
-          if(bRespSaisi && global.addAccident)...[
+          if (bRespSaisi && global.addAccident) ...[
             ElevatedButton.icon(
               onPressed: () async {
                 final Map<String, dynamic> dataFichResp = {
                   'code_alert': widget.alertDetails["code_alert"],
                   'responsable_saisie': global.user["idusers"],
-                  'prenom_nom': "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                  'prenom_nom':
+                      "${global.user['prenom_user']} ${global.user["nom_user"]}",
                   'created_at': DateTime.now().toIso8601String(),
                 };
-                if(widget.alertDetails['id_server']!=null){ //Si l'alerte est deja synchronisée
-                  try{
-                    await AuthService.saveResponsable( //On save a distance
+                if (widget.alertDetails['id_server'] != null) {
+                  //Si l'alerte est deja synchronisée
+                  try {
+                    await AuthService.saveResponsable(
+                        //On save a distance
                         codeAlert: widget.alertDetails["code_alert"],
                         responsableSaisie: (global.user["idusers"]),
-                        prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                        prenomNom:
+                            "${global.user['prenom_user']} ${global.user["nom_user"]}",
                         createdAt: DateTime.now().toIso8601String().toString(),
                         mp: global.user['mp'],
-                        deviceInfo: global.phoneIdentifier
-                    );
-                    final int insertedId = await DatabaseHelper().insertResponsableSaisi(dataFichResp);
-                    Get.snackbar("Reussi", "Vous êtes responsable de cet alerte");
+                        deviceInfo: global.phoneIdentifier);
+                    final int insertedId = await DatabaseHelper()
+                        .insertResponsableSaisi(dataFichResp);
+                    Get.snackbar(
+                        "Reussi", "Vous êtes responsable de cet alerte");
                     print("Insertion réussie, ID inséré : $insertedId");
                     setState(() {
                       bRensFichAcc = true;
                       bRespSaisi = false;
                     });
-                  }catch(e){
+                  } catch (e) {
                     print("Erreur lors de l'insertion : $e");
                   }
-                }else{
+                } else {
                   AuthService.saveResponsableEnLocal(
                       codeAlert: widget.alertDetails["code_alert"],
                       responsableSaisie: (global.user["idusers"]),
-                      prenomNom: "${global.user['prenom_user']} ${global.user["nom_user"]}",
+                      prenomNom:
+                          "${global.user['prenom_user']} ${global.user["nom_user"]}",
                       createdAt: DateTime.now().toIso8601String().toString(),
                       mp: global.user['mp'],
-                      deviceInfo: global.phoneIdentifier
-                  );
+                      deviceInfo: global.phoneIdentifier);
                   setState(() {
                     bRensFichAcc = true;
                     bRespSaisi = false;
                   });
                   //showError("Veuillez d'abord synchroniser !");
                 }
-
               },
               style: ElevatedButton.styleFrom(
-                primary: AppColors.appColor,
-                onPrimary: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+                foregroundColor: AppColors.appColor,
+                backgroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -542,12 +561,14 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
           if (bRensFichAcc) ...[
             ElevatedButton.icon(
               onPressed: () {
-                Get.off(CollectAccidentScreen(alertId: widget.alertDetails["idfiche_alert"]));
+                Get.off(CollectAccidentScreen(
+                    alertId: widget.alertDetails["idfiche_alert"]));
               },
               style: ElevatedButton.styleFrom(
-                primary: AppColors.appColor,
-                onPrimary: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                foregroundColor: AppColors.appColor,
+                backgroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -558,7 +579,8 @@ class _DetailsFicheAccidentState extends State<DetailsFicheAccident> {
                 widget.haveDraft
                     ? "Continuer la fiche accident"
                     : "Renseigner la fiche accident",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             if (widget.haveDraft)

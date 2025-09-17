@@ -149,18 +149,21 @@ class _PinSetupPageState extends State<PinSetupPage> {
                 ElevatedButton(
                   onPressed: _isButtonEnabled
                       ? () async {
-                    EasyLoading.instance.backgroundColor = Colors.black;
-                    EasyLoading.show(status: 'Connexion en cours...');
-                    if (pin == confPin) {
-                      await global.savePassword(pin);
-                      Get.offAll(const HomeScreen(), transition: Transition.rightToLeft);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Les PIN ne correspondent pas...')),
-                      );
-                    }
-                    EasyLoading.dismiss();
-                  }
+                          EasyLoading.instance.backgroundColor = Colors.black;
+                          EasyLoading.show(status: 'Connexion en cours...');
+                          if (pin == confPin) {
+                            await global.savePassword(pin);
+                            Get.offAll(const HomeScreen(),
+                                transition: Transition.rightToLeft);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Les PIN ne correspondent pas...')),
+                            );
+                          }
+                          EasyLoading.dismiss();
+                        }
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.appColor,

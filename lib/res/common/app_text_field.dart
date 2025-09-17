@@ -65,7 +65,7 @@ class AppTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: context.textTheme.headline4!.color,
+        color: context.textTheme.headlineMedium!.color,
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(

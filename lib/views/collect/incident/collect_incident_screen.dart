@@ -15,7 +15,8 @@ import '../../fiche/incident/fiche_incident.dart';
 
 class CollectIncidentScreen extends StatefulWidget {
   final int alertId;
-  const CollectIncidentScreen({Key? key, required this.alertId}) : super(key: key);
+  const CollectIncidentScreen({Key? key, required this.alertId})
+      : super(key: key);
 
   @override
   _CollectIncidentScreenState createState() => _CollectIncidentScreenState();
@@ -53,8 +54,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
 
   String selectedCollisions = "";
   String? mortHommeSelection;
-  bool blesseSelection=false;
-  bool interruptionService=false;
+  bool blesseSelection = false;
+  bool interruptionService = false;
 
   TextEditingController dateController = TextEditingController();
 
@@ -92,7 +93,6 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
     );
   }
 
-
   Future<void> selectPhoto(String type) async {
     final picker = ImagePicker();
 
@@ -106,7 +106,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Galerie'),
                 onTap: () async {
-                  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                  final pickedFile =
+                      await picker.pickImage(source: ImageSource.gallery);
                   if (pickedFile != null) {
                     setState(() {
                       if (type == "traceFreinage") {
@@ -125,7 +126,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Caméra'),
                 onTap: () async {
-                  final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                  final pickedFile =
+                      await picker.pickImage(source: ImageSource.camera);
                   if (pickedFile != null) {
                     setState(() {
                       if (type == "traceFreinage") {
@@ -221,24 +223,39 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
 
     await prefs.setInt('currentStep${widget.alertId}', currentStep);
 
-    await prefs.setString('traceFreinage${widget.alertId}', traceFreinageController.text);
-    await prefs.setString('traceFreinagePhoto${widget.alertId}', traceFreinagePhoto ?? "");
-    await prefs.setString('traceSang${widget.alertId}', traceSangController.text);
-    await prefs.setString('traceSangPhoto${widget.alertId}', traceSangPhoto ?? "");
-    await prefs.setString('tracePneue${widget.alertId}', tracePneueController.text);
-    await prefs.setString('tracePneuePhoto${widget.alertId}', tracePneuePhoto ?? "");
-    await prefs.setString('selectedCollisions${widget.alertId}', selectedCollisions);
+    await prefs.setString(
+        'traceFreinage${widget.alertId}', traceFreinageController.text);
+    await prefs.setString(
+        'traceFreinagePhoto${widget.alertId}', traceFreinagePhoto ?? "");
+    await prefs.setString(
+        'traceSang${widget.alertId}', traceSangController.text);
+    await prefs.setString(
+        'traceSangPhoto${widget.alertId}', traceSangPhoto ?? "");
+    await prefs.setString(
+        'tracePneue${widget.alertId}', tracePneueController.text);
+    await prefs.setString(
+        'tracePneuePhoto${widget.alertId}', tracePneuePhoto ?? "");
+    await prefs.setString(
+        'selectedCollisions${widget.alertId}', selectedCollisions);
     await prefs.setBool('blesseSelection${widget.alertId}', blesseSelection);
-    await prefs.setString('nombreVehiculeImplique${widget.alertId}', nombreVehiculeImplique.text);
-    await prefs.setString('largeurVoieEclairage${widget.alertId}', largeurVoieEclairage.text);
+    await prefs.setString(
+        'nombreVehiculeImplique${widget.alertId}', nombreVehiculeImplique.text);
+    await prefs.setString(
+        'largeurVoieEclairage${widget.alertId}', largeurVoieEclairage.text);
     await prefs.setString('nombreBlesse${widget.alertId}', nombreBlesse.text);
-    await prefs.setString('dateController${widget.alertId}', dateController.text);
+    await prefs.setString(
+        'dateController${widget.alertId}', dateController.text);
 
-    await prefs.setInt('selectedCondition${widget.alertId}', _selectedCondition ?? -1);
-    await prefs.setInt('selectedTypeJour${widget.alertId}', _selectedTypeJour ?? -1);
-    await prefs.setInt('selectedVisibilite${widget.alertId}', _selectedVisibilite ?? -1);
-    await prefs.setInt('selectedChaussee${widget.alertId}', _selectedTypeChaussee ?? -1);
-    await prefs.setInt('selectedSection${widget.alertId}', _selectedSection ?? -1);
+    await prefs.setInt(
+        'selectedCondition${widget.alertId}', _selectedCondition ?? -1);
+    await prefs.setInt(
+        'selectedTypeJour${widget.alertId}', _selectedTypeJour ?? -1);
+    await prefs.setInt(
+        'selectedVisibilite${widget.alertId}', _selectedVisibilite ?? -1);
+    await prefs.setInt(
+        'selectedChaussee${widget.alertId}', _selectedTypeChaussee ?? -1);
+    await prefs.setInt(
+        'selectedSection${widget.alertId}', _selectedSection ?? -1);
 
     print("Draft saved successfully.");
   }
@@ -250,34 +267,60 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       currentStep = prefs.getInt('currentStep${widget.alertId}') ?? 1;
 
       // Restaurer les données des champs
-      traceFreinageController.text = prefs.getString('traceFreinage${widget.alertId}') ?? "";
-      traceFreinagePhoto = prefs.getString('traceFreinagePhoto${widget.alertId}');
-      traceSangController.text = prefs.getString('traceSang${widget.alertId}') ?? "";
+      traceFreinageController.text =
+          prefs.getString('traceFreinage${widget.alertId}') ?? "";
+      traceFreinagePhoto =
+          prefs.getString('traceFreinagePhoto${widget.alertId}');
+      traceSangController.text =
+          prefs.getString('traceSang${widget.alertId}') ?? "";
       traceSangPhoto = prefs.getString('traceSangPhoto${widget.alertId}');
-      tracePneueController.text = prefs.getString('tracePneue${widget.alertId}') ?? "";
+      tracePneueController.text =
+          prefs.getString('tracePneue${widget.alertId}') ?? "";
       tracePneuePhoto = prefs.getString('tracePneuePhoto${widget.alertId}');
-      selectedCollisions = prefs.getString('selectedCollisions${widget.alertId}') ?? "";
-      blesseSelection = prefs.getBool('blesseSelection${widget.alertId}') ?? false;
-      nombreVehiculeImplique.text = prefs.getString('nombreVehiculeImplique${widget.alertId}') ?? "";
-      largeurVoieEclairage.text = prefs.getString('largeurVoieEclairage${widget.alertId}') ?? "";
-      nombreBlesse.text = prefs.getString('nombreBlesse${widget.alertId}') ?? "";
-      dateController.text = prefs.getString('dateController${widget.alertId}') ?? "";
+      selectedCollisions =
+          prefs.getString('selectedCollisions${widget.alertId}') ?? "";
+      blesseSelection =
+          prefs.getBool('blesseSelection${widget.alertId}') ?? false;
+      nombreVehiculeImplique.text =
+          prefs.getString('nombreVehiculeImplique${widget.alertId}') ?? "";
+      largeurVoieEclairage.text =
+          prefs.getString('largeurVoieEclairage${widget.alertId}') ?? "";
+      nombreBlesse.text =
+          prefs.getString('nombreBlesse${widget.alertId}') ?? "";
+      dateController.text =
+          prefs.getString('dateController${widget.alertId}') ?? "";
 
       // Restaurer les sélections
-      _selectedCondition = prefs.getInt('selectedCondition${widget.alertId}') == -1 ? null : prefs.getInt('selectedCondition${widget.alertId}');
-      _selectedTypeJour = prefs.getInt('selectedTypeJour${widget.alertId}') == -1 ? null : prefs.getInt('selectedTypeJour${widget.alertId}');
-      _selectedVisibilite = prefs.getInt('selectedVisibilite${widget.alertId}') == -1 ? null : prefs.getInt('selectedVisibilite${widget.alertId}');
-      _selectedTypeChaussee = prefs.getInt('selectedChaussee${widget.alertId}') == -1 ? null : prefs.getInt('selectedChaussee${widget.alertId}');
-      _selectedSection = prefs.getInt('selectedSection${widget.alertId}') == -1 ? null : prefs.getInt('selectedSection${widget.alertId}');
+      _selectedCondition =
+          prefs.getInt('selectedCondition${widget.alertId}') == -1
+              ? null
+              : prefs.getInt('selectedCondition${widget.alertId}');
+      _selectedTypeJour =
+          prefs.getInt('selectedTypeJour${widget.alertId}') == -1
+              ? null
+              : prefs.getInt('selectedTypeJour${widget.alertId}');
+      _selectedVisibilite =
+          prefs.getInt('selectedVisibilite${widget.alertId}') == -1
+              ? null
+              : prefs.getInt('selectedVisibilite${widget.alertId}');
+      _selectedTypeChaussee =
+          prefs.getInt('selectedChaussee${widget.alertId}') == -1
+              ? null
+              : prefs.getInt('selectedChaussee${widget.alertId}');
+      _selectedSection = prefs.getInt('selectedSection${widget.alertId}') == -1
+          ? null
+          : prefs.getInt('selectedSection${widget.alertId}');
     });
 
     print("Draft loaded successfully.");
   }
 
-  List<List<Map<String, dynamic>>> _chunk(List<Map<String, dynamic>> list, int chunkSize) {
+  List<List<Map<String, dynamic>>> _chunk(
+      List<Map<String, dynamic>> list, int chunkSize) {
     List<List<Map<String, dynamic>>> chunks = [];
     for (var i = 0; i < list.length; i += chunkSize) {
-      chunks.add(list.sublist(i, i + chunkSize > list.length ? list.length : i + chunkSize));
+      chunks.add(list.sublist(
+          i, i + chunkSize > list.length ? list.length : i + chunkSize));
     }
     return chunks;
   }
@@ -335,7 +378,9 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
         return true;
 
       case 3: // Validation de l'étape _buildDetailsCritique
-        if (blesseSelection && (nombreBlesse.text.isEmpty || int.tryParse(nombreBlesse.text) == null)) {
+        if (blesseSelection &&
+            (nombreBlesse.text.isEmpty ||
+                int.tryParse(nombreBlesse.text) == null)) {
           showError("Veuillez renseigner un nombre valide de victimes.");
           return false;
         }
@@ -367,10 +412,10 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
     } else if (currentValue > 0) {
       controller.text = (currentValue - 1).toString();
     }
-    setState(() {});  // Pour mettre à jour le total
+    setState(() {}); // Pour mettre à jour le total
   }
 
-  void showSuccess(){
+  void showSuccess() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -379,15 +424,15 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
           message: "Incident enregistré avec succès !",
           onPressed: () {
             // Naviguer vers l'écran de détails d'incident avec le premier onglet sélectionné
-            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 0), 
-              transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsIncident(alertId: widget.alertId, initialTab: 0),
+                transition: Transition.leftToRight);
           },
           onClose: () {
             // Naviguer vers l'écran de détails d'incident avec le premier onglet sélectionné
-            Get.offAll(() => DetailsIncident(alertId: widget.alertId, initialTab: 0), 
-              transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsIncident(alertId: widget.alertId, initialTab: 0),
+                transition: Transition.leftToRight);
           },
         );
       },
@@ -456,21 +501,19 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //Type incident
-                    buildRequiredLabel(
-                      "Type Incident :"
-                    ),
+                    buildRequiredLabel("Type Incident :"),
                     Column(
                       children: rowsTI.map((rowTypesIncident) {
                         return Row(
                           children: rowTypesIncident.map((typeIncident) {
-                            bool isSelected = _selectedTypeIncident == typeIncident['id'];
+                            bool isSelected =
+                                _selectedTypeIncident == typeIncident['id'];
                             return Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.all(4.0),
@@ -479,8 +522,10 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                     _selectedTypeIncident = typeIncident['id'];
                                   }),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: isSelected ? Colors.blue : Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    backgroundColor:
+                                        isSelected ? Colors.blue : Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     side: BorderSide(color: Colors.grey[300]!),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -489,7 +534,9 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                   child: Text(
                                     typeIncident['libelle'],
                                     style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.black87,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
                                 ),
@@ -500,12 +547,12 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                       }).toList(),
                     ),
 
-                    const SizedBox(height: 12,),
+                    const SizedBox(
+                      height: 12,
+                    ),
 
                     //Libellé
-                    buildRequiredLabel(
-                      "Libellé incident:"
-                    ),
+                    buildRequiredLabel("Libellé incident:"),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -516,14 +563,13 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-
                     ),
-                    const SizedBox(height: 14,),
+                    const SizedBox(
+                      height: 14,
+                    ),
 
                     //Date et heure
-                    buildRequiredLabel(
-                      "Date et heure de l'incident:"
-                    ),
+                    buildRequiredLabel("Date et heure de l'incident:"),
                     const SizedBox(height: 8),
                     TextField(
                       cursorColor: AppColors.appColor,
@@ -537,21 +583,25 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                         suffixIcon: const Icon(Icons.calendar_today),
                       ),
                       onTap: () async {
-                        if (_alertDetails != null && _alertDetails!['date_alert'] != null) {
-                          final DateTime? alertDate = DateTime.tryParse(_alertDetails!['date_alert']);
+                        if (_alertDetails != null &&
+                            _alertDetails!['date_alert'] != null) {
+                          final DateTime? alertDate =
+                              DateTime.tryParse(_alertDetails!['date_alert']);
                           if (alertDate != null) {
                             final DateTime now = DateTime.now();
 
                             final DateTime? pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: now.isAfter(alertDate) ? now : alertDate,
+                              initialDate:
+                                  now.isAfter(alertDate) ? now : alertDate,
                               firstDate: alertDate,
                               lastDate: now,
                               locale: const Locale('fr'),
                             );
 
                             if (pickedDate != null) {
-                              final TimeOfDay? pickedTime = await showTimePicker(
+                              final TimeOfDay? pickedTime =
+                                  await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.fromDateTime(now),
                               );
@@ -565,28 +615,39 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                   pickedTime.minute,
                                 );
 
-                                String formattedDateTime = pickedDateTime.toIso8601String();
+                                String formattedDateTime =
+                                    pickedDateTime.toIso8601String();
                                 dateIncidentController.text = formattedDateTime;
                               }
                             }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Date d\'alerte invalide.')),
+                              const SnackBar(
+                                  content: Text('Date d\'alerte invalide.')),
                             );
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Les détails de l\'alerte sont indisponibles.')),
+                            const SnackBar(
+                                content: Text(
+                                    'Les détails de l\'alerte sont indisponibles.')),
                           );
                         }
                       },
                     ),
-                    SizedBox(height: 8,),
+                    SizedBox(
+                      height: 8,
+                    ),
                     const Text(
                       "Sélection entre la date d'alerte et la date d'aujourd'hui",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w300, color: Colors.grey),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.grey),
                     ),
-                    const SizedBox(height: 14,),
+                    const SizedBox(
+                      height: 14,
+                    ),
                   ],
                 ),
               ),
@@ -630,16 +691,13 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     //Section
-                    buildRequiredLabel(
-                      "Section :"
-                    ),
+                    buildRequiredLabel("Section :"),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
                       value: _selectedSection, // La valeur sélectionnée
@@ -648,7 +706,6 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
-
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -665,55 +722,60 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                       }).toList(),
                       onChanged: (int? newValue) {
                         setState(() {
-                          _selectedSection = newValue!; // Met à jour la section sélectionnée
+                          _selectedSection =
+                              newValue!; // Met à jour la section sélectionnée
                         });
                       },
                     ),
                     const SizedBox(height: 16),
 
                     //Type jour
-                    buildRequiredLabel(
-                      "Type de jour :"
-                    ),
+                    buildRequiredLabel("Type de jour :"),
                     const SizedBox(height: 8),
                     Column(
                       children: rowsTj
                           .map(
                             (rowTypeJours) => Row(
-                          children: rowTypeJours
-                              .map(
-                                (typeJour) => Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: ElevatedButton(
-                                  onPressed: () => setState(() {
-                                    _selectedTypeJour = typeJour['id'];
-                                  }),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _selectedTypeJour == typeJour['id']
-                                        ? Colors.blue
-                                        : Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    side: BorderSide(color: Colors.grey[300]!),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                              children: rowTypeJours
+                                  .map(
+                                    (typeJour) => Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: ElevatedButton(
+                                          onPressed: () => setState(() {
+                                            _selectedTypeJour = typeJour['id'];
+                                          }),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                _selectedTypeJour ==
+                                                        typeJour['id']
+                                                    ? Colors.blue
+                                                    : Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 12),
+                                            side: BorderSide(
+                                                color: Colors.grey[300]!),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            typeJour['libelle'],
+                                            style: TextStyle(
+                                              color: _selectedTypeJour ==
+                                                      typeJour['id']
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  child: Text(
-                                    typeJour['libelle'],
-                                    style: TextStyle(
-                                      color: _selectedTypeJour == typeJour['id']
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                                  )
+                                  .toList(),
                             ),
                           )
-                              .toList(),
-                        ),
-                      )
                           .toList(),
                     ),
                   ],
@@ -746,10 +808,12 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.warning_amber, color: Colors.deepOrange, size: 24),
+                    Icon(Icons.warning_amber,
+                        color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Détails critiques ?',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -758,14 +822,14 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 15,),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Row(
                       children: [
                         Expanded(
                           flex: 2,
-                          child: buildRequiredLabel(
-                            "Existence \nvictime"
-                          ),
+                          child: buildRequiredLabel("Existence \nvictime"),
                         ),
                         Expanded(
                           flex: 3,
@@ -781,8 +845,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                         : Colors.white,
                                     elevation: 0,
                                     side: BorderSide(color: Colors.grey[300]!),
-                                    padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -808,8 +872,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                                         : Colors.white,
                                     elevation: 0,
                                     side: BorderSide(color: Colors.grey[300]!),
-                                    padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -829,11 +893,9 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                         ),
                       ],
                     ),
-                    if(blesseSelection)...[
+                    if (blesseSelection) ...[
                       const SizedBox(height: 8),
-                      buildRequiredLabel(
-                        "Nombre de victime:"
-                      ),
+                      buildRequiredLabel("Nombre de victime:"),
                       const SizedBox(height: 8),
                       TextField(
                         keyboardType: TextInputType.number,
@@ -847,47 +909,61 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: errorText == null
-                                ? BorderSide(color: Colors.grey) // Bordure normale
-                                : BorderSide(color: Colors.red), // Bordure rouge si erreur
+                                ? BorderSide(
+                                    color: Colors.grey) // Bordure normale
+                                : BorderSide(
+                                    color:
+                                        Colors.red), // Bordure rouge si erreur
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: errorText == null
-                                ? BorderSide(color: AppColors.appColor) // Bordure normale quand sélectionné
-                                : BorderSide(color: Colors.yellow), // Bordure rouge si erreur
+                                ? BorderSide(
+                                    color: AppColors
+                                        .appColor) // Bordure normale quand sélectionné
+                                : BorderSide(
+                                    color: Colors
+                                        .yellow), // Bordure rouge si erreur
                           ),
-                          helperText: errorText, // Affichage du message d'erreur
+                          helperText:
+                              errorText, // Affichage du message d'erreur
                         ),
                         onChanged: (value) {
                           setState(() {
                             if (value.isNotEmpty) {
-                              if (_alertDetails!['nb_victime'] < int.parse(value)) {
-                                errorText = "Attention! ${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
+                              if (_alertDetails!['nb_victime'] <
+                                  int.parse(value)) {
+                                errorText =
+                                    "Attention! ${(_alertDetails!['nb_victime'])} victime(s) a été signalée dans cette alerte";
                               } else {
-                                errorText = null; // Supprime l'erreur si la valeur est correcte
+                                errorText =
+                                    null; // Supprime l'erreur si la valeur est correcte
                               }
                             } else {
-                              errorText = null; // Supprime l'erreur si le champ est vide
+                              errorText =
+                                  null; // Supprime l'erreur si le champ est vide
                             }
                           });
                         },
                       )
                     ],
-                    const SizedBox(height: 15,),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     const Divider(
                       color: Colors.grey, // Couleur de la ligne
-                      thickness: 0.5,       // Épaisseur de la ligne
+                      thickness: 0.5, // Épaisseur de la ligne
                     ),
-                    const SizedBox(height: 12,),
+                    const SizedBox(
+                      height: 12,
+                    ),
 
                     //Interruption service
                     Row(
                       children: [
                         Expanded(
                           flex: 2,
-                          child: buildRequiredLabel(
-                            "Interruption Service"
-                          ),
+                          child: buildRequiredLabel("Interruption Service"),
                         ),
                         Expanded(
                           flex: 3,
@@ -895,16 +971,16 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () =>
-                                      setState(() => interruptionService = true),
+                                  onPressed: () => setState(
+                                      () => interruptionService = true),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: interruptionService
                                         ? Colors.orange
                                         : Colors.white,
                                     elevation: 0,
                                     side: BorderSide(color: Colors.grey[300]!),
-                                    padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -922,16 +998,16 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () =>
-                                      setState(() => interruptionService = false),
+                                  onPressed: () => setState(
+                                      () => interruptionService = false),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: !interruptionService
                                         ? Colors.blue
                                         : Colors.white,
                                     elevation: 0,
                                     side: BorderSide(color: Colors.grey[300]!),
-                                    padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -951,7 +1027,9 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12,),
+                    const SizedBox(
+                      height: 12,
+                    ),
                     //Date Reprise
                     /*if(interruptionService)...[
                       const Text(
@@ -1022,10 +1100,12 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       "section_id": _selectedSection,
       "position_lat": _alertDetails!["position_lat"],
       "position_long": _alertDetails!["position_long"],
-      "blesse":  blesseSelection?1:0,
-      "nb_blesse": (nombreBlesse.text=="" || nombreBlesse.text==null)?0 : int.parse(nombreBlesse.text),
+      "blesse": blesseSelection ? 1 : 0,
+      "nb_blesse": (nombreBlesse.text == "" || nombreBlesse.text == null)
+          ? 0
+          : int.parse(nombreBlesse.text),
       "type_jour": _selectedTypeJour,
-      "interruption_service": interruptionService?1:0,
+      "interruption_service": interruptionService ? 1 : 0,
       "date_reprise": dateRepriseController.text.isEmpty
           ? null
           : dateFormat.format(dateFormat.parse(dateRepriseController.text)),
@@ -1077,10 +1157,11 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
             _buildProgressBar(),
             Expanded(
               child: SingleChildScrollView(
-                  child: currentStep == 1 ? _buildInfosIncident()
-                       : currentStep == 2 ? _buildCondition()
-                       :                    _buildDetailsCritique()
-              ),
+                  child: currentStep == 1
+                      ? _buildInfosIncident()
+                      : currentStep == 2
+                          ? _buildCondition()
+                          : _buildDetailsCritique()),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -1099,9 +1180,9 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                             horizontal: 24,
                             vertical: 12,
                           ),
-                          backgroundColor: AppColors.appColor
-                      ),
-                      child: const Text('Précédent'),
+                          backgroundColor: AppColors.appColor),
+                      child: const Text('Précédent',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   const Spacer(),
                   ElevatedButton(
@@ -1113,7 +1194,8 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
                       ),
                       backgroundColor: AppColors.appColor,
                     ),
-                    child: Text(currentStep < nbStep ? 'Suivant' : 'Soumettre'),
+                    child: Text(currentStep < nbStep ? 'Suivant' : 'Soumettre',
+                        style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -1123,5 +1205,4 @@ class _CollectIncidentScreenState extends State<CollectIncidentScreen> {
       ),
     );
   }
-
 }

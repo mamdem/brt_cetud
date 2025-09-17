@@ -16,12 +16,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   runApp(const MyApp());
-  Jiffy.locale('fr');
+  Jiffy.setLocale('fr');
   configLoading();
 }
 
-
-void configLoading(){
+void configLoading() {
   EasyLoading.instance
     ..displayDuration = const Duration(milliseconds: 3000)
     ..indicatorType = EasyLoadingIndicatorType.circle
@@ -38,10 +37,8 @@ void configLoading(){
     ..dismissOnTap = false;
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
 
   // This widget is the root of your application.
   @override
@@ -59,6 +56,10 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        cardTheme: const CardThemeData(
+          color: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.white,
       ),
       builder: EasyLoading.init(),
       home: LoginWithPasswordOnly(),

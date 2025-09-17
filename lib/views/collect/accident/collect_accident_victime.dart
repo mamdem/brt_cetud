@@ -21,13 +21,17 @@ import '../../fiche/accident/fiche_accident.dart';
 class CollectAccidentVictimeScreen extends StatefulWidget {
   final int accidentId;
   final int alertId;
-  const CollectAccidentVictimeScreen({Key? key, required this.accidentId, required this.alertId}) : super(key: key);
+  const CollectAccidentVictimeScreen(
+      {Key? key, required this.accidentId, required this.alertId})
+      : super(key: key);
 
   @override
-  _CollectAccidentVictimeScreenState createState() => _CollectAccidentVictimeScreenState();
+  _CollectAccidentVictimeScreenState createState() =>
+      _CollectAccidentVictimeScreenState();
 }
 
-class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScreen> {
+class _CollectAccidentVictimeScreenState
+    extends State<CollectAccidentVictimeScreen> {
   int currentStep = 1;
   final int nbStep = 4;
   int? _conscient;
@@ -35,8 +39,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
   String? _selectedSexe;
 
   String? _ageErrorText;
-  bool isValidNumber=false;
-  bool isValidNumberAccompagnantTel=false;
+  bool isValidNumber = false;
+  bool isValidNumberAccompagnantTel = false;
 
   List<Map<String, dynamic>> consIncons = [];
   List<Map<String, dynamic>> vehicules = [];
@@ -47,25 +51,29 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _telController = TextEditingController();
 
-
   String? _etatVictime;
-  final TextEditingController _structureSanitaireController = TextEditingController();
+  final TextEditingController _structureSanitaireController =
+      TextEditingController();
 
   int? _vehicule;
 
-
-  final TextEditingController _natureBlessureController = TextEditingController();
+  final TextEditingController _natureBlessureController =
+      TextEditingController();
   String? statutGuerison;
   int? _selectedPosVictime;
   final TextEditingController _dateGuerisonController = TextEditingController();
 
   final TextEditingController _numPvController = TextEditingController();
-  final TextEditingController _filiationPrenomPereController = TextEditingController();
-  final TextEditingController _filiationPrenomNomMereController = TextEditingController();
-  final TextEditingController _accompagnantPrenomController = TextEditingController();
-  final TextEditingController _accompagnantNomController = TextEditingController();
-  final TextEditingController _accompagnantTelController = TextEditingController();
-
+  final TextEditingController _filiationPrenomPereController =
+      TextEditingController();
+  final TextEditingController _filiationPrenomNomMereController =
+      TextEditingController();
+  final TextEditingController _accompagnantPrenomController =
+      TextEditingController();
+  final TextEditingController _accompagnantNomController =
+      TextEditingController();
+  final TextEditingController _accompagnantTelController =
+      TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -108,21 +116,23 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
           showError("Veuillez entrer le nom de la victime.");
           return false;
         }
-        if(_selectedSexe==null){
+        if (_selectedSexe == null) {
           showError("Veuillez selectionner le sexe.");
           return false;
         }
-        if (_ageController.text.isEmpty || int.tryParse(_ageController.text) == null) {
+        if (_ageController.text.isEmpty ||
+            int.tryParse(_ageController.text) == null) {
           showError("Veuillez entrer un âge valide.");
           return false;
-        }else if(int.parse(_ageController.text) < 1 || int.parse(_ageController.text) > 120){
+        } else if (int.parse(_ageController.text) < 1 ||
+            int.parse(_ageController.text) > 120) {
           showError("L'âge doit être entre 1 et 120");
         }
         if (_telController.text.isEmpty || !isValidNumber) {
           showError("Veuillez entrer un numéro de téléphone.");
           return false;
         }
-        if(_selectedPosVictime == null){
+        if (_selectedPosVictime == null) {
           showError("Veuillez entrer la position du victime.");
           return false;
         }
@@ -156,7 +166,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
           showError("Veuillez entrer le nom de l'accompagnant.");
           return false;
         }
-        if (_accompagnantTelController.text.isEmpty && !isValidNumberAccompagnantTel) {
+        if (_accompagnantTelController.text.isEmpty &&
+            !isValidNumberAccompagnantTel) {
           showError("Veuillez entrer le téléphone de l'accompagnant.");
           return false;
         }
@@ -187,14 +198,14 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
         return BeautifulSuccessAlert(
           message: "Victime enregistrée avec succès !",
           onPressed: () {
-            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 2),
-                transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsAccident(alertId: widget.alertId, initialTab: 2),
+                transition: Transition.leftToRight);
           },
           onClose: () {
-            Get.offAll(() => DetailsAccident(alertId: widget.alertId, initialTab: 2),
-                transition: Transition.leftToRight
-            );
+            Get.offAll(
+                () => DetailsAccident(alertId: widget.alertId, initialTab: 2),
+                transition: Transition.leftToRight);
           },
         );
       },
@@ -218,31 +229,30 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
     print("Vehicle pour ce victime: $_vehicule");
     // Récupérer les données des steps
     final fiche = FicheAccidentVictime(
-      accidentId: widget.accidentId,
-      vehicleId: _vehicule,
-      prenom: _prenomController.text,
-      nom: _nomController.text,
-      age: int.tryParse(_ageController.text),
-      tel: _telController.text,
-      etatVictime: _etatVictime,
-      sexe: _selectedSexe,
-      structureSanitaireEvac: _structureSanitaireController.text,
-      statutGuerison: statutGuerison, // 'e', 'g' ou autre
-      dateGuerison: _dateGuerisonController.text.isNotEmpty
-          ? DateTime.tryParse(_dateGuerisonController.text)
-          : null,
-      numPv: _numPvController.text,
-      userSaisie: null,
-      createdAt: DateTime.now(),
-      natureBlessure: _natureBlessureController.text,
-      conscientInconscient: _conscient,
-      filiationPrenomPere: _filiationPrenomPereController.text,
-      filiationPrenomNomMere: _filiationPrenomNomMereController.text,
-      accompagnantPrenom: _accompagnantPrenomController.text,
-      accompagnantNom: _accompagnantNomController.text,
-      accompagnantTel: _accompagnantTelController.text,
-      positionVictime: _selectedPosVictime
-    );
+        accidentId: widget.accidentId,
+        vehicleId: _vehicule,
+        prenom: _prenomController.text,
+        nom: _nomController.text,
+        age: int.tryParse(_ageController.text),
+        tel: _telController.text,
+        etatVictime: _etatVictime,
+        sexe: _selectedSexe,
+        structureSanitaireEvac: _structureSanitaireController.text,
+        statutGuerison: statutGuerison, // 'e', 'g' ou autre
+        dateGuerison: _dateGuerisonController.text.isNotEmpty
+            ? DateTime.tryParse(_dateGuerisonController.text)
+            : null,
+        numPv: _numPvController.text,
+        userSaisie: null,
+        createdAt: DateTime.now(),
+        natureBlessure: _natureBlessureController.text,
+        conscientInconscient: _conscient,
+        filiationPrenomPere: _filiationPrenomPereController.text,
+        filiationPrenomNomMere: _filiationPrenomNomMereController.text,
+        accompagnantPrenom: _accompagnantPrenomController.text,
+        accompagnantNom: _accompagnantNomController.text,
+        accompagnantTel: _accompagnantTelController.text,
+        positionVictime: _selectedPosVictime);
 
     // Insérer dans la base de données locale
     final db = DatabaseHelper();
@@ -300,10 +310,12 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.local_hospital, color: Colors.deepOrange, size: 24),
+                    Icon(Icons.local_hospital,
+                        color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('État et structure sanitaire',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -369,7 +381,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     ),
                     const SizedBox(height: 16),
 
-                    const Text('Véhicule: ', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    const Text('Véhicule: ',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int?>(
                       value: _vehicule,
@@ -379,13 +392,14 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                           child: Text('Aucun'),
                         ),
                         ...vehicules.map((vehicule) => DropdownMenuItem<int?>(
-                          value: vehicule['idfiche_accident_vehicule'],
-                          child: Text(vehicule['matricule'] ?? 'Inconnu'),
-                        )),
+                              value: vehicule['idfiche_accident_vehicule'],
+                              child: Text(vehicule['matricule'] ?? 'Inconnu'),
+                            )),
                       ],
                       onChanged: (int? value) {
                         setState(() {
-                          _vehicule = value; // Peut être null si "Aucun" est sélectionné
+                          _vehicule =
+                              value; // Peut être null si "Aucun" est sélectionné
                         });
                       },
                       decoration: InputDecoration(
@@ -411,24 +425,30 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                           children: [
                             Expanded(
                               child: RadioListTile<int>(
-                                title: const Text('Oui'), // Texte pour "Conscient"
-                                value: 35, // Exemple : 35 correspond à "Conscient"
+                                title:
+                                    const Text('Oui'), // Texte pour "Conscient"
+                                value:
+                                    35, // Exemple : 35 correspond à "Conscient"
                                 groupValue: _conscient,
                                 onChanged: (value) {
                                   setState(() {
-                                    _conscient = value; // Mettre à jour la valeur
+                                    _conscient =
+                                        value; // Mettre à jour la valeur
                                   });
                                 },
                               ),
                             ),
                             Expanded(
                               child: RadioListTile<int>(
-                                title: const Text('Non'), // Texte pour "Inconscient"
-                                value: 36, // Exemple : 36 correspond à "Inconscient"
+                                title: const Text(
+                                    'Non'), // Texte pour "Inconscient"
+                                value:
+                                    36, // Exemple : 36 correspond à "Inconscient"
                                 groupValue: _conscient,
                                 onChanged: (value) {
                                   setState(() {
-                                    _conscient = value; // Mettre à jour la valeur
+                                    _conscient =
+                                        value; // Mettre à jour la valeur
                                   });
                                 },
                               ),
@@ -437,7 +457,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         ),
                       ],
                     ),
-
                   ],
                 ),
               ),
@@ -470,7 +489,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     Icon(Icons.group, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Accompagnant',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -492,7 +512,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     buildRequiredLabel('Nom de l\'accompagnant'),
                     const SizedBox(height: 8),
                     TextField(
@@ -506,7 +525,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     buildRequiredLabel('Téléphone de l\'accompagnant: '),
                     const SizedBox(height: 8),
                     IntlPhoneField(
@@ -517,26 +535,31 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                       dropdownTextStyle: safeGoogleFont(
                         'Poppins',
-                        color: AppColors.black,  // Change la couleur des textes des pays
+                        color: AppColors
+                            .black, // Change la couleur des textes des pays
                         fontSize: 16,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Téléphone',
-                        prefixIcon: const Icon(Icons.phone_android, color: AppColors.appColor),
+                        prefixIcon: const Icon(Icons.phone_android,
+                            color: AppColors.appColor),
                         hintStyle: TextStyle(color: Colors.blue.shade300),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+                          borderSide: BorderSide(
+                              color: Colors.blue.shade900, width: 2.0),
                         ),
                       ),
                       initialCountryCode: 'SN',
@@ -577,7 +600,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                     Icon(Icons.person, color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Information victime',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -599,7 +623,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     buildRequiredLabel('Nom: '),
                     const SizedBox(height: 8),
                     TextField(
@@ -612,7 +635,9 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12,),
+                    const SizedBox(
+                      height: 12,
+                    ),
                     buildRequiredLabel('Sexe: '),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
@@ -633,14 +658,17 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                         });
                       },
                     ),
-                    const SizedBox(height: 12,),
+                    const SizedBox(
+                      height: 12,
+                    ),
                     buildRequiredLabel('Âge: '),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _ageController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,2}')),
                       ],
                       decoration: InputDecoration(
                         labelText: "Age",
@@ -663,7 +691,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       },
                     ),
                     const SizedBox(height: 16),
-
                     buildRequiredLabel('Téléphone: '),
                     const SizedBox(height: 8),
                     IntlPhoneField(
@@ -674,26 +701,31 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                       dropdownTextStyle: safeGoogleFont(
                         'Poppins',
-                        color: AppColors.black,  // Change la couleur des textes des pays
+                        color: AppColors
+                            .black, // Change la couleur des textes des pays
                         fontSize: 16,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Téléphone',
-                        prefixIcon: const Icon(Icons.phone_android, color: AppColors.appColor),
+                        prefixIcon: const Icon(Icons.phone_android,
+                            color: AppColors.appColor),
                         hintStyle: TextStyle(color: Colors.blue.shade300),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(color: AppColors.appColor),
+                          borderSide:
+                              const BorderSide(color: AppColors.appColor),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+                          borderSide: BorderSide(
+                              color: Colors.blue.shade900, width: 2.0),
                         ),
                       ),
                       initialCountryCode: 'SN',
@@ -715,9 +747,9 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       hint: const Text('Sélectionnez une option'),
                       items: posVictime
                           .map((item) => DropdownMenuItem<int>(
-                        value: item['id'],
-                        child: Text(item['libelle']),
-                      ))
+                                value: item['id'],
+                                child: Text(item['libelle']),
+                              ))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -755,10 +787,12 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.document_scanner, color: Colors.deepOrange, size: 24),
+                    Icon(Icons.document_scanner,
+                        color: Colors.deepOrange, size: 24),
                     SizedBox(width: 8),
                     Text('Filiations',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -780,7 +814,6 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     buildRequiredLabel('Nom et prénom de la mère: '),
                     const SizedBox(height: 8),
                     TextField(
@@ -824,11 +857,13 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
             _buildProgressBar(),
             Expanded(
               child: SingleChildScrollView(
-                child: currentStep == 1 ? _buildVictimeStep()
-                     : currentStep == 2 ? _buildEtatEtStructureStep()
-                     : currentStep == 3 ? _buildAccompagnantStep()
-                     :                    _buildNumPVEtFiliationStep()
-              ),
+                  child: currentStep == 1
+                      ? _buildVictimeStep()
+                      : currentStep == 2
+                          ? _buildEtatEtStructureStep()
+                          : currentStep == 3
+                              ? _buildAccompagnantStep()
+                              : _buildNumPVEtFiliationStep()),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -847,9 +882,9 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                             horizontal: 24,
                             vertical: 12,
                           ),
-                          backgroundColor: AppColors.appColor
-                      ),
-                      child: const Text('Précédent'),
+                          backgroundColor: AppColors.appColor),
+                      child: const Text('Précédent',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   const Spacer(),
                   ElevatedButton(
@@ -873,7 +908,8 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
                       ),
                       backgroundColor: AppColors.appColor,
                     ),
-                    child: Text(currentStep < nbStep ? 'Suivant' : 'Soumettre'),
+                    child: Text(currentStep < nbStep ? 'Suivant' : 'Soumettre',
+                        style: const TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -883,5 +919,4 @@ class _CollectAccidentVictimeScreenState extends State<CollectAccidentVictimeScr
       ),
     );
   }
-
 }

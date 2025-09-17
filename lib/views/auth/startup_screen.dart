@@ -34,7 +34,8 @@ class _StartupScreenState extends State<StartupScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (_pageController.hasClients) {
         setState(() {
-          _currentPage = (_currentPage + 1) % 3; // 3 correspond au nombre total d'images
+          _currentPage =
+              (_currentPage + 1) % 3; // 3 correspond au nombre total d'images
         });
         _pageController.animateToPage(
           _currentPage,
@@ -60,7 +61,8 @@ class _StartupScreenState extends State<StartupScreen> {
     bool? isFirstInstall = prefs.getBool('is_first_install');
 
     if (isFirstInstall == null || isFirstInstall == false) {
-      print("🔴 Nouvelle installation détectée ! Suppression des données locales...");
+      print(
+          "🔴 Nouvelle installation détectée ! Suppression des données locales...");
       await clearLocalData(); // Supprime les données
       await prefs.setBool('is_first_install', true); // Marque l'installation
     } else {
@@ -118,6 +120,13 @@ class _StartupScreenState extends State<StartupScreen> {
                   },
                   itemCount: 3, // Nombre d'images dans le carrousel
                   itemBuilder: (context, index) {
+                    // Définir les images à afficher
+                    List<String> images = [
+                      'assets/images/start_image.jpg',
+                      'assets/images/cetud1.png',
+                      'assets/images/start_image.jpg',
+                    ];
+
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 30),
                       decoration: BoxDecoration(
@@ -130,7 +139,8 @@ class _StartupScreenState extends State<StartupScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20.0),
                         child: Image.asset(
-                          'assets/images/start_image.jpg', // Répéter la même image
+                          images[
+                              index], // Utiliser l'image correspondant à l'index
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -167,7 +177,7 @@ class _StartupScreenState extends State<StartupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   3, // Nombre d'indicateurs
-                      (index) => Container(
+                  (index) => Container(
                     width: 10.0,
                     height: 10.0,
                     margin: const EdgeInsets.symmetric(horizontal: 5.0),

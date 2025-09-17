@@ -129,16 +129,18 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
         break;
 
       case 4: // Validation du step "Détails du Bus"
-        if (_busImplique && matriculeBusController.text.isEmpty) {
-          showError("Veuillez renseigner le matricule du bus.");
-          return false;
-        }
-        // Vérifier le format du matricule (DK-XXXX-AA)
-        final matriculePattern = RegExp(r'^[A-Z]{2}-\d{3,4}-[A-Z]{2}$');
-        if (!matriculePattern.hasMatch(matriculeBusController.text)) {
-          showError(
-              "Le matricule doit être au format DK-XXX(X)-AA (ex: DK-9834-AA ou DK-123-AA)");
-          return false;
+        if (_busImplique) {
+          if (matriculeBusController.text.isEmpty) {
+            showError("Veuillez renseigner le matricule du bus.");
+            return false;
+          }
+          // Vérifier le format du matricule (DK-XXXX-AA) seulement si le bus est impliqué
+          final matriculePattern = RegExp(r'^[A-Z]{2}-\d{3,4}-[A-Z]{2}$');
+          if (!matriculePattern.hasMatch(matriculeBusController.text)) {
+            showError(
+                "Le matricule doit être au format DK-XXX(X)-AA (ex: DK-9834-AA ou DK-123-AA)");
+            return false;
+          }
         }
         break;
 
@@ -1111,7 +1113,8 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                       ),
                       backgroundColor: AppColors.appColor,
                     ),
-                    child: const Text('Précédent'),
+                    child: const Text('Précédent',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 const Spacer(),
                 ElevatedButton(
@@ -1134,8 +1137,10 @@ class _SignalementAccidentScreenState extends State<SignalementAccidentScreen> {
                     backgroundColor: AppColors.appColor,
                   ),
                   child: currentStep < nbStep
-                      ? const Text('Suivant')
-                      : const Text('Soumettre'),
+                      ? const Text('Suivant',
+                          style: TextStyle(color: Colors.white))
+                      : const Text('Soumettre',
+                          style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

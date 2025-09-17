@@ -17,7 +17,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:jiffy/jiffy.dart';
-import 'package:unique_identifier/unique_identifier.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import '../../sqflite/database_helper.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/incident_card.dart';
@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         global.user = user;
         nomComplet = "${user['prenom_user']} ${user['nom_user']}";
-        imagePath = user['photo']??"";
+        imagePath = user['photo'] ?? "";
       });
     } else {
       print('Aucun utilisateur trouvé avec cet email.');
@@ -204,7 +204,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Non défini';
     }
@@ -383,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border:
-                              Border.all(width: 1, color: AppColors.textField),
+                              Border.all(width: 1, color: Colors.grey[300]!),
                           image: DecorationImage(
                             image: FileImage(File(imagePath)),
                             fit: BoxFit.cover,
@@ -577,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   Container(
                                                     width: double.infinity,
                                                     margin: const EdgeInsets
-                                                            .symmetric(
+                                                        .symmetric(
                                                         horizontal: 10,
                                                         vertical: 5),
                                                     child: TextButton(
@@ -589,7 +590,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             Colors.white,
                                                         padding:
                                                             const EdgeInsets
-                                                                    .symmetric(
+                                                                .symmetric(
                                                                 vertical: 12),
                                                         shape:
                                                             RoundedRectangleBorder(
@@ -792,7 +793,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: 20),
                     Center(
                       child: Text(
-                        "Version : V01.00.06",
+                        "Version : V01.00.00",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w400,

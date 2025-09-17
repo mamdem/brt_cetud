@@ -16,14 +16,17 @@ class DetailsFicheIncidentDegatsMateriels extends StatefulWidget {
   const DetailsFicheIncidentDegatsMateriels({
     Key? key,
     required this.degatDetails,
-    required this.accidentID, required this.alertId,
+    required this.accidentID,
+    required this.alertId,
   }) : super(key: key);
 
   @override
-  State<DetailsFicheIncidentDegatsMateriels> createState() => _DetailsFicheIncidentDegatsMaterielsState();
+  State<DetailsFicheIncidentDegatsMateriels> createState() =>
+      _DetailsFicheIncidentDegatsMaterielsState();
 }
 
-class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncidentDegatsMateriels> {
+class _DetailsFicheIncidentDegatsMaterielsState
+    extends State<DetailsFicheIncidentDegatsMateriels> {
   DatabaseHelper db = DatabaseHelper();
   bool _isProcessingImages = true;
 
@@ -51,7 +54,7 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
 
   Future<bool> _checkImageExists(String path) async {
     if (path.startsWith('http')) return false;
-    
+
     try {
       final file = File(path);
       return await file.exists();
@@ -123,7 +126,8 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                               width: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Center(
-                                  child: Text('Erreur de chargement de l\'image'),
+                                  child:
+                                      Text('Erreur de chargement de l\'image'),
                                 );
                               },
                             );
@@ -174,7 +178,8 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                           height: 50,
                           width: 50,
                           color: Colors.grey[300],
-                          child: const Center(child: CircularProgressIndicator()),
+                          child:
+                              const Center(child: CircularProgressIndicator()),
                         );
                       }
 
@@ -223,7 +228,8 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                     height: 50,
                     width: 50,
                     color: Colors.grey[300],
-                    child: const Icon(Icons.image, size: 30, color: Colors.grey),
+                    child:
+                        const Icon(Icons.image, size: 30, color: Colors.grey),
                   ),
           ),
           const SizedBox(width: 21),
@@ -324,27 +330,30 @@ class _DetailsFicheIncidentDegatsMaterielsState extends State<DetailsFicheIncide
                 ),
               ),
       ),
-      floatingActionButton: global.addIncident ? FloatingActionButton(
-        onPressed: () async {
-          if(widget.accidentID != -1){
-            final result = await Get.to(
-              CollectIncidentDegatMaterielsScreen(
-                incidentId: widget.accidentID,
-                alertId: widget.alertId,
-              ),
-              transition: Transition.rightToLeft,
-            );
-            if (result == true) {
-              // Rafraîchir la page
-              Get.forceAppUpdate();
-            }
-          }else{
-            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche incident");
-          }
-        },
-        backgroundColor: AppColors.appColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ):null,
+      floatingActionButton: global.addIncident
+          ? FloatingActionButton(
+              onPressed: () async {
+                if (widget.accidentID != -1) {
+                  final result = await Get.to(
+                    CollectIncidentDegatMaterielsScreen(
+                      incidentId: widget.accidentID,
+                      alertId: widget.alertId,
+                    ),
+                    transition: Transition.rightToLeft,
+                  );
+                  if (result == true) {
+                    // Rafraîchir la page
+                    Get.forceAppUpdate();
+                  }
+                } else {
+                  Get.snackbar("Impossible",
+                      "Vous devez d'abord renseigner la fiche incident");
+                }
+              },
+              backgroundColor: AppColors.appColor,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

@@ -312,7 +312,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 EasyLoading.show(status: 'Requête en cours...');
                                 var result = await AuthService.getInfoUser(numTel: phoneNumber, login: loginController.text, mp: passwordController.text, code: codeSMS);
                                 EasyLoading.dismiss();
-                                print(result);
                                 if(result!=null){
                                   Get.offAll(const PinSetupPage(), transition: Transition.rightToLeft);
                                 }else{

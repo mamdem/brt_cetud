@@ -24,7 +24,8 @@ class _AllIncidentState extends State<AllIncident> {
   String formatDate(String isoDate) {
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Date invalide';
     }
@@ -106,7 +107,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Tous',
                     _typeFilter == 'tous',
                     Icons.all_inclusive,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _typeFilter = 'tous';
@@ -119,7 +120,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Accidents',
                     _typeFilter == 'accident',
                     Icons.warning_rounded,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _typeFilter = 'accident';
@@ -132,7 +133,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Incidents',
                     _typeFilter == 'incident',
                     Icons.info_rounded,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _typeFilter = 'incident';
@@ -159,7 +160,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Tous',
                     _syncFilter == 'tous',
                     Icons.all_inclusive,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _syncFilter = 'tous';
@@ -172,7 +173,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Synchronisés',
                     _syncFilter == 'sync',
                     Icons.sync,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _syncFilter = 'sync';
@@ -185,7 +186,7 @@ class _AllIncidentState extends State<AllIncident> {
                     'Non synchronisés',
                     _syncFilter == 'nonsync',
                     Icons.sync_disabled,
-                        () {
+                    () {
                       setModalState(() {
                         setState(() {
                           _syncFilter = 'nonsync';
@@ -204,7 +205,8 @@ class _AllIncidentState extends State<AllIncident> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool selected, IconData icon, VoidCallback onTap) {
+  Widget _buildFilterChip(
+      String label, bool selected, IconData icon, VoidCallback onTap) {
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
@@ -265,7 +267,8 @@ class _AllIncidentState extends State<AllIncident> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon:
+                          const Icon(Icons.arrow_back_ios, color: Colors.white),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const Expanded(
@@ -298,13 +301,19 @@ class _AllIncidentState extends State<AllIncident> {
                     const SizedBox(width: 8),
                     _buildStatCard(
                       'Accidents',
-                      _incidents.where((i) => i['type_alert'] == 41).length.toString(),
+                      _incidents
+                          .where((i) => i['type_alert'] == 41)
+                          .length
+                          .toString(),
                       Icons.warning_rounded,
                     ),
                     const SizedBox(width: 8),
                     _buildStatCard(
                       'Incidents',
-                      _incidents.where((i) => i['type_alert'] != 41).length.toString(),
+                      _incidents
+                          .where((i) => i['type_alert'] != 41)
+                          .length
+                          .toString(),
                       Icons.info_rounded,
                     ),
                   ],
@@ -329,7 +338,8 @@ class _AllIncidentState extends State<AllIncident> {
           children: [
             Icon(icon, color: Colors.white, size: 20),
             const SizedBox(width: 8),
-            Expanded( // Pour gérer l'espace disponible
+            Expanded(
+              // Pour gérer l'espace disponible
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -340,7 +350,8 @@ class _AllIncidentState extends State<AllIncident> {
                       fontSize: 12,
                     ),
                     maxLines: 1, // Limiter à une ligne
-                    overflow: TextOverflow.ellipsis, // Ajouter des ellipses si le texte dépasse
+                    overflow: TextOverflow
+                        .ellipsis, // Ajouter des ellipses si le texte dépasse
                   ),
                   Text(
                     count,
@@ -358,7 +369,6 @@ class _AllIncidentState extends State<AllIncident> {
       ),
     );
   }
-
 
   Widget _buildEmptyState() {
     return Center(
@@ -397,78 +407,78 @@ class _AllIncidentState extends State<AllIncident> {
       ),
       body: _isLoading
           ? const Center(
-        child: CircularProgressIndicator(),
-      )
+              child: CircularProgressIndicator(),
+            )
           : _filteredIncidents.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(top: 8, bottom: 80),
-        itemCount: _filteredIncidents.length,
-        itemBuilder: (context, index) {
-          final incident = _filteredIncidents[index];
+              ? _buildEmptyState()
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(top: 8, bottom: 80),
+                  itemCount: _filteredIncidents.length,
+                  itemBuilder: (context, index) {
+                    final incident = _filteredIncidents[index];
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 4, horizontal: 16),
-            child: FutureBuilder<String>(
-              future: (incident['position_lat'] != null &&
-                  incident['position_long'] != null)
-                  ? global.getAddressFromLatLong(
-                  incident['position_lat'],
-                  incident['position_long'],
-                  2)
-                  : Future.value("Coordonnées indisponibles"),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return IncidentCard(
-                    idficheAlert: incident['idfiche_alert'],
-                    title: incident['type_alert'] == 41
-                        ? 'Accident'
-                        : 'Incident',
-                    location: incident['voie'] == 1
-                        ? "Corridor: Chargement..."
-                        : "Hors Corridor: Chargement...",
-                    time: formatDate(incident['date_alert']),
-                    userAffected: incident['prenom_nom'],
-                    isIncident: !(incident['type_alert'] == 41),
-                    isSynced: incident['id_server'] != null,
-                  );
-                } else if (snapshot.hasError) {
-                  return IncidentCard(
-                    idficheAlert: incident['idfiche_alert'],
-                    title: incident['type_alert'] == 41
-                        ? 'Accident'
-                        : 'Incident',
-                    location: incident['voie'] == 1
-                        ? "Corridor: Adresse indisponible"
-                        : "Hors Corridor: Adresse indisponible",
-                    time: formatDate(incident['date_alert']),
-                    userAffected: incident['prenom_nom'],
-                    isIncident: !(incident['type_alert'] == 41),
-                    isSynced: incident['id_server'] != null,
-                  );
-                } else {
-                  return IncidentCard(
-                    idficheAlert: incident['idfiche_alert'],
-                    title: incident['type_alert'] == 41
-                        ? 'Accident'
-                        : 'Incident',
-                    location: incident['voie'] == 1
-                        ? "Corridor: ${snapshot.data!}"
-                        : "Hors Corridor: ${snapshot.data!}",
-                    time: formatDate(incident['date_alert']),
-                    userAffected: incident['prenom_nom'],
-                    isIncident: !(incident['type_alert'] == 41),
-                    isSynced: incident['id_server'] != null,
-                  );
-                }
-              },
-            ),
-          );
-        },
-      ),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 16),
+                      child: FutureBuilder<String>(
+                        future: (incident['position_lat'] != null &&
+                                incident['position_long'] != null)
+                            ? global.getAddressFromLatLong(
+                                incident['position_lat'],
+                                incident['position_long'],
+                                2)
+                            : Future.value("Coordonnées indisponibles"),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return IncidentCard(
+                              idficheAlert: incident['idfiche_alert'],
+                              title: incident['type_alert'] == 41
+                                  ? 'Accident'
+                                  : 'Incident',
+                              location: incident['voie'] == 1
+                                  ? "Corridor: Chargement..."
+                                  : "Hors Corridor: Chargement...",
+                              time: formatDate(incident['date_alert']),
+                              userAffected: incident['prenom_nom'],
+                              isIncident: !(incident['type_alert'] == 41),
+                              isSynced: incident['id_server'] != null,
+                            );
+                          } else if (snapshot.hasError) {
+                            return IncidentCard(
+                              idficheAlert: incident['idfiche_alert'],
+                              title: incident['type_alert'] == 41
+                                  ? 'Accident'
+                                  : 'Incident',
+                              location: incident['voie'] == 1
+                                  ? "Corridor: Adresse indisponible"
+                                  : "Hors Corridor: Adresse indisponible",
+                              time: formatDate(incident['date_alert']),
+                              userAffected: incident['prenom_nom'],
+                              isIncident: !(incident['type_alert'] == 41),
+                              isSynced: incident['id_server'] != null,
+                            );
+                          } else {
+                            return IncidentCard(
+                              idficheAlert: incident['idfiche_alert'],
+                              title: incident['type_alert'] == 41
+                                  ? 'Accident'
+                                  : 'Incident',
+                              location: incident['voie'] == 1
+                                  ? "Corridor: ${snapshot.data!}"
+                                  : "Hors Corridor: ${snapshot.data!}",
+                              time: formatDate(incident['date_alert']),
+                              userAffected: incident['prenom_nom'],
+                              isIncident: !(incident['type_alert'] == 41),
+                              isSynced: incident['id_server'] != null,
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

@@ -12,7 +12,11 @@ class DetailsFicheVehicule extends StatelessWidget {
   final int accidentID;
   final int alertId;
 
-  DetailsFicheVehicule({super.key, required this.vehiculeDetails, required this.accidentID, required this.alertId});
+  DetailsFicheVehicule(
+      {super.key,
+      required this.vehiculeDetails,
+      required this.accidentID,
+      required this.alertId});
 
   DatabaseHelper db = DatabaseHelper();
 
@@ -20,7 +24,8 @@ class DetailsFicheVehicule extends StatelessWidget {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Non défini';
     }
@@ -63,7 +68,8 @@ class DetailsFicheVehicule extends StatelessWidget {
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => VehicleDetailsDialog(vehicleInfo: vehicle),
+                builder: (context) =>
+                    VehicleDetailsDialog(vehicleInfo: vehicle),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -85,12 +91,14 @@ class DetailsFicheVehicule extends StatelessWidget {
     );
   }
 
-  void showVehicleDetailsDialog(BuildContext context, List<Map<String, dynamic>> vehiclesInfo) {
+  void showVehicleDetailsDialog(
+      BuildContext context, List<Map<String, dynamic>> vehiclesInfo) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 400),
             child: SingleChildScrollView(
@@ -117,57 +125,70 @@ class DetailsFicheVehicule extends StatelessWidget {
                       ],
                     ),
                     const Divider(height: 24),
-                    ...vehiclesInfo.map((vehicle) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.directions_car, color: Colors.blue),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    vehicle['matricule'] ?? 'N/A',
-                                    style: const TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                    ...vehiclesInfo
+                        .map((vehicle) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.blue.withOpacity(0.3)),
                                   ),
-                                ],
-                              ),
-                              const Divider(height: 16),
-                              _buildInfoRow("Carte grise", vehicle['num_carte_grise']),
-                              _buildInfoRow("Catégorie", _getCategoryName(vehicle['categorie_vehicule'])),
-                              const Divider(height: 16),
-                              const Text(
-                                "Information Chauffeur",
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.blue,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.directions_car,
+                                              color: Colors.blue),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            vehicle['matricule'] ?? 'N/A',
+                                            style: const TextStyle(
+                                              fontSize: 21,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Divider(height: 16),
+                                      _buildInfoRow("Carte grise",
+                                          vehicle['num_carte_grise']),
+                                      _buildInfoRow(
+                                          "Catégorie",
+                                          _getCategoryName(
+                                              vehicle['categorie_vehicule'])),
+                                      const Divider(height: 16),
+                                      const Text(
+                                        "Information Chauffeur",
+                                        style: TextStyle(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _buildInfoRow("Nom",
+                                          "${vehicle['prenom_chauffeur'] ?? ''} ${vehicle['nom_chauffeur'] ?? ''}"),
+                                      _buildInfoRow("Age",
+                                          "${vehicle['age'] ?? 'N/A'} ans"),
+                                      _buildInfoRow(
+                                          "Sexe", vehicle['sexe'] ?? 'N/A'),
+                                      if (vehicle['tel_chauffeur'] != null)
+                                        _buildInfoRow("Téléphone",
+                                            vehicle['tel_chauffeur']),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              _buildInfoRow("Nom", "${vehicle['prenom_chauffeur'] ?? ''} ${vehicle['nom_chauffeur'] ?? ''}"),
-                              _buildInfoRow("Age", "${vehicle['age'] ?? 'N/A'} ans"),
-                              _buildInfoRow("Sexe", vehicle['sexe'] ?? 'N/A'),
-                              if (vehicle['tel_chauffeur'] != null)
-                                _buildInfoRow("Téléphone", vehicle['tel_chauffeur']),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    )).toList(),
+                                const SizedBox(height: 16),
+                              ],
+                            ))
+                        .toList(),
                   ],
                 ),
               ),
@@ -232,42 +253,44 @@ class DetailsFicheVehicule extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10),
         child: vehiculeDetails.isNotEmpty
             ? ListView.builder(
-          itemCount: vehiculeDetails.length,
-          itemBuilder: (context, index) {
-            final vehicule = vehiculeDetails[index];
-            return _buildInfoTile(
-              icon: Icons.bus_alert_sharp,
-              title: "Matricule",
-              vehicle: vehicule,
-              context: context,
-            );
-          },
-        )
+                itemCount: vehiculeDetails.length,
+                itemBuilder: (context, index) {
+                  final vehicule = vehiculeDetails[index];
+                  return _buildInfoTile(
+                    icon: Icons.bus_alert_sharp,
+                    title: "Matricule",
+                    vehicle: vehicule,
+                    context: context,
+                  );
+                },
+              )
             : const Center(
-          child: Text(
-            "Aucune donnée enregistrée",
-            style: TextStyle(fontSize: 21),
-          ),
-        ),
-      ),
-      floatingActionButton: global.addAccident ? FloatingActionButton(
-        onPressed: () {
-          if(accidentID!=-1){
-            Get.to(
-              CollectAccidentVehiculeScreen(
-                accidentId: accidentID,
-                alertId: alertId,
+                child: Text(
+                  "Aucune donnée enregistrée",
+                  style: TextStyle(fontSize: 21),
+                ),
               ),
-              transition: Transition.rightToLeft,
-            );
-          }else{
-            Get.snackbar("Impossible", "Vous devez d'abord renseigner la fiche accident");
-          }
-
-        },
-        backgroundColor: AppColors.appColor,
-        child: const Icon(Icons.add, color: Colors.white, size: 27),
-      ):null,
+      ),
+      floatingActionButton: global.addAccident
+          ? FloatingActionButton(
+              onPressed: () {
+                if (accidentID != -1) {
+                  Get.to(
+                    CollectAccidentVehiculeScreen(
+                      accidentId: accidentID,
+                      alertId: alertId,
+                    ),
+                    transition: Transition.rightToLeft,
+                  );
+                } else {
+                  Get.snackbar("Impossible",
+                      "Vous devez d'abord renseigner la fiche accident");
+                }
+              },
+              backgroundColor: AppColors.appColor,
+              child: const Icon(Icons.add, color: Colors.white, size: 27),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

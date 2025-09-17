@@ -1103,7 +1103,8 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                       ),
                       backgroundColor: AppColors.appColor,
                     ),
-                    child: const Text('Précédent'),
+                    child: const Text('Précédent',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 const Spacer(),
                 ElevatedButton(
@@ -1126,8 +1127,10 @@ class _SignalementIncidentScreenState extends State<SignalementIncidentScreen> {
                     backgroundColor: AppColors.appColor,
                   ),
                   child: currentStep < nbStep
-                      ? const Text('Suivant')
-                      : const Text('Soumettre'),
+                      ? const Text('Suivant',
+                          style: TextStyle(color: Colors.white))
+                      : const Text('Soumettre',
+                          style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

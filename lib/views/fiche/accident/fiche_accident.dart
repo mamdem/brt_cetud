@@ -19,7 +19,8 @@ class DetailsAccident extends StatefulWidget {
   final int alertId;
   final int initialTab;
 
-  const DetailsAccident({super.key, required this.alertId, this.initialTab = 0});
+  const DetailsAccident(
+      {super.key, required this.alertId, this.initialTab = 0});
 
   @override
   _DetailsAccidentState createState() => _DetailsAccidentState();
@@ -32,9 +33,9 @@ class _DetailsAccidentState extends State<DetailsAccident> {
 
   Map<String, dynamic>? _alertDetails;
   Map<String, dynamic>? _ficheAccidentDetails;
-  List<Map<String, dynamic>> _ficheVehiculeDetails=[];
-  List<Map<String, dynamic>> _ficheVictimeDetails=[];
-  List<Map<String, dynamic>> _ficheDegatsDetails=[];
+  List<Map<String, dynamic>> _ficheVehiculeDetails = [];
+  List<Map<String, dynamic>> _ficheVictimeDetails = [];
+  List<Map<String, dynamic>> _ficheDegatsDetails = [];
 
   late Future<bool> _loadAllDataFuture;
   DatabaseHelper db = DatabaseHelper();
@@ -45,35 +46,40 @@ class _DetailsAccidentState extends State<DetailsAccident> {
       // Charger les préférences utilisateur
       final prefs = await SharedPreferences.getInstance();
       currentStepAcc = prefs.getInt('currentStep${widget.alertId}') ?? 1;
-      
+
       // Charger les détails de l'alerte
       final alert = await db.getAlertById(widget.alertId);
       _alertDetails = alert;
-      
+
       if (alert != null) {
         // Charger les détails de la fiche d'accident
-        final ficheAccident = await db.getFicheAccidentByIdAlert(widget.alertId);
+        final ficheAccident =
+            await db.getFicheAccidentByIdAlert(widget.alertId);
         _ficheAccidentDetails = ficheAccident;
-        
+
         if (ficheAccident != null) {
           // Charger les véhicules associés
-          final ficheAccidentVehicule = await db.getFicheVehiculeByAccidentId(ficheAccident["idfiche_accident"]);
+          final ficheAccidentVehicule = await db
+              .getFicheVehiculeByAccidentId(ficheAccident["idfiche_accident"]);
           _ficheVehiculeDetails = ficheAccidentVehicule;
-          
+
           // Charger les victimes associées
-          final victimesData = await db.getVictimesByAccidentId(ficheAccident['idfiche_accident']);
+          final victimesData = await db
+              .getVictimesByAccidentId(ficheAccident['idfiche_accident']);
           _ficheVictimeDetails = victimesData;
-          
+
           // Charger les dégâts associés
-          final degatsData = await db.getAccidentDegatsMaterielsById(ficheAccident['idfiche_accident']);
+          final degatsData = await db.getAccidentDegatsMaterielsById(
+              ficheAccident['idfiche_accident']);
           _ficheDegatsDetails = degatsData;
         }
       }
-      
+
       // Charger d'autres informations si nécessaire
       final responsables = await DatabaseHelper().getResponsablesNonSync();
-      print("NOMBRE : ${responsables.length} pour alert ${_alertDetails != null ? _alertDetails!['code_alert'] : 'null'}");
-      
+      print(
+          "NOMBRE : ${responsables.length} pour alert ${_alertDetails != null ? _alertDetails!['code_alert'] : 'null'}");
+
       return true;
     } catch (e) {
       print("Erreur lors du chargement des données: $e");
@@ -97,14 +103,15 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Non défini';
     }
   }
 
-  String getAlertNiveauValueString(int value){
-    switch (value){
+  String getAlertNiveauValueString(int value) {
+    switch (value) {
       case 1:
         return "Situation d'urgence";
       case 2:
@@ -116,8 +123,8 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     }
   }
 
-  String getConditionAtVal(int value){
-    switch (value){
+  String getConditionAtVal(int value) {
+    switch (value) {
       case 1:
         return "Soleil";
       case 2:
@@ -129,8 +136,8 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     }
   }
 
-  String getTypeJourVal(int value){
-    switch (value){
+  String getTypeJourVal(int value) {
+    switch (value) {
       case 1:
         return "Jour";
       case 2:
@@ -140,8 +147,8 @@ class _DetailsAccidentState extends State<DetailsAccident> {
     }
   }
 
-  String getSectionVal(int value){
-    switch (value){
+  String getSectionVal(int value) {
+    switch (value) {
       case 1:
         return "Section 1";
       case 2:
@@ -167,10 +174,11 @@ class _DetailsAccidentState extends State<DetailsAccident> {
         appBar: AppBar(
           title: const Text(
             "Détails de l'accident",
+            style: TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.appColor,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Get.offAll(() => const HomeScreen());
             },
@@ -196,7 +204,8 @@ class _DetailsAccidentState extends State<DetailsAccident> {
                   ],
                 ),
               );
-            } else if (snapshot.hasError || (snapshot.hasData && !snapshot.data!)) {
+            } else if (snapshot.hasError ||
+                (snapshot.hasData && !snapshot.data!)) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -223,7 +232,7 @@ class _DetailsAccidentState extends State<DetailsAccident> {
                 ),
               );
             }
-            
+
             // Les données sont chargées, afficher l'interface
             return DefaultTabController(
               length: 4,
@@ -231,29 +240,34 @@ class _DetailsAccidentState extends State<DetailsAccident> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 20.0),
+                    padding: const EdgeInsets.only(
+                        left: 20.0, right: 20.0, top: 20.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           "Accident",
-                          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 25, fontWeight: FontWeight.bold),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: _alertDetails != null &&
-                                _alertDetails!['blesse_oui_non'] == 1
+                                    _alertDetails!['blesse_oui_non'] == 1
                                 ? Colors.redAccent.withOpacity(0.2)
                                 : Colors.greenAccent.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                            _alertDetails != null &&
+                                    _alertDetails!["prenom_nom"] != null
                                 ? 'Responsable: ${_alertDetails!["prenom_nom"]}'
                                 : 'Non affecté',
                             style: TextStyle(
-                              color: _alertDetails != null && _alertDetails!["prenom_nom"] != null
+                              color: _alertDetails != null &&
+                                      _alertDetails!["prenom_nom"] != null
                                   ? Colors.green
                                   : Colors.red,
                               fontWeight: FontWeight.w500,
@@ -263,107 +277,170 @@ class _DetailsAccidentState extends State<DetailsAccident> {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
                     child: TabBar(
                       physics: const BouncingScrollPhysics(),
-                      isScrollable: true,
-                      unselectedLabelColor: AppColors.appColor,
+                      isScrollable: false,
+                      unselectedLabelColor: Colors.grey[600],
                       labelColor: AppColors.white,
                       indicator: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: AppColors.appColor.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.appColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.appColor.withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      dividerColor: Colors.transparent,
                       tabs: [
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                          child: const Tab(
-                            icon: Icon(Icons.warning_amber),
-                            text: "Accident",
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 4),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.warning_amber, size: 20),
+                              SizedBox(height: 4),
+                              Text("Accident",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.visible,
+                                  maxLines: 1),
+                            ],
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                          child: const Tab(
-                            icon: Icon(Icons.directions_car),
-                            text: "Véhicule",
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 4),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.directions_car, size: 20),
+                              SizedBox(height: 4),
+                              Text("Véhicule",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.visible,
+                                  maxLines: 1),
+                            ],
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                          child: const Tab(
-                            icon: Icon(Icons.people),
-                            text: "Victime",
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 4),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.people, size: 20),
+                              SizedBox(height: 4),
+                              Text("Victime",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.visible,
+                                  maxLines: 1),
+                            ],
                           ),
                         ),
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 0.0),
-                          child: const Tab(
-                            icon: Icon(Icons.dangerous),
-                            text: "Dégats",
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 4),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.dangerous, size: 20),
+                              SizedBox(height: 4),
+                              Text("Dégâts",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.visible,
+                                  maxLines: 1),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Divider(thickness: 1),
-                  ),
+                  const SizedBox(height: 10),
                   Expanded(
                     child: TabBarView(
                       children: [
                         (_alertDetails != null)
                             ? DetailsFicheAccident(
-                          alertDetails: _alertDetails!,
-                          ficheAccidentDetails: _ficheAccidentDetails,
-                          haveDraft: currentStepAcc != 1,
-                        )
+                                alertDetails: _alertDetails!,
+                                ficheAccidentDetails: _ficheAccidentDetails,
+                                haveDraft: currentStepAcc != 1,
+                              )
                             : const Center(
-                          child: Text("Données d'alerte non disponibles"),
-                        ),
+                                child: Text("Données d'alerte non disponibles"),
+                              ),
                         DetailsFicheVehicule(
                           vehiculeDetails: _ficheVehiculeDetails,
                           accidentID: _ficheAccidentDetails != null
                               ? _ficheAccidentDetails!["idfiche_accident"]
-                              : -1, alertId: widget.alertId,
-                        ),
-                        global.viewVictimeAccident ? DetailsFicheAccidentVictime(
-                          victimeDetails: _ficheVictimeDetails,
-                          alertId: widget.alertId,
-                          accidentID: _ficheAccidentDetails != null
-                              ? _ficheAccidentDetails!["idfiche_accident"]
                               : -1,
-                        ):Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.no_accounts,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                "Accès non autorisé",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Vous n'avez pas la permission de\nvoir les victimes",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[500],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
+                          alertId: widget.alertId,
                         ),
+                        global.viewVictimeAccident
+                            ? DetailsFicheAccidentVictime(
+                                victimeDetails: _ficheVictimeDetails,
+                                alertId: widget.alertId,
+                                accidentID: _ficheAccidentDetails != null
+                                    ? _ficheAccidentDetails!["idfiche_accident"]
+                                    : -1,
+                              )
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.no_accounts,
+                                      size: 64,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      "Accès non autorisé",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Vous n'avez pas la permission de\nvoir les victimes",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey[500],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
                         DetailsFicheDegatsMateriels(
                           degatDetails: _ficheDegatsDetails,
                           alertId: widget.alertId,

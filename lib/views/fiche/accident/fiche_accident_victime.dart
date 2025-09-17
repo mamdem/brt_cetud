@@ -26,7 +26,8 @@ class DetailsFicheAccidentVictime extends StatelessWidget {
     if (isoDate == null || isoDate.isEmpty) return 'Non défini';
     try {
       final dateTime = DateTime.parse(isoDate);
-      return Jiffy(dateTime).format("dd MMM yyyy 'à' HH:mm");
+      return Jiffy.parseFromDateTime(dateTime)
+          .format(pattern: "dd MMM yyyy 'à' HH:mm");
     } catch (e) {
       return 'Non défini';
     }

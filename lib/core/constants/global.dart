@@ -6,10 +6,12 @@ import 'package:brt_mobile/core/constants/global.dart' as global;
 
 
 
-const String baseUrl = "https://cetud.saytu.pro/api";
-const String baseUrlImage = "https://cetud.saytu.pro";
+//const String baseUrl = "https://cetud.saytu.pro/api";
+//const String baseUrlImage = "https://cetud.saytu.pro";
 //const String baseUrl = "http://sicacetud.groupesoterco.com/api";
 //const String baseUrlImage = "http://sicacetud.groupesoterco.com";
+const String baseUrl = "https://systemecartographie.cetud.sn/api";
+const String baseUrlImage = "https://systemecartographie.cetud.sn";
 
 late String phoneIdentifier;
 
@@ -29,6 +31,12 @@ Future<void> savePassword(String pwd) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString("pwd", pwd);
 }
+
+Future<void> saveServerPassword(String pwd) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString("serverPwd", pwd);
+}
+
 
 Future<void> getPermissions() async{
   final prefs = await SharedPreferences.getInstance();

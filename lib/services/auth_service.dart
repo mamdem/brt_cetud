@@ -802,6 +802,7 @@ class AuthService {
     }
   }
 
+
   static Future<void> fetchUser() async {
     final db = DatabaseHelper();
     final user = await db.getUser();
@@ -831,7 +832,7 @@ class AuthService {
           db.saveJsonData(jsonData);
           global.saveIsConnected(true);
           global.saveIsFirstConnection(true);
-          global.savePassword(mp);
+          global.saveServerPassword(mp);
           return jsonData;
         }else{
           return null;
